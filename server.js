@@ -13,7 +13,6 @@ let db;
 
 function openDb() {
   db = new DatabaseSync(DB_PATH);
-  db.exec('PRAGMA journal_mode = WAL;');
   db.exec('PRAGMA foreign_keys = ON;');
 }
 
