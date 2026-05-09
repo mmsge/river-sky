@@ -193,6 +193,16 @@
       font-size: 0.82rem; font-weight: bold; margin-bottom: 10px;
       font-family: 'Cinzel', serif; letter-spacing: 0.05em;
     }
+    .hope-note {
+      background: #fef9e7; border-left: 3px solid #f1c40f;
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.88rem; margin-bottom: 10px;
+    }
+    .caster-note {
+      background: #eaf4fb; border-left: 3px solid #2e86c1;
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.88rem; margin-bottom: 10px;
+    }
     .unavail-header {
       font-family: 'Cinzel', serif; font-size: 0.75rem;
       letter-spacing: 0.1em; text-transform: uppercase;
@@ -354,9 +364,8 @@
     <p class="browser-h2">📖 Damage Distributions</p>
 
     <div class="type-legend">
-      <span class="legend-item"><span class="legend-dot" style="background:#c0392b"></span> Spell</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#1a5276"></span> Weapon</span>
-      <span class="legend-item"><span class="legend-dot" style="background:#6c3483"></span> Ability</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#c0392b;opacity:0.85"></span> Spells &amp; Construct — warm tones</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#2471a3;opacity:0.85"></span> Weapons — cool tones</span>
     </div>
 
     <div class="overlay-panel">
@@ -411,6 +420,18 @@ const ATTACKS = [
 ];
 
 const TYPE_COLOR = { spell:'#c0392b', weapon:'#1a5276', ability:'#6c3483' };
+
+const ATTACK_COLOR = {
+  'Fireball':        '#c0392b',
+  'Wild Flame':      '#e67e22',
+  'Wall of Flame':   '#e74c3c',
+  'Construct Attack':'#b7500a',
+  'Blunderburst':    '#2471a3',
+  'Bladed Whip':     '#148f77',
+  'Whip':            '#1a8a9e',
+  'Long Tongue':     '#27ae60',
+  'Mystic Tether':   '#8e44ad',
+};
 
 // ══════════════════════════════════════════
 // MATH
@@ -575,6 +596,10 @@ function runAdvisor() {
   const fbAvail = avail.find(x => x.atk.name === 'Fireball');
   if (fbAvail && c.allies)
     html += `<div class="ff-warning">⚠️ FRIENDLY FIRE — Fireball will hit any ally within Very Close of the target!</div>`;
+  if (c.hope >= 2)
+    html += `<div class="hope-note">✦ With ${c.hope} Hope, <strong>Parallela</strong> is available this turn.</div>`;
+  if (c.caster)
+    html += `<div class="caster-note">⚑ Enemy is a spellcaster — consider holding <strong>Repudiate</strong> as a reaction rather than ranking it as an attack.</div>`;
 
   for (let i = 0; i < avail.length; i++) {
     const { atk } = avail[i];
@@ -754,7 +779,7 @@ function drawOverlay() {
   const series = [];
   for (const atk of ATTACKS) {
     if (!DISTS[atk.name] || !overlayActive.has(atk.name)) continue;
-    series.push({ dist: DISTS[atk.name].full, color: TYPE_COLOR[atk.type], alpha: 0.6 });
+    series.push({ dist: DISTS[atk.name].full, color: ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type], alpha: 0.6 });
   }
   drawChart(canvas, series, null);
 }
@@ -766,7 +791,7 @@ function buildBrowser() {
   togglesEl.innerHTML = '';
   for (const atk of ATTACKS) {
     if (!DISTS[atk.name]) continue;
-    const color = TYPE_COLOR[atk.type];
+    const color = ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type];
     const lbl = document.createElement('label');
     lbl.className = 'overlay-toggle';
     lbl.innerHTML = `<input type="checkbox" data-n="${atk.name}">
@@ -798,7 +823,7 @@ function buildBrowser() {
     }
 
     const distData = DISTS[atk.name];
-    const color = TYPE_COLOR[atk.type];
+    const color = ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type];
     const st = distStats(distData.full);
     const canvasId = 'c' + (idx++);
 
