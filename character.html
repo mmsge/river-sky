@@ -466,6 +466,25 @@
 
     .loading { text-align:center; padding:36px; font-style:italic; color:var(--ink-light); }
 
+    /* ── Session ── */
+    .session-entry { display:flex; gap:10px; align-items:flex-start; padding:7px 0; border-bottom:1px solid rgba(139,69,19,0.12); }
+    .session-entry:last-child { border-bottom:none; }
+    .entry-badge { font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.07em; border-radius:3px; padding:2px 6px; white-space:nowrap; flex-shrink:0; margin-top:2px; }
+    .entry-badge.stat { background:rgba(139,69,19,0.1); color:var(--ink-light); border:1px solid rgba(139,69,19,0.2); }
+    .entry-badge.note { background:rgba(26,92,92,0.1); color:#1a5c5c; border:1px solid rgba(26,92,92,0.25); }
+    .entry-content { flex:1; font-size:0.88rem; line-height:1.4; }
+    .entry-time { font-family:'Cinzel',serif; font-size:0.6rem; color:var(--ink-light); margin-top:2px; }
+    .session-log { max-height:340px; overflow-y:auto; border:1px solid rgba(139,69,19,0.25); border-radius:4px; padding:8px 12px; background:rgba(255,255,240,0.4); }
+    .session-note-area { width:100%; resize:vertical; min-height:64px; background:rgba(255,255,240,0.85); border:1px solid rgba(139,69,19,0.4); border-radius:3px; padding:7px 9px; font-family:'IM Fell English',Georgia,serif; font-size:0.92rem; color:var(--ink); }
+    .session-note-area:focus { outline:none; border-color:var(--gold); }
+    .session-action-row { display:flex; gap:8px; margin-top:6px; align-items:center; flex-wrap:wrap; }
+    .session-btn { font-family:'Cinzel',serif; font-size:0.72rem; letter-spacing:0.06em; border-radius:3px; padding:5px 12px; cursor:pointer; border:1px solid; transition:all 0.15s; }
+    .session-btn.primary { background:rgba(139,69,19,0.08); border-color:var(--border); color:var(--ink); }
+    .session-btn.primary:hover { background:rgba(200,134,10,0.15); }
+    .session-btn.danger { background:rgba(139,0,0,0.06); border-color:#8b0000; color:#8b0000; }
+    .session-btn.danger:hover { background:rgba(139,0,0,0.12); }
+    .session-empty { font-style:italic; color:var(--ink-light); font-size:0.88rem; padding:12px 0; }
+
     /* ── Two-column sheet layout ── */
     .sheet-columns {
       display: grid;
@@ -512,7 +531,10 @@
 <header>
   <div class="header-nav">
     <a href="/" class="back-link">← Combat Advisor</a>
-    <span></span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="session-indicator" style="display:none;font-family:'Cinzel',serif;font-size:0.72rem;color:#1a5c1a;cursor:pointer;border:1px solid #1a5c1a;border-radius:3px;padding:3px 8px;background:rgba(26,92,26,0.07)">● Session</span>
+      <a href="/sessions.html" class="back-link">📖 Sessions</a>
+    </div>
   </div>
   <div class="char-title" id="hdr-name">River Sky</div>
   <div class="char-subtitle" id="hdr-subtitle">Loading…</div>
@@ -522,6 +544,7 @@
   <button class="tab-btn active" data-tab="sheet">📜 Character Sheet</button>
   <button class="tab-btn" data-tab="history">🕰 History</button>
   <button class="tab-btn" data-tab="branches">🌿 Branches</button>
+  <button class="tab-btn" data-tab="session">🎲 Session</button>
 </nav>
 
 <main>
@@ -751,6 +774,12 @@
     <div id="branches-body" style="display:none"></div>
   </div>
 
+  <!-- ══ SESSION TAB ══ -->
+  <div id="session-tab" class="tab-content">
+    <div id="session-loading" class="loading">Loading session…</div>
+    <div id="session-body" style="display:none"></div>
+  </div>
+
 </main>
 
 <!-- ── Floating save ── -->
@@ -921,6 +950,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById(btn.dataset.tab+'-tab').classList.add('active');
     if (btn.dataset.tab==='history')  loadHistory();
     if (btn.dataset.tab==='branches') loadBranches();
+    if (btn.dataset.tab==='session')  loadSession();
   });
 });
 
@@ -1587,6 +1617,9 @@ document.getElementById('save-confirm').addEventListener('click', async () => {
     currentSnapshotId = data.snapshotId;
     savedCharacter = deepCopy(workingCharacter);
     markDirty(); showToast('Saved: '+desc);
+    if (document.querySelector('.tab-btn[data-tab="session"]').classList.contains('active')) {
+      loadSession();
+    }
   } catch(err) { showToast('Save failed: '+err.message,'err'); }
 });
 
@@ -1738,11 +1771,119 @@ async function loadBranches() {
 }
 
 // ════════════════════════════════════════
+// Session
+// ════════════════════════════════════════
+
+function fmtSessionDate(s) {
+  if (!s) return '';
+  const d = new Date(s.replace(' ','T'));
+  return d.toLocaleString([], {dateStyle:'short', timeStyle:'short'});
+}
+
+function renderSessionEntries(entries) {
+  if (!entries.length) return '<p class="session-empty">No entries yet.</p>';
+  return entries.map(e => `
+    <div class="session-entry">
+      <span class="entry-badge ${e.kind}">${e.kind === 'stat' ? 'stat' : 'note'}</span>
+      <div>
+        <div class="entry-content">${esc(e.content)}</div>
+        <div class="entry-time">${fmtSessionDate(e.created_at)}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function loadSession() {
+  const loading = document.getElementById('session-loading');
+  const body    = document.getElementById('session-body');
+  loading.style.display = '';
+  body.style.display    = 'none';
+
+  const { session } = await fetch('/api/session/active').then(r => r.json());
+
+  const indicator = document.getElementById('session-indicator');
+
+  if (!session) {
+    indicator.style.display = 'none';
+    body.innerHTML = `
+      <div class="section">
+        <div class="section-title">🎲 Start a Session</div>
+        <div class="field-row" style="margin-bottom:10px">
+          <label class="field-label">Session name (optional)</label>
+          <input id="session-name-input" class="field-input" placeholder="e.g. Session 4 — The Dungeon" maxlength="120">
+        </div>
+        <button class="session-btn primary" id="session-start-btn">Start Session</button>
+      </div>`;
+    document.getElementById('session-start-btn').addEventListener('click', async () => {
+      const name = document.getElementById('session-name-input').value.trim();
+      await fetch('/api/session/start', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ name: name || undefined })
+      });
+      loadSession();
+    });
+  } else {
+    indicator.style.display = '';
+    indicator.onclick = () => {
+      document.querySelector('.tab-btn[data-tab="session"]').click();
+    };
+
+    body.innerHTML = `
+      <div class="section">
+        <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🎲 ${esc(session.name)}</span>
+          <span style="font-size:0.68rem;color:#1a5c1a;font-weight:400">● In Progress</span>
+        </div>
+        <div style="font-family:'Cinzel',serif;font-size:0.67rem;color:var(--ink-light);margin-bottom:12px">
+          Started ${fmtSessionDate(session.started_at)}
+        </div>
+
+        <div class="field-row" style="margin-bottom:4px">
+          <label class="field-label">Add note</label>
+          <textarea id="session-note-input" class="session-note-area" placeholder="What just happened?"></textarea>
+        </div>
+        <div class="session-action-row">
+          <button class="session-btn primary" id="session-add-note-btn">Add Note</button>
+          <button class="session-btn danger" id="session-end-btn">End Session</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Session Log</div>
+        <div class="session-log" id="session-log">${renderSessionEntries(session.entries)}</div>
+      </div>`;
+
+    // scroll log to bottom
+    const log = document.getElementById('session-log');
+    log.scrollTop = log.scrollHeight;
+
+    document.getElementById('session-add-note-btn').addEventListener('click', async () => {
+      const content = document.getElementById('session-note-input').value.trim();
+      if (!content) return;
+      await fetch('/api/session/note', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ content })
+      });
+      loadSession();
+    });
+
+    document.getElementById('session-end-btn').addEventListener('click', async () => {
+      if (!confirm('End the current session?')) return;
+      await fetch('/api/session/end', { method: 'POST' });
+      loadSession();
+    });
+  }
+
+  loading.style.display = 'none';
+  body.style.display    = '';
+}
+
+// ════════════════════════════════════════
 // Init
 // ════════════════════════════════════════
 
 wireInputs();
 loadCharacter();
+loadSession(); // prime the session indicator on page load
 </script>
 </body>
 </html>

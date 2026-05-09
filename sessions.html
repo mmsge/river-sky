@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sessions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --parchment: #f4e8c1;
+      --ink: #2b1d0e;
+      --ink-light: #5c3d1e;
+      --border: #8b4513;
+      --gold: #c8860a;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--parchment);
+      background-image:
+        radial-gradient(ellipse at 15% 30%, rgba(139,90,43,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 70%, rgba(100,60,20,0.07) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,90,43,0.015) 3px, rgba(139,90,43,0.015) 4px),
+        repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(139,90,43,0.01) 4px, rgba(139,90,43,0.01) 5px);
+      font-family: 'IM Fell English', Georgia, serif;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at top left,    rgba(100,60,10,0.13) 0%, transparent 28%),
+        radial-gradient(ellipse at bottom right, rgba(100,60,10,0.11) 0%, transparent 28%),
+        radial-gradient(ellipse at top right,    rgba(80,40,10,0.07)  0%, transparent 22%);
+    }
+    body > * { position: relative; z-index: 1; }
+
+    header {
+      text-align: center;
+      padding: 14px 16px 10px;
+      border-bottom: 3px double var(--border);
+      background: linear-gradient(180deg, rgba(200,134,10,0.09) 0%, transparent 100%);
+    }
+    .header-nav { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .back-link {
+      font-family: 'Cinzel', serif; font-size: 0.75rem;
+      color: var(--ink-light); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 3px 10px; background: rgba(139,69,19,0.06);
+      transition: all 0.15s;
+    }
+    .back-link:hover { background: rgba(200,134,10,0.15); color: var(--ink); }
+    .page-title {
+      font-family: 'Cinzel', serif; font-size: clamp(1.4rem,4vw,2rem);
+      font-weight: 700; letter-spacing: 0.05em;
+      text-shadow: 1px 1px 0 rgba(200,134,10,0.3);
+    }
+
+    main { max-width: 780px; margin: 0 auto; padding: 20px 16px 60px; }
+
+    .loading { text-align:center; padding:36px; font-style:italic; color:var(--ink-light); }
+    .empty { text-align:center; padding:36px; font-style:italic; color:var(--ink-light); }
+
+    .session-card {
+      border: 1px solid rgba(139,69,19,0.35); border-radius: 5px;
+      background: rgba(255,255,240,0.45); margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .session-card-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; cursor: pointer;
+      border-bottom: 1px solid transparent;
+      transition: background 0.15s;
+    }
+    .session-card-header:hover { background: rgba(200,134,10,0.07); }
+    .session-card.open .session-card-header { border-bottom-color: rgba(139,69,19,0.2); }
+    .session-card-name {
+      flex: 1;
+      font-family: 'Cinzel', serif; font-size: 0.9rem; font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+    .session-badge {
+      font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.06em;
+      border-radius: 3px; padding: 2px 7px; border: 1px solid;
+    }
+    .session-badge.active { color: #1a5c1a; border-color: #1a5c1a; background: rgba(26,92,26,0.08); }
+    .session-badge.ended  { color: var(--ink-light); border-color: rgba(139,69,19,0.3); background: rgba(139,69,19,0.05); }
+    .session-meta {
+      font-family: 'Cinzel', serif; font-size: 0.63rem;
+      color: var(--ink-light); letter-spacing: 0.05em;
+    }
+    .session-expand-icon { font-size: 0.7rem; color: var(--ink-light); }
+
+    .session-card-body { padding: 10px 14px 14px; display: none; }
+    .session-card.open .session-card-body { display: block; }
+
+    .entry-list { }
+    .session-entry { display:flex; gap:10px; align-items:flex-start; padding:6px 0; border-bottom:1px solid rgba(139,69,19,0.1); }
+    .session-entry:last-child { border-bottom:none; }
+    .entry-badge { font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.07em; border-radius:3px; padding:2px 6px; white-space:nowrap; flex-shrink:0; margin-top:2px; }
+    .entry-badge.stat { background:rgba(139,69,19,0.1); color:var(--ink-light); border:1px solid rgba(139,69,19,0.2); }
+    .entry-badge.note { background:rgba(26,92,92,0.1); color:#1a5c5c; border:1px solid rgba(26,92,92,0.25); }
+    .entry-content { flex:1; font-size:0.88rem; line-height:1.4; }
+    .entry-time { font-family:'Cinzel',serif; font-size:0.6rem; color:var(--ink-light); margin-top:2px; }
+    .entry-loading { font-style:italic; color:var(--ink-light); font-size:0.88rem; padding:8px 0; }
+    .entry-empty { font-style:italic; color:var(--ink-light); font-size:0.88rem; padding:8px 0; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-nav">
+    <a href="/character.html" class="back-link">← Character Sheet</a>
+    <span></span>
+  </div>
+  <div class="page-title">📖 Sessions</div>
+</header>
+
+<main>
+  <div id="loading" class="loading">Loading sessions…</div>
+  <div id="sessions-list" style="display:none"></div>
+</main>
+
+<script>
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s.replace(' ','T'));
+  return d.toLocaleString([], {dateStyle:'short', timeStyle:'short'});
+}
+
+const openSessions = new Set();
+const loadedSessions = new Map();
+
+function renderEntry(e) {
+  return `<div class="session-entry">
+    <span class="entry-badge ${e.kind}">${e.kind}</span>
+    <div>
+      <div class="entry-content">${esc(e.content)}</div>
+      <div class="entry-time">${fmtDate(e.created_at)}</div>
+    </div>
+  </div>`;
+}
+
+async function expandSession(id) {
+  const bodyEl = document.getElementById(`session-body-${id}`);
+  if (loadedSessions.has(id)) {
+    bodyEl.innerHTML = loadedSessions.get(id);
+    return;
+  }
+  bodyEl.innerHTML = '<div class="entry-loading">Loading…</div>';
+  const data = await fetch(`/api/sessions/${id}`).then(r => r.json());
+  const html = data.entries.length
+    ? data.entries.map(renderEntry).join('')
+    : '<div class="entry-empty">No entries recorded.</div>';
+  loadedSessions.set(id, html);
+  bodyEl.innerHTML = html;
+}
+
+function toggleSession(id) {
+  const card = document.getElementById(`session-card-${id}`);
+  const icon = document.getElementById(`session-icon-${id}`);
+  if (openSessions.has(id)) {
+    openSessions.delete(id);
+    card.classList.remove('open');
+    icon.textContent = '▸';
+  } else {
+    openSessions.add(id);
+    card.classList.add('open');
+    icon.textContent = '▾';
+    expandSession(id);
+  }
+}
+
+async function loadSessions() {
+  const sessions = await fetch('/api/sessions').then(r => r.json());
+  document.getElementById('loading').style.display = 'none';
+  const listEl = document.getElementById('sessions-list');
+  listEl.style.display = '';
+
+  if (!sessions.length) {
+    listEl.innerHTML = '<div class="empty">No sessions recorded yet.</div>';
+    return;
+  }
+
+  listEl.innerHTML = sessions.map(s => {
+    const isActive = !s.ended_at;
+    const badge = isActive
+      ? '<span class="session-badge active">● In Progress</span>'
+      : '<span class="session-badge ended">Ended</span>';
+    const metaParts = [`Started ${fmtDate(s.started_at)}`];
+    if (s.ended_at) metaParts.push(`Ended ${fmtDate(s.ended_at)}`);
+    metaParts.push(`${s.entryCount} entr${s.entryCount === 1 ? 'y' : 'ies'}`);
+
+    return `
+      <div class="session-card" id="session-card-${s.id}">
+        <div class="session-card-header" onclick="toggleSession(${s.id})">
+          <span id="session-icon-${s.id}" class="session-expand-icon">▸</span>
+          <span class="session-card-name">${esc(s.name)}</span>
+          ${badge}
+        </div>
+        <div class="session-meta" style="padding:4px 14px 6px;font-size:0.62rem">${metaParts.join(' · ')}</div>
+        <div class="session-card-body entry-list" id="session-body-${s.id}"></div>
+      </div>`;
+  }).join('');
+}
+
+loadSessions();
+</script>
+</body>
+</html>

@@ -39,6 +39,30 @@ function initDb() {
 
     CREATE INDEX IF NOT EXISTS idx_snapshots_branch ON snapshots(branch_id);
     CREATE INDEX IF NOT EXISTS idx_branches_active  ON branches(is_active);
+
+    CREATE TABLE IF NOT EXISTS app_state (
+      key   TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT    NOT NULL,
+      started_at TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+      ended_at   TEXT,
+      branch_id  INTEGER NOT NULL REFERENCES branches(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS session_entries (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      session_id  INTEGER NOT NULL REFERENCES sessions(id),
+      kind        TEXT    NOT NULL CHECK(kind IN ('note','stat')),
+      content     TEXT    NOT NULL,
+      snapshot_id INTEGER REFERENCES snapshots(id),
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_entries_session ON session_entries(session_id);
   `);
 
   const count = db.prepare('SELECT COUNT(*) AS n FROM branches').get().n;
@@ -167,6 +191,39 @@ function getLatestSnapshot(branchId) {
   ).get(branchId);
 }
 
+function getActiveSessionId() {
+  const row = db.prepare("SELECT value FROM app_state WHERE key='active_session_id'").get();
+  return row ? parseInt(row.value, 10) : null;
+}
+
+function setActiveSessionId(id) {
+  db.prepare("INSERT OR REPLACE INTO app_state (key,value) VALUES ('active_session_id',?)").run(String(id));
+}
+
+function clearActiveSessionId() {
+  db.prepare("DELETE FROM app_state WHERE key='active_session_id'").run();
+}
+
+function diffCharacter(oldC, newC) {
+  const msgs = [];
+  if (oldC.resources.hp.current !== newC.resources.hp.current)
+    msgs.push(`HP: ${oldC.resources.hp.current} → ${newC.resources.hp.current}`);
+  if (oldC.resources.stress.current !== newC.resources.stress.current)
+    msgs.push(`Stress: ${oldC.resources.stress.current} → ${newC.resources.stress.current}`);
+  if (oldC.resources.hope !== newC.resources.hope)
+    msgs.push(`Hope: ${oldC.resources.hope} → ${newC.resources.hope}`);
+  const g0 = oldC.resources.gold, g1 = newC.resources.gold;
+  if (g0.chests !== g1.chests || g0.bags !== g1.bags || g0.handfuls !== g1.handfuls)
+    msgs.push(`Gold: ${g0.chests}ch ${g0.bags}bg ${g0.handfuls}hf → ${g1.chests}ch ${g1.bags}bg ${g1.handfuls}hf`);
+  if (oldC.armor.slotsUsed !== newC.armor.slotsUsed)
+    msgs.push(`Armor slots: ${oldC.armor.slotsUsed} → ${newC.armor.slotsUsed}`);
+  for (const cond of ['vulnerable', 'restrained', 'hidden', 'unconscious']) {
+    if (oldC.conditions[cond] !== newC.conditions[cond])
+      msgs.push(`Condition: ${cond.charAt(0).toUpperCase() + cond.slice(1)} ${newC.conditions[cond] ? 'gained' : 'cleared'}`);
+  }
+  return msgs;
+}
+
 // ── Express app ───────────────────────────────────────────────────────────────
 
 const app = express();
@@ -204,6 +261,18 @@ app.post('/api/character/save', (req, res) => {
     `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
      VALUES (?, ?, ?, ?)`
   ).run(branch.id, previous.id, description.trim(), JSON.stringify(character));
+
+  const sessionId = getActiveSessionId();
+  if (sessionId) {
+    const oldC = JSON.parse(previous.character_data);
+    const msgs = diffCharacter(oldC, character);
+    const insertEntry = db.prepare(
+      'INSERT INTO session_entries (session_id, kind, content, snapshot_id) VALUES (?,?,?,?)'
+    );
+    for (const msg of msgs) {
+      insertEntry.run(sessionId, 'stat', msg, snap.lastInsertRowid);
+    }
+  }
 
   res.json({ snapshotId: snap.lastInsertRowid });
 });
@@ -292,6 +361,92 @@ app.get('/api/snapshots/:snapshotId', (req, res) => {
     .get(parseInt(req.params.snapshotId, 10));
   if (!snap) return res.status(404).json({ error: 'Snapshot not found' });
   res.json({ ...snap, character: JSON.parse(snap.character_data) });
+});
+
+// ── Session endpoints ─────────────────────────────────────────────────────────
+
+// GET /api/session/active
+app.get('/api/session/active', (req, res) => {
+  const sessionId = getActiveSessionId();
+  if (!sessionId) return res.json({ session: null });
+
+  const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(sessionId);
+  if (!session) {
+    clearActiveSessionId();
+    return res.json({ session: null });
+  }
+
+  const entries = db.prepare(
+    'SELECT id, kind, content, snapshot_id, created_at FROM session_entries WHERE session_id = ? ORDER BY id ASC'
+  ).all(sessionId);
+
+  res.json({ session: { ...session, entries } });
+});
+
+// POST /api/session/start
+app.post('/api/session/start', (req, res) => {
+  if (getActiveSessionId()) return res.status(409).json({ error: 'A session is already active' });
+
+  const branch = getActiveBranch();
+  const name   = (req.body && req.body.name && req.body.name.trim()) || `Session`;
+
+  const result = db.prepare(
+    'INSERT INTO sessions (name, branch_id) VALUES (?, ?)'
+  ).run(name, branch.id);
+
+  setActiveSessionId(result.lastInsertRowid);
+  res.json({ sessionId: result.lastInsertRowid });
+});
+
+// POST /api/session/end
+app.post('/api/session/end', (req, res) => {
+  const sessionId = getActiveSessionId();
+  if (!sessionId) return res.status(404).json({ error: 'No active session' });
+
+  db.prepare(
+    "UPDATE sessions SET ended_at = datetime('now','localtime') WHERE id = ?"
+  ).run(sessionId);
+  clearActiveSessionId();
+
+  res.json({ sessionId });
+});
+
+// POST /api/session/note
+app.post('/api/session/note', (req, res) => {
+  const sessionId = getActiveSessionId();
+  if (!sessionId) return res.status(404).json({ error: 'No active session' });
+
+  const content = req.body && req.body.content && req.body.content.trim();
+  if (!content) return res.status(400).json({ error: 'content is required' });
+
+  const result = db.prepare(
+    'INSERT INTO session_entries (session_id, kind, content) VALUES (?, ?, ?)'
+  ).run(sessionId, 'note', content);
+
+  res.json({ entryId: result.lastInsertRowid });
+});
+
+// GET /api/sessions
+app.get('/api/sessions', (req, res) => {
+  const sessions = db.prepare('SELECT * FROM sessions ORDER BY id DESC').all();
+  const enriched = sessions.map(s => {
+    const count = db.prepare('SELECT COUNT(*) AS n FROM session_entries WHERE session_id = ?').get(s.id).n;
+    return { ...s, entryCount: count };
+  });
+  res.json(enriched);
+});
+
+// GET /api/sessions/:id
+app.get('/api/sessions/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id);
+  if (!session) return res.status(404).json({ error: 'Session not found' });
+
+  const entries = db.prepare(
+    'SELECT id, kind, content, snapshot_id, created_at FROM session_entries WHERE session_id = ? ORDER BY id ASC'
+  ).all(id);
+
+  res.json({ ...session, entries });
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
