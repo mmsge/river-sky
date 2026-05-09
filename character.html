@@ -120,7 +120,7 @@
     /* ── Tracker controls ── */
     .trackers-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
     .tracker { text-align: center; }
@@ -466,6 +466,43 @@
 
     .loading { text-align:center; padding:36px; font-style:italic; color:var(--ink-light); }
 
+    /* ── Two-column sheet layout ── */
+    .sheet-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 16px;
+      align-items: start;
+    }
+    @media (max-width: 640px) {
+      .sheet-columns { grid-template-columns: 1fr; }
+    }
+
+    /* ── Trait action skill hints ── */
+    .trait-skills {
+      font-size: 0.6rem;
+      color: var(--ink-light);
+      font-style: italic;
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 3px;
+      display: block;
+    }
+
+    /* ── Evasion + Armor Slots merged band ── */
+    .defenses-armor-band {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── Proficiency block (right column) ── */
+    .proficiency-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     /* ── section subheader ── */
     .sub-label { font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:0.08em; color:var(--ink-light); margin-top:8px; margin-bottom:4px; }
   </style>
@@ -494,135 +531,188 @@
     <div id="sheet-loading" class="loading">Loading character…</div>
     <div id="sheet-body" style="display:none">
 
-      <!-- ⚡ Resources -->
-      <div class="section">
-        <div class="section-title">⚡ Resources</div>
-        <div class="trackers-grid">
+      <div class="sheet-columns">
 
-          <div class="tracker">
-            <span class="tracker-label">Hit Points</span>
-            <div class="pip-row" id="hp-pips"></div>
-            <div class="pip-max-row">
-              <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
-              <input class="tracker-max-input" id="hp-max" type="number" min="1" max="99">
+        <!-- ══ LEFT COLUMN ══ -->
+        <div class="sheet-col">
+
+          <!-- 📖 Identity -->
+          <div class="section">
+            <div class="section-title">📖 Identity</div>
+            <div class="info-grid">
+              <div class="field-row"><label class="field-label">Name</label><input class="field-input" id="f-name" type="text"></div>
+              <div class="field-row"><label class="field-label">Pronouns</label><input class="field-input" id="f-pronouns" type="text"></div>
+              <div class="field-row"><label class="field-label">Ancestry</label><input class="field-input" id="f-ancestry" type="text"></div>
+              <div class="field-row"><label class="field-label">Community</label><input class="field-input" id="f-community" type="text"></div>
+              <div class="field-row"><label class="field-label">Class</label><input class="field-input" id="f-class" type="text"></div>
+              <div class="field-row"><label class="field-label">Subclass</label><input class="field-input" id="f-subclass" type="text"></div>
+              <div class="field-row"><label class="field-label">Level</label><input class="field-input" id="f-level" type="number" min="1" max="10"></div>
             </div>
           </div>
 
-          <div class="tracker">
-            <span class="tracker-label">Stress</span>
-            <div class="pip-row" id="stress-pips"></div>
-            <div class="pip-max-row">
-              <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
-              <input class="tracker-max-input" id="stress-max" type="number" min="1" max="99">
+          <!-- 🎲 Traits -->
+          <div class="section">
+            <div class="section-title">🎲 Traits</div>
+            <div class="traits-grid">
+              <div class="trait-box"><span class="trait-name">Agility</span><input class="trait-input" id="t-agility" type="number" min="-3" max="4"><span class="trait-skills">Sprint · Leap · Maneuver</span></div>
+              <div class="trait-box"><span class="trait-name">Strength</span><input class="trait-input" id="t-strength" type="number" min="-3" max="4"><span class="trait-skills">Lift · Smash · Grapple</span></div>
+              <div class="trait-box"><span class="trait-name">Finesse</span><input class="trait-input" id="t-finesse" type="number" min="-3" max="4"><span class="trait-skills">Control · Hide · Tinker</span></div>
+              <div class="trait-box"><span class="trait-name">Instinct</span><input class="trait-input" id="t-instinct" type="number" min="-3" max="4"><span class="trait-skills">Perceive · Sense · Navigate</span></div>
+              <div class="trait-box"><span class="trait-name">Presence</span><input class="trait-input" id="t-presence" type="number" min="-3" max="4"><span class="trait-skills">Charm · Perform · Deceive</span></div>
+              <div class="trait-box"><span class="trait-name">Knowledge</span><input class="trait-input" id="t-knowledge" type="number" min="-3" max="4"><span class="trait-skills">Recall · Analyze · Comprehend</span></div>
             </div>
           </div>
 
-          <div class="tracker">
-            <span class="tracker-label">Hope (max 6)</span>
-            <div class="hope-pips" id="hope-pips"></div>
-          </div>
-
-          <div class="tracker">
-            <span class="tracker-label">Gold</span>
-            <div class="gold-inputs">
-              <div class="gold-field">
-                <span class="tracker-label">Chests</span>
-                <input class="gold-num-input" id="gold-chests" type="number" min="0" value="0">
+          <!-- 🛡 Defenses (Evasion + Armor Slots) -->
+          <div class="section">
+            <div class="section-title">🛡 Defenses</div>
+            <div class="defenses-armor-band">
+              <div class="defense-box">
+                <input class="defense-input" id="d-evasion" type="number" min="0" max="30">
+                <span class="defense-label">Evasion</span>
               </div>
-              <span class="gold-sep">·</span>
-              <div class="gold-field">
-                <span class="tracker-label">Bags</span>
-                <input class="gold-num-input" id="gold-bags" type="number" min="0" max="9" value="0">
-              </div>
-              <span class="gold-sep">·</span>
-              <div class="gold-field">
-                <span class="tracker-label">Handfuls</span>
-                <input class="gold-num-input" id="gold-handfuls" type="number" min="0" max="9" value="0">
+              <div>
+                <div class="armor-slots-band" style="margin-top:0">
+                  <span class="armor-slots-label">Armor Slots:</span>
+                  <div id="armor-slots-wrap" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+                  <span class="armor-slot-count" id="armor-slot-count"></span>
+                  <span class="armor-slots-label" style="margin-left:8px">Max:</span>
+                  <input class="tracker-max-input" id="armor-slots-max" type="number" min="0" max="12" style="width:38px">
+                </div>
               </div>
             </div>
           </div>
 
-        </div>
-
-        <!-- Damage Thresholds -->
-        <div class="threshold-band">
-          <div class="threshold-cell">
-            <span class="threshold-label">Major Threshold</span>
-            <input class="threshold-input" id="thr-major" type="number" min="0">
+          <!-- ❤ Damage & Health -->
+          <div class="section">
+            <div class="section-title">❤ Damage &amp; Health</div>
+            <div class="threshold-band">
+              <div class="threshold-cell">
+                <span class="threshold-label">Major Threshold</span>
+                <input class="threshold-input" id="thr-major" type="number" min="0">
+              </div>
+              <div class="threshold-cell">
+                <span class="threshold-label">Severe Threshold</span>
+                <input class="threshold-input" id="thr-severe" type="number" min="0">
+              </div>
+            </div>
+            <div class="trackers-grid" style="margin-top:10px">
+              <div class="tracker">
+                <span class="tracker-label">Hit Points</span>
+                <div class="pip-row" id="hp-pips"></div>
+                <div class="pip-max-row">
+                  <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
+                  <input class="tracker-max-input" id="hp-max" type="number" min="1" max="99">
+                </div>
+              </div>
+              <div class="tracker">
+                <span class="tracker-label">Stress</span>
+                <div class="pip-row" id="stress-pips"></div>
+                <div class="pip-max-row">
+                  <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
+                  <input class="tracker-max-input" id="stress-max" type="number" min="1" max="99">
+                </div>
+              </div>
+              <div class="tracker">
+                <span class="tracker-label">Hope (max 6)</span>
+                <div class="hope-pips" id="hope-pips"></div>
+              </div>
+            </div>
           </div>
-          <div class="threshold-cell">
-            <span class="threshold-label">Severe Threshold</span>
-            <input class="threshold-input" id="thr-severe" type="number" min="0">
+
+          <!-- ⚠ Conditions -->
+          <div class="section">
+            <div class="section-title">⚠ Conditions</div>
+            <div class="conditions-grid" id="conditions-wrap"></div>
           </div>
-        </div>
 
-        <!-- Armor Slots -->
-        <div class="armor-slots-band">
-          <span class="armor-slots-label">Armor Slots:</span>
-          <div id="armor-slots-wrap" style="display:flex;gap:4px;flex-wrap:wrap"></div>
-          <span class="armor-slot-count" id="armor-slot-count"></span>
-          <span class="armor-slots-label" style="margin-left:8px">Max:</span>
-          <input class="tracker-max-input" id="armor-slots-max" type="number" min="0" max="12" style="width:38px">
-        </div>
-      </div>
-
-      <!-- ⚠ Conditions -->
-      <div class="section">
-        <div class="section-title">⚠ Conditions</div>
-        <div class="conditions-grid" id="conditions-wrap"></div>
-      </div>
-
-      <!-- 📖 Basic Info -->
-      <div class="section">
-        <div class="section-title">📖 Basic Information</div>
-        <div class="info-grid">
-          <div class="field-row"><label class="field-label">Name</label><input class="field-input" id="f-name" type="text"></div>
-          <div class="field-row"><label class="field-label">Pronouns</label><input class="field-input" id="f-pronouns" type="text"></div>
-          <div class="field-row"><label class="field-label">Ancestry</label><input class="field-input" id="f-ancestry" type="text"></div>
-          <div class="field-row"><label class="field-label">Community</label><input class="field-input" id="f-community" type="text"></div>
-          <div class="field-row"><label class="field-label">Class</label><input class="field-input" id="f-class" type="text"></div>
-          <div class="field-row"><label class="field-label">Subclass</label><input class="field-input" id="f-subclass" type="text"></div>
-          <div class="field-row"><label class="field-label">Level</label><input class="field-input" id="f-level" type="number" min="1" max="10"></div>
-          <div class="field-row"><label class="field-label">Proficiency</label><input class="field-input" id="f-proficiency" type="number" min="1" max="6"></div>
-        </div>
-      </div>
-
-      <!-- 🎲 Traits -->
-      <div class="section">
-        <div class="section-title">🎲 Traits</div>
-        <div class="traits-grid">
-          <div class="trait-box"><span class="trait-name">Agility</span><input class="trait-input" id="t-agility" type="number" min="-3" max="4"></div>
-          <div class="trait-box"><span class="trait-name">Strength</span><input class="trait-input" id="t-strength" type="number" min="-3" max="4"></div>
-          <div class="trait-box"><span class="trait-name">Finesse</span><input class="trait-input" id="t-finesse" type="number" min="-3" max="4"></div>
-          <div class="trait-box"><span class="trait-name">Instinct</span><input class="trait-input" id="t-instinct" type="number" min="-3" max="4"></div>
-          <div class="trait-box"><span class="trait-name">Presence</span><input class="trait-input" id="t-presence" type="number" min="-3" max="4"></div>
-          <div class="trait-box"><span class="trait-name">Knowledge</span><input class="trait-input" id="t-knowledge" type="number" min="-3" max="4"></div>
-        </div>
-      </div>
-
-      <!-- 🛡 Defenses -->
-      <div class="section">
-        <div class="section-title">🛡 Defenses</div>
-        <div class="defenses-grid">
-          <div class="defense-box">
-            <input class="defense-input" id="d-evasion" type="number" min="0" max="30">
-            <span class="defense-label">Evasion</span>
+          <!-- 🪖 Armor & Gold -->
+          <div class="section">
+            <div class="section-title">🪖 Armor &amp; Gold</div>
+            <div class="tracker" style="margin-bottom:12px">
+              <span class="tracker-label">Gold</span>
+              <div class="gold-inputs">
+                <div class="gold-field">
+                  <span class="tracker-label">Chests</span>
+                  <input class="gold-num-input" id="gold-chests" type="number" min="0" value="0">
+                </div>
+                <span class="gold-sep">·</span>
+                <div class="gold-field">
+                  <span class="tracker-label">Bags</span>
+                  <input class="gold-num-input" id="gold-bags" type="number" min="0" max="9" value="0">
+                </div>
+                <span class="gold-sep">·</span>
+                <div class="gold-field">
+                  <span class="tracker-label">Handfuls</span>
+                  <input class="gold-num-input" id="gold-handfuls" type="number" min="0" max="9" value="0">
+                </div>
+              </div>
+            </div>
+            <div class="sub-label">Equipped Armor</div>
+            <select class="field-input" id="armor-equipped-select" style="max-width:260px"></select>
+            <div id="armor-equipped-stats" style="margin-top:8px;font-size:0.85rem;color:var(--ink-light);font-style:italic"></div>
+            <div class="sub-label" style="margin-top:12px">Armor Items</div>
+            <div id="armor-items-list"></div>
+            <button class="add-btn" id="add-armor-btn">+ Add Armor</button>
           </div>
-        </div>
-      </div>
 
-      <!-- 🪖 Armor -->
-      <div class="section">
-        <div class="section-title">🪖 Armor</div>
-        <div class="sub-label">Equipped Armor</div>
-        <select class="field-input" id="armor-equipped-select" style="max-width:260px"></select>
-        <div id="armor-equipped-stats" style="margin-top:8px;font-size:0.85rem;color:var(--ink-light);font-style:italic"></div>
-        <div class="sub-label" style="margin-top:12px">Armor Items</div>
-        <div id="armor-items-list"></div>
-        <button class="add-btn" id="add-armor-btn">+ Add Armor</button>
-      </div>
+        </div><!-- /sheet-col left -->
 
-      <!-- ⚔ Attacks & Spells -->
+        <!-- ══ RIGHT COLUMN ══ -->
+        <div class="sheet-col">
+
+          <!-- Proficiency -->
+          <div class="section">
+            <div class="section-title">Proficiency</div>
+            <div class="proficiency-block">
+              <input class="defense-input" id="f-proficiency" type="number" min="1" max="6">
+              <span class="defense-label">Proficiency Bonus</span>
+            </div>
+          </div>
+
+          <!-- 🗡 Weapons -->
+          <div class="section">
+            <div class="section-title">🗡 Weapons</div>
+            <div class="scroll-table">
+              <table class="atk-table">
+                <thead>
+                  <tr>
+                    <th>Name</th><th>Wield</th><th>Trait</th><th>Range</th>
+                    <th>Dice</th><th>+Mod</th><th>Dmg</th><th>Note</th><th></th>
+                  </tr>
+                </thead>
+                <tbody id="weapons-body"></tbody>
+              </table>
+            </div>
+            <button class="add-btn" id="add-weapon-btn">+ Add Weapon</button>
+          </div>
+
+          <!-- 🃏 Domain Cards & Class Features -->
+          <div class="section">
+            <div class="section-title">🃏 Domain Cards &amp; Class Features</div>
+            <div id="domain-list"></div>
+            <button class="add-btn" id="add-domain-btn">+ Add Card / Feature</button>
+          </div>
+
+          <!-- ✨ Experiences -->
+          <div class="section">
+            <div class="section-title">✨ Experiences</div>
+            <div id="experiences-list"></div>
+            <button class="add-btn" id="add-exp-btn">+ Add Experience</button>
+          </div>
+
+          <!-- 🎒 Inventory -->
+          <div class="section">
+            <div class="section-title">🎒 Inventory</div>
+            <div id="inventory-list"></div>
+            <button class="add-btn" id="add-inv-btn">+ Add Item</button>
+          </div>
+
+        </div><!-- /sheet-col right -->
+
+      </div><!-- /sheet-columns -->
+
+      <!-- ⚔ Attacks & Spells (full width) -->
       <div class="section">
         <div class="section-title">⚔ Attacks &amp; Spells</div>
         <div class="scroll-table">
@@ -640,45 +730,7 @@
         <button class="add-btn" id="add-attack-btn">+ Add Attack / Spell</button>
       </div>
 
-      <!-- 🗡 Weapons -->
-      <div class="section">
-        <div class="section-title">🗡 Weapons</div>
-        <div class="scroll-table">
-          <table class="atk-table">
-            <thead>
-              <tr>
-                <th>Name</th><th>Wield</th><th>Trait</th><th>Range</th>
-                <th>Dice</th><th>+Mod</th><th>Dmg</th><th>Note</th><th></th>
-              </tr>
-            </thead>
-            <tbody id="weapons-body"></tbody>
-          </table>
-        </div>
-        <button class="add-btn" id="add-weapon-btn">+ Add Weapon</button>
-      </div>
-
-      <!-- 🎒 Inventory -->
-      <div class="section">
-        <div class="section-title">🎒 Inventory</div>
-        <div id="inventory-list"></div>
-        <button class="add-btn" id="add-inv-btn">+ Add Item</button>
-      </div>
-
-      <!-- 🃏 Domain Cards -->
-      <div class="section">
-        <div class="section-title">🃏 Domain Cards &amp; Class Features</div>
-        <div id="domain-list"></div>
-        <button class="add-btn" id="add-domain-btn">+ Add Card / Feature</button>
-      </div>
-
-      <!-- ✨ Experiences -->
-      <div class="section">
-        <div class="section-title">✨ Experiences</div>
-        <div id="experiences-list"></div>
-        <button class="add-btn" id="add-exp-btn">+ Add Experience</button>
-      </div>
-
-      <!-- 📝 Notes -->
+      <!-- 📝 Notes (full width) -->
       <div class="section">
         <div class="section-title">📝 Notes</div>
         <textarea class="notes-area" id="f-notes" placeholder="Free-form notes…"></textarea>
