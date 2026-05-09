@@ -69,14 +69,12 @@ function seed() {
       knowledge: 0
     },
     resources: {
-      hp:     { current: 12, max: 12 },
-      stress: { current: 0,  max: 12 },
+      hp:     { current: 0, max: 12 },
+      stress: { current: 0, max: 12 },
       hope:   3,
       gold:   { handfuls: 0, bags: 0, chests: 0 }
     },
-    // Effective damage thresholds (armor base + level). Minor < Major < Severe.
-    // Gap: major − minor = 12, severe − major = 21 (per River's armor).
-    thresholds: { minor: 5, major: 17, severe: 38 },
+    thresholds: { major: 17, severe: 38 },
     defenses: { evasion: 12 },
     armor: {
       equippedId: null,

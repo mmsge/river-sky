@@ -120,7 +120,7 @@
     /* ── Tracker controls ── */
     .trackers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
     .tracker { text-align: center; }
@@ -129,20 +129,25 @@
       letter-spacing: 0.1em; color: var(--ink-light); margin-bottom: 5px; display: block;
     }
     .tracker-controls { display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .tracker-btn {
-      width: 28px; height: 28px;
-      font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700;
-      background: rgba(139,69,19,0.1); border: 1px solid var(--border); border-radius: 3px;
-      cursor: pointer; color: var(--ink); transition: background 0.15s;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .tracker-btn:hover { background: rgba(200,134,10,0.22); }
-    .tracker-num { font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; min-width: 32px; text-align: center; }
     .tracker-max-input {
       width: 34px; font-family: 'Cinzel', serif; font-size: 0.82rem;
       text-align: center; background: rgba(255,255,240,0.7);
       border: 1px solid rgba(139,69,19,0.4); border-radius: 2px; color: var(--ink-light); padding: 1px 2px;
     }
+
+    /* ── Pip trackers (HP, Stress, Hope) ── */
+    .pip-row { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; min-height: 22px; }
+    .pip-max-row { margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .resource-pip {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid currentColor; background: transparent;
+      cursor: pointer; transition: background 0.15s;
+      padding: 0;
+    }
+    .hp-pip    { color: #8B3A3A; }
+    .hp-pip.filled    { background: #8B3A3A; }
+    .stress-pip { color: #4A5070; }
+    .stress-pip.filled { background: #4A5070; }
 
     /* ── Hope pips ── */
     .hope-pips { display: flex; gap: 4px; justify-content: center; }
@@ -150,6 +155,7 @@
       width: 22px; height: 22px; border-radius: 50%;
       border: 2px solid var(--gold); background: transparent;
       cursor: pointer; transition: background 0.15s;
+      padding: 0;
     }
     .hope-pip.filled { background: var(--gold); }
 
@@ -176,9 +182,8 @@
       border-right: 1px solid rgba(139,69,19,0.2);
     }
     .threshold-cell:last-child { border-right: none; }
-    .threshold-cell:nth-child(1) { background: rgba(200,134,10,0.04); }
-    .threshold-cell:nth-child(2) { background: rgba(139,69,19,0.06); }
-    .threshold-cell:nth-child(3) { background: rgba(139,0,0,0.06); }
+    .threshold-cell:nth-child(1) { background: rgba(139,69,19,0.06); }
+    .threshold-cell:nth-child(2) { background: rgba(139,0,0,0.08); }
     .threshold-label {
       font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.1em;
       color: var(--ink-light); display: block; margin-bottom: 3px;
@@ -496,23 +501,19 @@
 
           <div class="tracker">
             <span class="tracker-label">Hit Points</span>
-            <div class="tracker-controls">
-              <button class="tracker-btn" data-res="hp" data-act="dec">−</button>
-              <span class="tracker-num" id="hp-cur">—</span>
-              <span style="color:var(--ink-light);font-size:0.9rem">/</span>
+            <div class="pip-row" id="hp-pips"></div>
+            <div class="pip-max-row">
+              <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
               <input class="tracker-max-input" id="hp-max" type="number" min="1" max="99">
-              <button class="tracker-btn" data-res="hp" data-act="inc">+</button>
             </div>
           </div>
 
           <div class="tracker">
             <span class="tracker-label">Stress</span>
-            <div class="tracker-controls">
-              <button class="tracker-btn" data-res="stress" data-act="dec">−</button>
-              <span class="tracker-num" id="stress-cur">—</span>
-              <span style="color:var(--ink-light);font-size:0.9rem">/</span>
+            <div class="pip-row" id="stress-pips"></div>
+            <div class="pip-max-row">
+              <span class="tracker-label" style="display:inline;margin-bottom:0">Max:</span>
               <input class="tracker-max-input" id="stress-max" type="number" min="1" max="99">
-              <button class="tracker-btn" data-res="stress" data-act="inc">+</button>
             </div>
           </div>
 
@@ -545,10 +546,6 @@
 
         <!-- Damage Thresholds -->
         <div class="threshold-band">
-          <div class="threshold-cell">
-            <span class="threshold-label">Minor Threshold</span>
-            <input class="threshold-input" id="thr-minor" type="number" min="0">
-          </div>
           <div class="threshold-cell">
             <span class="threshold-label">Major Threshold</span>
             <input class="threshold-input" id="thr-major" type="number" min="0">
@@ -824,11 +821,12 @@ function migrate(c) {
   // Thresholds: from old defenses or missing
   if (!c.thresholds) {
     c.thresholds = {
-      minor:  c.defenses?.majorThreshold ? Math.max(0, c.defenses.majorThreshold - 12) : 5,
       major:  c.defenses?.majorThreshold  || 17,
       severe: c.defenses?.severeThreshold || 38
     };
   }
+  // Remove minor threshold if present from old format
+  delete c.thresholds.minor;
   if (c.defenses?.severeThreshold !== undefined) delete c.defenses.severeThreshold;
   if (c.defenses?.majorThreshold  !== undefined) delete c.defenses.majorThreshold;
 
@@ -902,12 +900,12 @@ function renderSheet() {
   const c = workingCharacter;
 
   // HP
-  document.getElementById('hp-cur').textContent = c.resources.hp.current;
-  document.getElementById('hp-max').value        = c.resources.hp.max;
+  renderHpPips(c.resources.hp.current, c.resources.hp.max);
+  document.getElementById('hp-max').value = c.resources.hp.max;
 
   // Stress
-  document.getElementById('stress-cur').textContent = c.resources.stress.current;
-  document.getElementById('stress-max').value        = c.resources.stress.max;
+  renderStressPips(c.resources.stress.current, c.resources.stress.max);
+  document.getElementById('stress-max').value = c.resources.stress.max;
 
   // Hope
   renderHope(c.resources.hope);
@@ -919,7 +917,6 @@ function renderSheet() {
   document.getElementById('gold-handfuls').value = g.handfuls;
 
   // Thresholds
-  document.getElementById('thr-minor').value  = c.thresholds.minor;
   document.getElementById('thr-major').value  = c.thresholds.major;
   document.getElementById('thr-severe').value = c.thresholds.severe;
 
@@ -954,7 +951,7 @@ function renderSheet() {
   document.getElementById('f-notes').value = c.notes;
 }
 
-// ── Hope pips (always max 6) ──
+// ── Hope pips (always max 6, filled = remaining) ──
 function renderHope(val) {
   const wrap = document.getElementById('hope-pips');
   wrap.innerHTML = '';
@@ -965,6 +962,40 @@ function renderHope(val) {
     b.addEventListener('click', () => {
       workingCharacter.resources.hope = i < workingCharacter.resources.hope ? i : i+1;
       renderHope(workingCharacter.resources.hope);
+      markDirty();
+    });
+    wrap.appendChild(b);
+  }
+}
+
+// ── HP pips (filled = damage marks) ──
+function renderHpPips(marked, max) {
+  const wrap = document.getElementById('hp-pips');
+  wrap.innerHTML = '';
+  for (let i=0; i<max; i++) {
+    const b = document.createElement('button');
+    b.className = 'resource-pip hp-pip'+(i<marked?' filled':'');
+    b.title = i<marked ? 'Heal (unmark)' : 'Take damage (mark)';
+    b.addEventListener('click', () => {
+      workingCharacter.resources.hp.current = i < workingCharacter.resources.hp.current ? i : i+1;
+      renderHpPips(workingCharacter.resources.hp.current, workingCharacter.resources.hp.max);
+      markDirty();
+    });
+    wrap.appendChild(b);
+  }
+}
+
+// ── Stress pips (filled = stress marks) ──
+function renderStressPips(marked, max) {
+  const wrap = document.getElementById('stress-pips');
+  wrap.innerHTML = '';
+  for (let i=0; i<max; i++) {
+    const b = document.createElement('button');
+    b.className = 'resource-pip stress-pip'+(i<marked?' filled':'');
+    b.title = i<marked ? 'Clear stress (unmark)' : 'Take stress (mark)';
+    b.addEventListener('click', () => {
+      workingCharacter.resources.stress.current = i < workingCharacter.resources.stress.current ? i : i+1;
+      renderStressPips(workingCharacter.resources.stress.current, workingCharacter.resources.stress.max);
       markDirty();
     });
     wrap.appendChild(b);
@@ -1090,11 +1121,9 @@ function equipArmor(armor) {
   armor.slotsMax = item.baseScore || armor.slotsMax;
   if (armor.slotsUsed > armor.slotsMax) armor.slotsUsed = armor.slotsMax;
   const level = workingCharacter.basicInfo.level || 0;
-  workingCharacter.thresholds.minor  = (item.baseMinor  || 0) + level;
   workingCharacter.thresholds.major  = (item.baseMajor  || 0) + level;
   workingCharacter.thresholds.severe = (item.baseSevere || 0) + level;
   // Re-render affected areas
-  document.getElementById('thr-minor').value  = workingCharacter.thresholds.minor;
   document.getElementById('thr-major').value  = workingCharacter.thresholds.major;
   document.getElementById('thr-severe').value = workingCharacter.thresholds.severe;
   document.getElementById('armor-slots-max').value = armor.slotsMax;
@@ -1107,7 +1136,7 @@ function updateEquippedStats(armor) {
   const item = armor.items.find(a => a.id === armor.equippedId);
   if (!item) { div.textContent = 'Equipped armor not found.'; return; }
   const level = workingCharacter?.basicInfo?.level || 0;
-  div.innerHTML = `<strong>${esc(item.name)}</strong> &nbsp;·&nbsp; Score: ${item.baseScore||0} slots &nbsp;·&nbsp; Modifier: ${item.modifier>=0?'+':''}${item.modifier||0} &nbsp;·&nbsp; Thresholds (base+${level}): Minor ${(item.baseMinor||0)+level} / Major ${(item.baseMajor||0)+level} / Severe ${(item.baseSevere||0)+level}`;
+  div.innerHTML = `<strong>${esc(item.name)}</strong> &nbsp;·&nbsp; Score: ${item.baseScore||0} slots &nbsp;·&nbsp; Modifier: ${item.modifier>=0?'+':''}${item.modifier||0} &nbsp;·&nbsp; Thresholds (base+${level}): Major ${(item.baseMajor||0)+level} / Severe ${(item.baseSevere||0)+level}`;
 }
 
 // ── Select helper ──
@@ -1398,21 +1427,20 @@ function wireInputs() {
     workingCharacter.defenses.evasion = parseInt(e.target.value)||0; markDirty();
   });
 
-  // HP / Stress +/−
-  document.querySelectorAll('.tracker-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const res = btn.dataset.res, act = btn.dataset.act;
-      const obj = workingCharacter.resources[res];
-      obj.current = Math.max(0, Math.min(obj.max, obj.current+(act==='inc'?1:-1)));
-      document.getElementById(res+'-cur').textContent = obj.current;
-      markDirty();
-    });
-  });
+  // HP / Stress max inputs
   document.getElementById('hp-max').addEventListener('input', e => {
-    workingCharacter.resources.hp.max = parseInt(e.target.value)||1; markDirty();
+    const v = Math.max(1, parseInt(e.target.value)||1);
+    workingCharacter.resources.hp.max = v;
+    if (workingCharacter.resources.hp.current > v) workingCharacter.resources.hp.current = v;
+    renderHpPips(workingCharacter.resources.hp.current, v);
+    markDirty();
   });
   document.getElementById('stress-max').addEventListener('input', e => {
-    workingCharacter.resources.stress.max = parseInt(e.target.value)||1; markDirty();
+    const v = Math.max(1, parseInt(e.target.value)||1);
+    workingCharacter.resources.stress.max = v;
+    if (workingCharacter.resources.stress.current > v) workingCharacter.resources.stress.current = v;
+    renderStressPips(workingCharacter.resources.stress.current, v);
+    markDirty();
   });
 
   // Gold
@@ -1423,7 +1451,7 @@ function wireInputs() {
   });
 
   // Thresholds
-  ['minor','major','severe'].forEach(k => {
+  ['major','severe'].forEach(k => {
     document.getElementById('thr-'+k).addEventListener('input', e => {
       workingCharacter.thresholds[k] = parseInt(e.target.value)||0; markDirty();
     });
