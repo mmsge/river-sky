@@ -69,17 +69,21 @@ function seed() {
       knowledge: 0
     },
     resources: {
-      hp:     { current: 20, max: 20 },
-      stress: { current: 0,  max: 6  },
+      hp:     { current: 12, max: 12 },
+      stress: { current: 0,  max: 12 },
       hope:   3,
-      gold:   0
+      gold:   { handfuls: 0, bags: 0, chests: 0 }
     },
-    defenses: {
-      evasion:         12,
-      severeThreshold: 13,
-      majorThreshold:  7
+    // Effective damage thresholds (armor base + level). Minor < Major < Severe.
+    // Gap: major − minor = 12, severe − major = 21 (per River's armor).
+    thresholds: { minor: 5, major: 17, severe: 38 },
+    defenses: { evasion: 12 },
+    armor: {
+      equippedId: null,
+      slotsMax:   4,   // River has 4 armor slots
+      slotsUsed:  0,
+      items: []
     },
-    armor: { base: 2, slots: [false, false, false] },
     conditions: {
       vulnerable:  false,
       restrained:  false,
@@ -87,39 +91,58 @@ function seed() {
       unconscious: false
     },
     attacks: [
-      { name: 'Fireball',       type: 'spell',  mod: 4, dice: [4, 20], dmod: 5,  str: '4d20+5',
+      { name: 'Fireball',       type: 'spell',  mod: 4,
+        diceCount: 4, diceSides: 20, dmod: 5,  damageType: 'magical',  trait: 'presence',
         range: ['Far'],  aoe: true,  friendlyFire: true,
         note: 'AoE Very Close around target. Reaction Roll DC13: fail=full damage, success=half.' },
-      { name: 'Wild Flame',     type: 'spell',  mod: 4, dice: [2, 6],  dmod: 0,  str: '2d6',
+      { name: 'Wild Flame',     type: 'spell',  mod: 4,
+        diceCount: 2, diceSides: 6,  dmod: 0,  damageType: 'magical',  trait: 'presence',
         range: ['Melee'], aoe: true,
         note: 'Up to 3 targets in Melee range of River.' },
-      { name: 'Wall of Flame',  type: 'spell',  mod: 4, dice: [4, 10], dmod: 3,  str: '4d10+3',
+      { name: 'Wall of Flame',  type: 'spell',  mod: 4,
+        diceCount: 4, diceSides: 10, dmod: 3,  damageType: 'magical',  trait: 'presence',
         range: ['Melee', 'Close', 'Far'], noRoll: true,
         note: 'Flat damage to anything crossing. No attack roll needed against crossing creatures.' },
-      { name: 'Mystic Tether',  type: 'spell',  mod: 4, dice: null,    dmod: 0,  str: '—',
+      { name: 'Mystic Tether',  type: 'spell',  mod: 4,
+        diceCount: 0, diceSides: 6,  dmod: 0,  damageType: null,       trait: 'presence',
         range: ['Far'], utility: true, groundsFliers: true,
         note: 'No damage. Restrains target at Far range. Also grounds flying enemies.' },
-      { name: 'Blunderburst',   type: 'weapon', mod: 2, dice: [2, 8],  dmod: 6,  str: '2d8+6',
+      { name: 'Blunderburst',   type: 'weapon', mod: 2,
+        diceCount: 2, diceSides: 8,  dmod: 6,  damageType: 'physical', trait: 'agility',
         range: ['Close'],
         note: 'Reliable single-target Close attack. Highest flat modifier of any weapon.' },
-      { name: 'Bladed Whip',    type: 'weapon', mod: 1, dice: [4, 8],  dmod: 3,  str: '4d8+3',
+      { name: 'Bladed Whip',    type: 'weapon', mod: 1,
+        diceCount: 4, diceSides: 8,  dmod: 3,  damageType: 'physical', trait: 'finesse',
         range: ['Melee'],
         note: 'High die-count Melee strike. Lower hit modifier but strong damage ceiling.' },
-      { name: 'Whip',           type: 'weapon', mod: 4, dice: [2, 6],  dmod: 0,  str: '2d6',
+      { name: 'Whip',           type: 'weapon', mod: 4,
+        diceCount: 2, diceSides: 6,  dmod: 0,  damageType: 'physical', trait: 'finesse',
         range: ['Melee', 'Very Short'],
         note: 'Highest hit modifier of any weapon. Light damage but nearly guaranteed to land.' },
-      { name: 'Long Tongue',    type: 'weapon', mod: 2, dice: [4, 12], dmod: 0,  str: '4d12',
+      { name: 'Long Tongue',    type: 'weapon', mod: 2,
+        diceCount: 4, diceSides: 12, dmod: 0,  damageType: 'physical', trait: 'agility',
         range: ['Close'], costStress: true,
         note: 'Exceptional damage ceiling. Costs 1 Stress — a strong trade when Stress is available.' },
-      { name: 'Construct Attack', type: 'ability', mod: 4, dice: [2, 10], dmod: 3, str: '2d10+3',
+      { name: 'Construct Attack', type: 'ability', mod: 4,
+        diceCount: 2, diceSides: 10, dmod: 3, damageType: 'physical', trait: 'agility',
         range: ['Melee', 'Close', 'Far'], needConstruct: true,
         note: 'Flexible range and high hit modifier. Maximises value while the construct is active.' }
+    ],
+    weapons: [
+      { id: 'w1', name: 'Blunderburst', wield: 'main', trait: 'agility', range: 'Close',
+        diceCount: 2, diceSides: 8,  dmod: 6, damageType: 'physical', note: '' },
+      { id: 'w2', name: 'Bladed Whip',  wield: 'main', trait: 'finesse', range: 'Melee',
+        diceCount: 4, diceSides: 8,  dmod: 3, damageType: 'physical', note: '' },
+      { id: 'w3', name: 'Whip',         wield: 'off',  trait: 'finesse', range: 'Melee',
+        diceCount: 2, diceSides: 6,  dmod: 0, damageType: 'physical', note: '' },
+      { id: 'w4', name: 'Long Tongue',  wield: 'main', trait: 'agility', range: 'Close',
+        diceCount: 4, diceSides: 12, dmod: 0, damageType: 'physical', note: 'Costs 1 Stress.' }
     ],
     inventory:   [],
     domainCards: [],
     experiences: [
-      { name: 'Experience 1', description: '' },
-      { name: 'Experience 2', description: '' }
+      { id: 'exp1', name: 'Experience 1', description: '', modifier: 2 },
+      { id: 'exp2', name: 'Experience 2', description: '', modifier: 2 }
     ],
     notes: ''
   };
@@ -278,7 +301,7 @@ app.get('/api/snapshots/:snapshotId', (req, res) => {
 
 initDb();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Daggerheart app running at http://localhost:${PORT}`);
   console.log(`Character sheet: http://localhost:${PORT}/character.html`);

@@ -36,7 +36,6 @@
       font-size: 16px;
       line-height: 1.5;
     }
-
     body::before {
       content: '';
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -45,57 +44,39 @@
         radial-gradient(ellipse at bottom right, rgba(100,60,10,0.11) 0%, transparent 28%),
         radial-gradient(ellipse at top right,    rgba(80,40,10,0.07)  0%, transparent 22%);
     }
-
     body > * { position: relative; z-index: 1; }
 
     /* ── Header ── */
     header {
       text-align: center;
-      padding: 18px 16px 12px;
+      padding: 14px 16px 10px;
       border-bottom: 3px double var(--border);
       background: linear-gradient(180deg, rgba(200,134,10,0.09) 0%, transparent 100%);
     }
-    .header-nav {
-      display: flex; justify-content: space-between; align-items: flex-start;
-      margin-bottom: 8px;
-    }
+    .header-nav { display: flex; justify-content: space-between; margin-bottom: 6px; }
     .back-link {
-      font-family: 'Cinzel', serif;
-      font-size: 0.75rem;
-      color: var(--ink-light);
-      text-decoration: none;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 3px 10px;
-      background: rgba(139,69,19,0.06);
+      font-family: 'Cinzel', serif; font-size: 0.75rem;
+      color: var(--ink-light); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 3px 10px; background: rgba(139,69,19,0.06);
       transition: all 0.15s;
     }
     .back-link:hover { background: rgba(200,134,10,0.15); color: var(--ink); }
     .char-title {
-      font-family: 'Cinzel', serif;
-      font-size: clamp(1.4rem, 4vw, 2rem);
-      font-weight: 700;
-      letter-spacing: 0.05em;
+      font-family: 'Cinzel', serif; font-size: clamp(1.4rem,4vw,2rem);
+      font-weight: 700; letter-spacing: 0.05em;
       text-shadow: 1px 1px 0 rgba(200,134,10,0.3);
     }
     .char-subtitle {
-      font-family: 'Cinzel', serif;
-      font-size: clamp(0.65rem, 2vw, 0.8rem);
-      color: var(--ink-light);
-      letter-spacing: 0.12em;
-      margin-top: 3px;
+      font-family: 'Cinzel', serif; font-size: clamp(0.65rem,2vw,0.8rem);
+      color: var(--ink-light); letter-spacing: 0.12em; margin-top: 2px;
     }
 
     /* ── Tabs ── */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid var(--border);
-      background: rgba(139,69,19,0.05);
-    }
+    .tabs { display: flex; border-bottom: 2px solid var(--border); background: rgba(139,69,19,0.05); }
     .tab-btn {
-      flex: 1; padding: 11px 16px;
-      font-family: 'Cinzel', serif;
-      font-size: clamp(0.72rem, 2.5vw, 0.9rem);
+      flex: 1; padding: 10px 16px;
+      font-family: 'Cinzel', serif; font-size: clamp(0.7rem,2.5vw,0.88rem);
       font-weight: 600; letter-spacing: 0.08em;
       background: none; border: none;
       border-bottom: 3px solid transparent; margin-bottom: -2px;
@@ -105,665 +86,383 @@
     .tab-btn.active { color: var(--ink); border-bottom-color: var(--gold); background: rgba(200,134,10,0.12); }
 
     /* ── Tab content ── */
-    .tab-content { display: none; padding: 20px 16px 80px; max-width: 900px; margin: 0 auto; }
+    .tab-content { display: none; padding: 16px 14px 90px; max-width: 920px; margin: 0 auto; }
     .tab-content.active { display: block; }
 
     /* ── Sections ── */
     .section {
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 4px;
-      background: rgba(255,255,240,0.4);
-      padding: 14px 16px;
-      margin-bottom: 16px;
+      border: 1px solid rgba(139,69,19,0.3); border-radius: 4px;
+      background: rgba(255,255,240,0.4); padding: 12px 14px; margin-bottom: 14px;
     }
     .section-title {
-      font-family: 'Cinzel', serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--ink-light);
-      margin-bottom: 12px;
-      padding-bottom: 6px;
+      font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.1em; color: var(--ink-light);
+      margin-bottom: 10px; padding-bottom: 5px;
       border-bottom: 1px solid rgba(139,69,19,0.2);
     }
 
-    /* ── Quick Trackers ── */
+    /* ── Generic inputs ── */
+    .field-label {
+      font-family: 'Cinzel', serif; font-size: 0.64rem;
+      letter-spacing: 0.1em; color: var(--ink-light);
+    }
+    .field-input {
+      background: rgba(255,255,240,0.85);
+      border: 1px solid rgba(139,69,19,0.4); border-radius: 3px;
+      padding: 4px 7px;
+      font-family: 'IM Fell English', Georgia, serif; font-size: 0.92rem;
+      color: var(--ink); width: 100%; transition: border-color 0.15s;
+    }
+    .field-input:focus { outline: none; border-color: var(--gold); background: rgba(255,255,240,0.97); }
+    select.field-input { cursor: pointer; }
+    .field-row { display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── Tracker controls ── */
     .trackers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
     }
-    .tracker {
-      text-align: center;
-    }
+    .tracker { text-align: center; }
     .tracker-label {
-      font-family: 'Cinzel', serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      color: var(--ink-light);
-      margin-bottom: 6px;
-      display: block;
+      font-family: 'Cinzel', serif; font-size: 0.68rem;
+      letter-spacing: 0.1em; color: var(--ink-light); margin-bottom: 5px; display: block;
     }
-    .tracker-controls {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-    }
+    .tracker-controls { display: flex; align-items: center; justify-content: center; gap: 5px; }
     .tracker-btn {
-      width: 30px; height: 30px;
-      font-family: 'Cinzel', serif;
-      font-size: 1.1rem; font-weight: 700;
-      background: rgba(139,69,19,0.1);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      cursor: pointer; color: var(--ink);
-      transition: background 0.15s;
+      width: 28px; height: 28px;
+      font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700;
+      background: rgba(139,69,19,0.1); border: 1px solid var(--border); border-radius: 3px;
+      cursor: pointer; color: var(--ink); transition: background 0.15s;
       display: flex; align-items: center; justify-content: center;
     }
-    .tracker-btn:hover { background: rgba(200,134,10,0.2); }
-    .tracker-num {
-      font-family: 'Cinzel', serif;
-      font-size: 1.3rem;
-      font-weight: 700;
-      min-width: 36px;
-      text-align: center;
-    }
-    .tracker-max {
-      font-size: 0.8rem;
-      color: var(--ink-light);
-    }
+    .tracker-btn:hover { background: rgba(200,134,10,0.22); }
+    .tracker-num { font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; min-width: 32px; text-align: center; }
     .tracker-max-input {
-      width: 36px;
-      font-family: 'Cinzel', serif;
-      font-size: 0.85rem;
-      text-align: center;
-      background: rgba(255,255,240,0.7);
-      border: 1px solid rgba(139,69,19,0.4);
-      border-radius: 2px;
-      color: var(--ink-light);
-      padding: 1px 2px;
+      width: 34px; font-family: 'Cinzel', serif; font-size: 0.82rem;
+      text-align: center; background: rgba(255,255,240,0.7);
+      border: 1px solid rgba(139,69,19,0.4); border-radius: 2px; color: var(--ink-light); padding: 1px 2px;
     }
 
     /* ── Hope pips ── */
-    .hope-pips {
-      display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;
-    }
+    .hope-pips { display: flex; gap: 4px; justify-content: center; }
     .hope-pip {
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      border: 2px solid var(--gold);
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.15s;
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--gold); background: transparent;
+      cursor: pointer; transition: background 0.15s;
     }
     .hope-pip.filled { background: var(--gold); }
 
+    /* ── Gold ── */
+    .gold-inputs { display: flex; gap: 6px; justify-content: center; align-items: flex-end; flex-wrap: wrap; }
+    .gold-field { text-align: center; }
+    .gold-field .tracker-label { margin-bottom: 3px; }
+    .gold-num-input {
+      width: 48px; font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700;
+      text-align: center; background: rgba(255,255,240,0.85);
+      border: 1px solid rgba(139,69,19,0.4); border-radius: 3px;
+      color: var(--ink); padding: 2px 4px;
+    }
+    .gold-num-input:focus { outline: none; border-color: var(--gold); }
+    .gold-sep { color: var(--ink-light); font-size: 0.75rem; padding-bottom: 8px; }
+
+    /* ── Thresholds band ── */
+    .threshold-band {
+      display: flex; gap: 0; justify-content: stretch;
+      margin-top: 10px; border: 1px solid rgba(139,69,19,0.25); border-radius: 4px; overflow: hidden;
+    }
+    .threshold-cell {
+      flex: 1; text-align: center; padding: 6px 4px;
+      border-right: 1px solid rgba(139,69,19,0.2);
+    }
+    .threshold-cell:last-child { border-right: none; }
+    .threshold-cell:nth-child(1) { background: rgba(200,134,10,0.04); }
+    .threshold-cell:nth-child(2) { background: rgba(139,69,19,0.06); }
+    .threshold-cell:nth-child(3) { background: rgba(139,0,0,0.06); }
+    .threshold-label {
+      font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.1em;
+      color: var(--ink-light); display: block; margin-bottom: 3px;
+    }
+    .threshold-input {
+      width: 52px; font-family: 'Cinzel', serif; font-size: 1.2rem; font-weight: 700;
+      text-align: center; background: rgba(255,255,240,0.7);
+      border: 1px solid rgba(139,69,19,0.3); border-radius: 2px;
+      color: var(--ink); padding: 1px 2px;
+    }
+    .threshold-input:focus { outline: none; border-color: var(--gold); }
+
     /* ── Armor slots ── */
-    .armor-slots {
-      display: flex; align-items: center; gap: 10px; justify-content: center;
+    .armor-slots-band {
+      margin-top: 10px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
-    .armor-base {
-      font-family: 'Cinzel', serif;
-      font-size: 1.1rem;
-      font-weight: 700;
+    .armor-slots-label { font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-light); }
+    .armor-slot-btn {
+      width: 20px; height: 20px; border-radius: 2px;
+      border: 2px solid var(--border); background: transparent;
+      cursor: pointer; transition: background 0.12s; flex-shrink: 0;
     }
-    .armor-slot {
-      width: 22px; height: 22px;
-      border: 2px solid var(--border);
-      border-radius: 3px;
-      background: transparent;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
-    .armor-slot.marked { background: var(--ink-light); }
+    .armor-slot-btn.marked { background: var(--ink-light); }
+    .armor-slot-count { font-family: 'Cinzel', serif; font-size: 0.75rem; color: var(--ink-light); margin-left: 4px; }
 
     /* ── Conditions ── */
-    .conditions-grid {
-      display: flex; flex-wrap: wrap; gap: 10px;
-    }
+    .conditions-grid { display: flex; flex-wrap: wrap; gap: 8px; }
     .condition-toggle {
-      display: flex; align-items: center; gap: 6px;
-      padding: 6px 12px;
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      background: rgba(255,255,240,0.4);
-      cursor: pointer;
-      transition: all 0.15s;
-      font-size: 0.9rem;
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border: 1px solid rgba(139,69,19,0.3); border-radius: 3px;
+      background: rgba(255,255,240,0.4); cursor: pointer; transition: all 0.15s; font-size: 0.88rem;
     }
-    .condition-toggle.active {
-      background: rgba(139,0,0,0.12);
-      border-color: var(--danger);
-      color: var(--danger);
-    }
-    .condition-toggle input { display: none; }
+    .condition-toggle.active { background: rgba(139,0,0,0.12); border-color: var(--danger); color: var(--danger); }
 
-    /* ── Basic Info grid ── */
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 10px;
-    }
-    .field-row {
-      display: flex; flex-direction: column; gap: 3px;
-    }
-    .field-label {
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--ink-light);
-    }
-    .field-input {
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.4);
-      border-radius: 3px;
-      padding: 5px 8px;
-      font-family: 'IM Fell English', Georgia, serif;
-      font-size: 0.95rem;
-      color: var(--ink);
-      width: 100%;
-      transition: border-color 0.15s;
-    }
-    .field-input:focus {
-      outline: none;
-      border-color: var(--gold);
-      background: rgba(255,255,240,0.95);
-    }
-    input[type="number"].field-input { max-width: 90px; }
+    /* ── Info grid ── */
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 8px; }
 
     /* ── Traits ── */
-    .traits-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-    @media (max-width: 500px) { .traits-grid { grid-template-columns: repeat(2, 1fr); } }
+    .traits-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    @media (max-width:480px) { .traits-grid { grid-template-columns: repeat(2,1fr); } }
     .trait-box {
-      text-align: center;
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 4px;
-      padding: 8px 4px;
-      background: rgba(255,255,240,0.4);
+      text-align: center; border: 1px solid rgba(139,69,19,0.3); border-radius: 4px;
+      padding: 7px 4px; background: rgba(255,255,240,0.4);
     }
-    .trait-name {
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: var(--ink-light);
-      display: block;
-      margin-bottom: 4px;
-    }
+    .trait-name { font-family: 'Cinzel', serif; font-size: 0.63rem; letter-spacing: 0.1em; color: var(--ink-light); display: block; margin-bottom: 3px; }
     .trait-input {
-      width: 60px;
-      font-family: 'Cinzel', serif;
-      font-size: 1.4rem;
-      font-weight: 700;
-      text-align: center;
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      color: var(--ink);
-      padding: 2px;
+      width: 56px; font-family: 'Cinzel', serif; font-size: 1.35rem; font-weight: 700;
+      text-align: center; background: rgba(255,255,240,0.8);
+      border: 1px solid rgba(139,69,19,0.3); border-radius: 3px; color: var(--ink); padding: 1px;
     }
     .trait-input:focus { outline: none; border-color: var(--gold); }
 
     /* ── Defenses ── */
-    .defenses-grid {
-      display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
-    }
-    .defense-box {
-      text-align: center;
-    }
-    .defense-val {
-      font-family: 'Cinzel', serif;
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
-    .defense-label {
-      font-family: 'Cinzel', serif;
-      font-size: 0.62rem;
-      letter-spacing: 0.1em;
-      color: var(--ink-light);
-      display: block;
-    }
+    .defenses-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+    .defense-box { text-align: center; }
+    .defense-label { font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--ink-light); display: block; }
     .defense-input {
-      width: 70px;
-      font-family: 'Cinzel', serif;
-      font-size: 1.4rem;
-      font-weight: 700;
-      text-align: center;
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      color: var(--ink);
-      padding: 2px;
+      width: 66px; font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700;
+      text-align: center; background: rgba(255,255,240,0.8);
+      border: 1px solid rgba(139,69,19,0.3); border-radius: 3px; color: var(--ink); padding: 1px;
     }
     .defense-input:focus { outline: none; border-color: var(--gold); }
 
-    /* ── Attacks table ── */
-    .attacks-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    .attacks-table th {
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.08em;
-      color: var(--ink-light);
-      text-align: left;
-      padding: 4px 6px;
-      border-bottom: 1px solid rgba(139,69,19,0.3);
+    /* ── Attacks / Weapons table ── */
+    .scroll-table { overflow-x: auto; }
+    table.atk-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    table.atk-table th {
+      font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 0.07em;
+      color: var(--ink-light); text-align: left; padding: 3px 5px;
+      border-bottom: 1px solid rgba(139,69,19,0.3); white-space: nowrap;
     }
-    .attacks-table td { padding: 5px 6px; border-bottom: 1px solid rgba(139,69,19,0.12); vertical-align: top; }
-    .attacks-table tr:last-child td { border-bottom: none; }
-    .atk-type-dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      margin-right: 5px;
+    table.atk-table td { padding: 4px 5px; border-bottom: 1px solid rgba(139,69,19,0.1); vertical-align: middle; }
+    table.atk-table tr:last-child td { border-bottom: none; }
+    .t-input {
+      background: rgba(255,255,240,0.85); border: 1px solid rgba(139,69,19,0.3); border-radius: 2px;
+      padding: 2px 4px; font-family: 'IM Fell English', Georgia, serif; font-size: 0.83rem;
+      color: var(--ink); width: 100%;
     }
-    .atk-input {
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 2px;
-      padding: 2px 5px;
-      font-family: 'IM Fell English', Georgia, serif;
-      font-size: 0.88rem;
-      color: var(--ink);
-      width: 100%;
-    }
-    .atk-input:focus { outline: none; border-color: var(--gold); }
-    .atk-input.narrow { width: 52px; text-align: center; }
-    .atk-flags { display: flex; flex-wrap: wrap; gap: 3px; }
+    .t-input:focus { outline: none; border-color: var(--gold); }
+    .t-input.xs { width: 44px; text-align: center; }
+    .t-input.sm { width: 66px; }
+    .t-input.md { width: 100px; }
+    select.t-input { cursor: pointer; }
+    .atk-flags { display: flex; flex-wrap: wrap; gap: 2px; min-width: 140px; }
     .atk-flag {
-      font-size: 0.65rem;
-      padding: 1px 5px;
-      border-radius: 2px;
-      border: 1px solid rgba(139,69,19,0.3);
-      background: rgba(139,69,19,0.06);
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
+      font-size: 0.6rem; padding: 1px 5px; border-radius: 2px;
+      border: 1px solid rgba(139,69,19,0.25); background: rgba(139,69,19,0.05);
+      white-space: nowrap; cursor: pointer; user-select: none;
     }
-    .atk-flag.on { background: rgba(139,69,19,0.2); border-color: var(--border); }
+    .atk-flag.on { background: rgba(139,69,19,0.18); border-color: var(--border); }
     .del-btn {
-      background: rgba(139,0,0,0.08);
-      border: 1px solid rgba(139,0,0,0.3);
-      border-radius: 2px;
-      color: var(--danger);
-      cursor: pointer;
-      padding: 2px 8px;
-      font-size: 0.75rem;
-      white-space: nowrap;
-      transition: background 0.15s;
+      background: rgba(139,0,0,0.07); border: 1px solid rgba(139,0,0,0.28); border-radius: 2px;
+      color: var(--danger); cursor: pointer; padding: 2px 7px; font-size: 0.72rem;
+      transition: background 0.15s; white-space: nowrap;
     }
-    .del-btn:hover { background: rgba(139,0,0,0.18); }
+    .del-btn:hover { background: rgba(139,0,0,0.17); }
     .add-btn {
-      font-family: 'Cinzel', serif;
-      font-size: 0.75rem;
-      letter-spacing: 0.06em;
-      background: rgba(139,69,19,0.08);
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      color: var(--ink-light);
-      cursor: pointer;
-      padding: 6px 14px;
-      margin-top: 10px;
+      font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.06em;
+      background: rgba(139,69,19,0.07); border: 1px solid rgba(139,69,19,0.28); border-radius: 3px;
+      color: var(--ink-light); cursor: pointer; padding: 5px 13px; margin-top: 8px;
       transition: all 0.15s;
     }
     .add-btn:hover { background: rgba(200,134,10,0.18); color: var(--ink); }
 
+    /* ── Dice display ── */
+    .dice-cell { display: flex; align-items: center; gap: 3px; }
+
+    /* ── Armor items ── */
+    .armor-item {
+      display: grid;
+      grid-template-columns: auto 1fr 1fr 60px 60px 60px 60px auto;
+      gap: 5px; align-items: center;
+      padding: 6px 0; border-bottom: 1px solid rgba(139,69,19,0.12);
+    }
+    .armor-item:last-child { border-bottom: none; }
+    @media (max-width: 640px) { .armor-item { grid-template-columns: auto 1fr 1fr auto; } }
+    .armor-equip-radio { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; }
+
     /* ── Inventory ── */
     .inv-item {
-      display: grid;
-      grid-template-columns: 1fr 2fr 60px auto;
-      gap: 6px;
-      align-items: start;
-      padding: 8px 0;
+      display: grid; grid-template-columns: 1fr 2fr 56px auto;
+      gap: 5px; align-items: start; padding: 6px 0;
       border-bottom: 1px solid rgba(139,69,19,0.12);
     }
     .inv-item:last-child { border-bottom: none; }
-    @media (max-width: 520px) {
-      .inv-item { grid-template-columns: 1fr auto; }
-      .inv-item .inv-desc { grid-column: 1 / -1; }
-    }
 
     /* ── Domain cards ── */
     .domain-item {
-      display: grid;
-      grid-template-columns: 1fr 2fr 50px auto;
-      gap: 6px;
-      align-items: start;
-      padding: 8px 0;
+      display: grid; grid-template-columns: 1fr 2fr 46px auto;
+      gap: 5px; align-items: start; padding: 6px 0;
       border-bottom: 1px solid rgba(139,69,19,0.12);
     }
     .domain-item:last-child { border-bottom: none; }
 
     /* ── Experiences ── */
     .experience-item {
-      margin-bottom: 10px;
-      padding: 8px;
-      border: 1px solid rgba(139,69,19,0.2);
-      border-radius: 3px;
-      background: rgba(255,255,240,0.3);
+      display: grid; grid-template-columns: 1fr 2fr 60px auto;
+      gap: 5px; align-items: start; padding: 6px 0;
+      border-bottom: 1px solid rgba(139,69,19,0.12);
     }
-    .experience-item:last-child { margin-bottom: 0; }
+    .experience-item:last-child { border-bottom: none; }
 
     /* ── Notes ── */
     .notes-area {
-      width: 100%;
-      min-height: 100px;
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.4);
-      border-radius: 3px;
-      padding: 8px;
-      font-family: 'IM Fell English', Georgia, serif;
-      font-size: 0.95rem;
-      color: var(--ink);
-      resize: vertical;
+      width: 100%; min-height: 90px;
+      background: rgba(255,255,240,0.8); border: 1px solid rgba(139,69,19,0.4); border-radius: 3px;
+      padding: 7px; font-family: 'IM Fell English', Georgia, serif; font-size: 0.92rem;
+      color: var(--ink); resize: vertical;
     }
     .notes-area:focus { outline: none; border-color: var(--gold); }
 
-    /* ── Floating save button ── */
-    #save-bar {
-      position: fixed;
-      bottom: 20px; right: 20px;
-      z-index: 100;
-      display: none;
-    }
+    /* ── Empty state ── */
+    .empty-note { font-style: italic; color: var(--ink-light); font-size: 0.82rem; margin-bottom: 4px; }
+
+    /* ── Floating save ── */
+    #save-bar { position: fixed; bottom: 18px; right: 18px; z-index: 100; display: none; }
     #save-bar.visible { display: block; }
     #save-btn {
-      font-family: 'Cinzel', serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      background: linear-gradient(135deg, #c8860a, #a06a08);
-      color: #fff;
-      border: 2px solid #8b6000;
-      border-radius: 5px;
-      padding: 10px 22px;
-      cursor: pointer;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.25);
-      transition: all 0.15s;
+      font-family: 'Cinzel', serif; font-size: 0.83rem; font-weight: 700; letter-spacing: 0.08em;
+      background: linear-gradient(135deg,#c8860a,#a06a08); color: #fff;
+      border: 2px solid #8b6000; border-radius: 5px; padding: 9px 20px;
+      cursor: pointer; box-shadow: 0 3px 12px rgba(0,0,0,0.25); transition: all 0.15s;
     }
-    #save-btn:hover { background: linear-gradient(135deg, #d9940b, #b07509); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+    #save-btn:hover { background: linear-gradient(135deg,#d9940b,#b07509); }
 
     /* ── Modal ── */
     .modal-overlay {
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(43,29,14,0.6);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px;
+      position: fixed; inset: 0; z-index: 200; background: rgba(43,29,14,0.6);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
     }
     .modal-overlay.hidden { display: none; }
     .modal {
-      background: var(--parchment);
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      padding: 24px;
-      max-width: 440px;
-      width: 100%;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      background: var(--parchment); border: 2px solid var(--border); border-radius: 6px;
+      padding: 22px; max-width: 440px; width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.35);
     }
-    .modal-title {
-      font-family: 'Cinzel', serif;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      margin-bottom: 14px;
-    }
-    .modal-body { margin-bottom: 18px; }
-    .modal-label {
-      font-family: 'Cinzel', serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      color: var(--ink-light);
-      display: block;
-      margin-bottom: 6px;
-    }
+    .modal-title { font-family: 'Cinzel', serif; font-size: 0.98rem; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 12px; }
+    .modal-body { margin-bottom: 16px; }
+    .modal-label { font-family: 'Cinzel', serif; font-size: 0.68rem; letter-spacing: 0.08em; color: var(--ink-light); display: block; margin-bottom: 5px; }
     .modal-input {
-      width: 100%;
-      background: rgba(255,255,240,0.9);
-      border: 1px solid rgba(139,69,19,0.5);
-      border-radius: 3px;
-      padding: 8px 10px;
-      font-family: 'IM Fell English', Georgia, serif;
-      font-size: 1rem;
-      color: var(--ink);
+      width: 100%; background: rgba(255,255,240,0.9);
+      border: 1px solid rgba(139,69,19,0.5); border-radius: 3px; padding: 7px 9px;
+      font-family: 'IM Fell English', Georgia, serif; font-size: 0.98rem; color: var(--ink);
     }
     .modal-input:focus { outline: none; border-color: var(--gold); }
-    .modal-hint {
-      font-size: 0.8rem;
-      color: var(--ink-light);
-      font-style: italic;
-      margin-top: 6px;
-    }
-    .modal-actions {
-      display: flex; gap: 10px; justify-content: flex-end;
-    }
+    .modal-hint { font-size: 0.78rem; color: var(--ink-light); font-style: italic; margin-top: 5px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
     .modal-cancel {
-      font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      background: none;
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      padding: 7px 16px;
-      cursor: pointer;
-      color: var(--ink-light);
-      transition: all 0.15s;
+      font-family: 'Cinzel', serif; font-size: 0.78rem;
+      background: none; border: 1px solid rgba(139,69,19,0.3); border-radius: 3px;
+      padding: 6px 14px; cursor: pointer; color: var(--ink-light); transition: all 0.15s;
     }
     .modal-cancel:hover { background: rgba(139,69,19,0.08); }
     .modal-confirm {
-      font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #c8860a, #a06a08);
-      color: #fff;
-      border: 1px solid #8b6000;
-      border-radius: 3px;
-      padding: 7px 18px;
-      cursor: pointer;
-      transition: all 0.15s;
+      font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 700;
+      background: linear-gradient(135deg,#c8860a,#a06a08); color: #fff;
+      border: 1px solid #8b6000; border-radius: 3px; padding: 6px 16px;
+      cursor: pointer; transition: all 0.15s;
     }
     .modal-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
-    .modal-confirm:not(:disabled):hover { background: linear-gradient(135deg, #d9940b, #b07509); }
+    .modal-confirm:not(:disabled):hover { background: linear-gradient(135deg,#d9940b,#b07509); }
 
     /* ── Toast ── */
     #toast {
-      position: fixed; bottom: 70px; right: 20px; z-index: 300;
-      font-family: 'Cinzel', serif;
-      font-size: 0.8rem;
-      letter-spacing: 0.06em;
-      padding: 9px 18px;
-      border-radius: 4px;
-      border: 1px solid;
+      position: fixed; bottom: 66px; right: 18px; z-index: 300;
+      font-family: 'Cinzel', serif; font-size: 0.78rem; letter-spacing: 0.06em;
+      padding: 8px 16px; border-radius: 4px; border: 1px solid;
       box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-      opacity: 0; transition: opacity 0.3s;
-      pointer-events: none;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
     }
     #toast.show { opacity: 1; }
-    #toast.ok { background: rgba(230,245,230,0.97); border-color: var(--success); color: var(--success); }
-    #toast.err { background: rgba(245,230,230,0.97); border-color: var(--danger); color: var(--danger); }
+    #toast.ok  { background: rgba(230,245,230,0.97); border-color: var(--success); color: var(--success); }
+    #toast.err { background: rgba(245,230,230,0.97); border-color: var(--danger);  color: var(--danger); }
 
     /* ── History timeline ── */
-    .timeline { position: relative; padding-left: 24px; }
-    .timeline::before {
-      content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
-      width: 2px; background: rgba(139,69,19,0.25);
-    }
+    .timeline { position: relative; padding-left: 22px; }
+    .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:rgba(139,69,19,0.25); }
     .timeline-item {
-      position: relative;
-      margin-bottom: 14px;
-      padding: 10px 12px;
-      border: 1px solid rgba(139,69,19,0.25);
-      border-radius: 4px;
-      background: rgba(255,255,240,0.5);
+      position: relative; margin-bottom: 12px; padding: 9px 11px;
+      border: 1px solid rgba(139,69,19,0.25); border-radius: 4px; background: rgba(255,255,240,0.5);
     }
     .timeline-item::before {
-      content: ''; position: absolute;
-      left: -20px; top: 14px;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: var(--gold);
-      border: 2px solid var(--border);
+      content:''; position:absolute; left:-18px; top:13px;
+      width:9px; height:9px; border-radius:50%; background:var(--gold); border:2px solid var(--border);
     }
-    .timeline-item.current::before { background: var(--ink); }
-    .timeline-meta {
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.06em;
-      color: var(--ink-light);
-      margin-bottom: 4px;
-    }
-    .timeline-desc {
-      font-size: 0.9rem;
-      margin-bottom: 8px;
-    }
-    .timeline-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .timeline-item.current::before { background:var(--ink); }
+    .timeline-meta { font-family:'Cinzel',serif; font-size:0.63rem; letter-spacing:0.06em; color:var(--ink-light); margin-bottom:3px; }
+    .timeline-desc { font-size:0.88rem; margin-bottom:7px; }
+    .timeline-actions { display:flex; gap:7px; flex-wrap:wrap; }
     .tl-btn {
-      font-family: 'Cinzel', serif;
-      font-size: 0.68rem;
-      letter-spacing: 0.05em;
-      padding: 4px 10px;
-      border-radius: 3px;
-      border: 1px solid rgba(139,69,19,0.3);
-      background: rgba(139,69,19,0.06);
-      color: var(--ink-light);
-      cursor: pointer;
-      transition: all 0.15s;
+      font-family:'Cinzel',serif; font-size:0.66rem; letter-spacing:0.05em;
+      padding:3px 9px; border-radius:3px; border:1px solid rgba(139,69,19,0.3);
+      background:rgba(139,69,19,0.06); color:var(--ink-light); cursor:pointer; transition:all 0.15s;
     }
-    .tl-btn:hover { background: rgba(200,134,10,0.18); color: var(--ink); }
-    .tl-btn.restore-btn { border-color: rgba(139,0,0,0.3); color: var(--danger); background: rgba(139,0,0,0.05); }
-    .tl-btn.restore-btn:hover { background: rgba(139,0,0,0.12); }
+    .tl-btn:hover { background:rgba(200,134,10,0.18); color:var(--ink); }
+    .tl-btn.restore-btn { border-color:rgba(139,0,0,0.3); color:var(--danger); background:rgba(139,0,0,0.05); }
+    .tl-btn.restore-btn:hover { background:rgba(139,0,0,0.12); }
     .fork-banner {
-      font-family: 'Cinzel', serif;
-      font-size: 0.72rem;
-      color: var(--ink-light);
-      font-style: italic;
-      margin-bottom: 14px;
-      padding: 8px 12px;
-      border-left: 3px solid var(--gold);
-      background: rgba(200,134,10,0.06);
+      font-family:'Cinzel',serif; font-size:0.7rem; color:var(--ink-light); font-style:italic;
+      margin-bottom:12px; padding:7px 11px; border-left:3px solid var(--gold); background:rgba(200,134,10,0.06);
     }
 
-    /* ── Branches list ── */
+    /* ── Branches ── */
     .branch-item {
-      padding: 12px 14px;
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 4px;
-      background: rgba(255,255,240,0.5);
-      margin-bottom: 10px;
+      padding:11px 13px; border:1px solid rgba(139,69,19,0.3); border-radius:4px;
+      background:rgba(255,255,240,0.5); margin-bottom:9px;
     }
-    .branch-item.active-branch {
-      border-color: var(--gold);
-      background: rgba(200,134,10,0.06);
-    }
-    .branch-header {
-      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-      margin-bottom: 6px;
-    }
-    .branch-name {
-      font-family: 'Cinzel', serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-    }
-    .badge {
-      font-family: 'Cinzel', serif;
-      font-size: 0.62rem;
-      letter-spacing: 0.08em;
-      padding: 2px 8px;
-      border-radius: 2px;
-      background: var(--gold);
-      color: #fff;
-    }
-    .branch-meta {
-      font-size: 0.8rem;
-      color: var(--ink-light);
-      margin-bottom: 8px;
-    }
-    .branch-actions { display: flex; gap: 8px; }
+    .branch-item.active-branch { border-color:var(--gold); background:rgba(200,134,10,0.06); }
+    .branch-header { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:5px; }
+    .branch-name { font-family:'Cinzel',serif; font-size:0.88rem; font-weight:700; }
+    .badge { font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.08em; padding:2px 7px; border-radius:2px; background:var(--gold); color:#fff; }
+    .branch-meta { font-size:0.78rem; color:var(--ink-light); margin-bottom:7px; }
     .switch-btn {
-      font-family: 'Cinzel', serif;
-      font-size: 0.72rem;
-      letter-spacing: 0.05em;
-      padding: 5px 14px;
-      border-radius: 3px;
-      border: 1px solid rgba(139,69,19,0.35);
-      background: rgba(139,69,19,0.08);
-      color: var(--ink-light);
-      cursor: pointer;
-      transition: all 0.15s;
+      font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:0.05em; padding:4px 13px;
+      border-radius:3px; border:1px solid rgba(139,69,19,0.35); background:rgba(139,69,19,0.08);
+      color:var(--ink-light); cursor:pointer; transition:all 0.15s;
     }
-    .switch-btn:hover:not(:disabled) { background: rgba(200,134,10,0.18); color: var(--ink); }
-    .switch-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .switch-btn:hover:not(:disabled) { background:rgba(200,134,10,0.18); color:var(--ink); }
+    .switch-btn:disabled { opacity:0.35; cursor:not-allowed; }
 
     /* ── Preview overlay ── */
     .preview-overlay {
-      position: fixed; inset: 0; z-index: 200;
-      background: rgba(43,29,14,0.65);
-      display: flex; align-items: center; justify-content: center;
-      padding: 16px;
+      position:fixed; inset:0; z-index:200; background:rgba(43,29,14,0.65);
+      display:flex; align-items:center; justify-content:center; padding:16px;
     }
-    .preview-overlay.hidden { display: none; }
+    .preview-overlay.hidden { display:none; }
     .preview-box {
-      background: var(--parchment);
-      border: 2px solid var(--border);
-      border-radius: 6px;
-      padding: 20px;
-      max-width: 560px;
-      width: 100%;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      background:var(--parchment); border:2px solid var(--border); border-radius:6px;
+      padding:18px; max-width:560px; width:100%; max-height:80vh; overflow-y:auto;
+      box-shadow:0 8px 32px rgba(0,0,0,0.35);
     }
-    .preview-title {
-      font-family: 'Cinzel', serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 14px;
-    }
+    .preview-title { font-family:'Cinzel',serif; font-size:0.92rem; font-weight:700; margin-bottom:12px; }
     .preview-close {
-      float: right;
-      font-family: 'Cinzel', serif;
-      font-size: 0.75rem;
-      background: none;
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 3px;
-      padding: 3px 10px;
-      cursor: pointer;
-      color: var(--ink-light);
+      float:right; font-family:'Cinzel',serif; font-size:0.72rem;
+      background:none; border:1px solid rgba(139,69,19,0.3); border-radius:3px;
+      padding:2px 9px; cursor:pointer; color:var(--ink-light);
     }
-    .preview-close:hover { background: rgba(139,69,19,0.08); }
-    .preview-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      font-size: 0.85rem;
-    }
-    .preview-field { margin-bottom: 4px; }
-    .preview-key {
-      font-family: 'Cinzel', serif;
-      font-size: 0.62rem;
-      letter-spacing: 0.08em;
-      color: var(--ink-light);
-      display: block;
-    }
+    .preview-close:hover { background:rgba(139,69,19,0.08); }
+    .preview-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; font-size:0.83rem; }
+    .preview-key { font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:0.08em; color:var(--ink-light); display:block; }
 
-    /* ── Loading state ── */
-    .loading {
-      text-align: center;
-      padding: 40px;
-      font-style: italic;
-      color: var(--ink-light);
-    }
+    .loading { text-align:center; padding:36px; font-style:italic; color:var(--ink-light); }
 
-    /* ── Range tag chip ── */
-    .range-input {
-      font-family: 'IM Fell English', Georgia, serif;
-      font-size: 0.82rem;
-      color: var(--ink);
-      background: rgba(255,255,240,0.8);
-      border: 1px solid rgba(139,69,19,0.3);
-      border-radius: 2px;
-      padding: 2px 4px;
-      width: 100%;
-    }
-    .range-input:focus { outline: none; border-color: var(--gold); }
+    /* ── section subheader ── */
+    .sub-label { font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:0.08em; color:var(--ink-light); margin-top:8px; margin-bottom:4px; }
   </style>
 </head>
 <body>
@@ -790,7 +489,7 @@
     <div id="sheet-loading" class="loading">Loading character…</div>
     <div id="sheet-body" style="display:none">
 
-      <!-- Quick Trackers -->
+      <!-- ⚡ Resources -->
       <div class="section">
         <div class="section-title">⚡ Resources</div>
         <div class="trackers-grid">
@@ -798,59 +497,85 @@
           <div class="tracker">
             <span class="tracker-label">Hit Points</span>
             <div class="tracker-controls">
-              <button class="tracker-btn" data-action="dec" data-field="hp">−</button>
+              <button class="tracker-btn" data-res="hp" data-act="dec">−</button>
               <span class="tracker-num" id="hp-cur">—</span>
-              <span class="tracker-max">/ <input class="tracker-max-input" id="hp-max" type="number" min="1" max="99"></span>
-              <button class="tracker-btn" data-action="inc" data-field="hp">+</button>
+              <span style="color:var(--ink-light);font-size:0.9rem">/</span>
+              <input class="tracker-max-input" id="hp-max" type="number" min="1" max="99">
+              <button class="tracker-btn" data-res="hp" data-act="inc">+</button>
             </div>
           </div>
 
           <div class="tracker">
             <span class="tracker-label">Stress</span>
             <div class="tracker-controls">
-              <button class="tracker-btn" data-action="dec" data-field="stress">−</button>
+              <button class="tracker-btn" data-res="stress" data-act="dec">−</button>
               <span class="tracker-num" id="stress-cur">—</span>
-              <span class="tracker-max">/ <input class="tracker-max-input" id="stress-max" type="number" min="1" max="20"></span>
-              <button class="tracker-btn" data-action="inc" data-field="stress">+</button>
+              <span style="color:var(--ink-light);font-size:0.9rem">/</span>
+              <input class="tracker-max-input" id="stress-max" type="number" min="1" max="99">
+              <button class="tracker-btn" data-res="stress" data-act="inc">+</button>
             </div>
           </div>
 
           <div class="tracker">
-            <span class="tracker-label">Hope</span>
+            <span class="tracker-label">Hope (max 6)</span>
             <div class="hope-pips" id="hope-pips"></div>
           </div>
 
           <div class="tracker">
             <span class="tracker-label">Gold</span>
-            <div class="tracker-controls">
-              <button class="tracker-btn" data-action="dec" data-field="gold">−</button>
-              <span class="tracker-num" id="gold-val">—</span>
-              <button class="tracker-btn" data-action="inc" data-field="gold">+</button>
-            </div>
-          </div>
-
-          <div class="tracker">
-            <span class="tracker-label">Armor</span>
-            <div class="armor-slots">
-              <span class="armor-base" id="armor-base-val">—</span>
-              <div id="armor-slots-wrap"></div>
-            </div>
-            <div style="margin-top:4px">
-              <label class="field-label" style="font-size:0.6rem">Base</label>
-              <input class="tracker-max-input" id="armor-base-input" type="number" min="0" max="10" style="width:42px">
+            <div class="gold-inputs">
+              <div class="gold-field">
+                <span class="tracker-label">Chests</span>
+                <input class="gold-num-input" id="gold-chests" type="number" min="0" value="0">
+              </div>
+              <span class="gold-sep">·</span>
+              <div class="gold-field">
+                <span class="tracker-label">Bags</span>
+                <input class="gold-num-input" id="gold-bags" type="number" min="0" max="9" value="0">
+              </div>
+              <span class="gold-sep">·</span>
+              <div class="gold-field">
+                <span class="tracker-label">Handfuls</span>
+                <input class="gold-num-input" id="gold-handfuls" type="number" min="0" max="9" value="0">
+              </div>
             </div>
           </div>
 
         </div>
+
+        <!-- Damage Thresholds -->
+        <div class="threshold-band">
+          <div class="threshold-cell">
+            <span class="threshold-label">Minor Threshold</span>
+            <input class="threshold-input" id="thr-minor" type="number" min="0">
+          </div>
+          <div class="threshold-cell">
+            <span class="threshold-label">Major Threshold</span>
+            <input class="threshold-input" id="thr-major" type="number" min="0">
+          </div>
+          <div class="threshold-cell">
+            <span class="threshold-label">Severe Threshold</span>
+            <input class="threshold-input" id="thr-severe" type="number" min="0">
+          </div>
+        </div>
+
+        <!-- Armor Slots -->
+        <div class="armor-slots-band">
+          <span class="armor-slots-label">Armor Slots:</span>
+          <div id="armor-slots-wrap" style="display:flex;gap:4px;flex-wrap:wrap"></div>
+          <span class="armor-slot-count" id="armor-slot-count"></span>
+          <span class="armor-slots-label" style="margin-left:8px">Max:</span>
+          <input class="tracker-max-input" id="armor-slots-max" type="number" min="0" max="12" style="width:38px">
+        </div>
       </div>
 
-      <!-- Conditions -->
+      <!-- ⚠ Conditions -->
       <div class="section">
         <div class="section-title">⚠ Conditions</div>
         <div class="conditions-grid" id="conditions-wrap"></div>
       </div>
 
-      <!-- Basic Info -->
+      <!-- 📖 Basic Info -->
       <div class="section">
         <div class="section-title">📖 Basic Information</div>
         <div class="info-grid">
@@ -865,7 +590,7 @@
         </div>
       </div>
 
-      <!-- Traits -->
+      <!-- 🎲 Traits -->
       <div class="section">
         <div class="section-title">🎲 Traits</div>
         <div class="traits-grid">
@@ -878,7 +603,7 @@
         </div>
       </div>
 
-      <!-- Defenses -->
+      <!-- 🛡 Defenses -->
       <div class="section">
         <div class="section-title">🛡 Defenses</div>
         <div class="defenses-grid">
@@ -886,68 +611,84 @@
             <input class="defense-input" id="d-evasion" type="number" min="0" max="30">
             <span class="defense-label">Evasion</span>
           </div>
-          <div class="defense-box">
-            <input class="defense-input" id="d-severe" type="number" min="0" max="99">
-            <span class="defense-label">Severe Threshold</span>
-          </div>
-          <div class="defense-box">
-            <input class="defense-input" id="d-major" type="number" min="0" max="99">
-            <span class="defense-label">Major Threshold</span>
-          </div>
         </div>
       </div>
 
-      <!-- Attacks -->
+      <!-- 🪖 Armor -->
       <div class="section">
-        <div class="section-title">⚔ Attacks & Abilities</div>
-        <div style="overflow-x:auto">
-          <table class="attacks-table">
+        <div class="section-title">🪖 Armor</div>
+        <div class="sub-label">Equipped Armor</div>
+        <select class="field-input" id="armor-equipped-select" style="max-width:260px"></select>
+        <div id="armor-equipped-stats" style="margin-top:8px;font-size:0.85rem;color:var(--ink-light);font-style:italic"></div>
+        <div class="sub-label" style="margin-top:12px">Armor Items</div>
+        <div id="armor-items-list"></div>
+        <button class="add-btn" id="add-armor-btn">+ Add Armor</button>
+      </div>
+
+      <!-- ⚔ Attacks & Spells -->
+      <div class="section">
+        <div class="section-title">⚔ Attacks &amp; Spells</div>
+        <div class="scroll-table">
+          <table class="atk-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Hit+</th>
-                <th>Damage</th>
-                <th>Range</th>
-                <th>Flags</th>
-                <th>Note</th>
-                <th></th>
+                <th>Name</th><th>Type</th><th>Hit+</th><th>Trait</th>
+                <th>Dice</th><th>+Mod</th><th>Dmg</th>
+                <th>Range</th><th>Flags</th><th>Note</th><th></th>
               </tr>
             </thead>
             <tbody id="attacks-body"></tbody>
           </table>
         </div>
-        <button class="add-btn" id="add-attack-btn">+ Add Attack</button>
+        <button class="add-btn" id="add-attack-btn">+ Add Attack / Spell</button>
       </div>
 
-      <!-- Inventory -->
+      <!-- 🗡 Weapons -->
+      <div class="section">
+        <div class="section-title">🗡 Weapons</div>
+        <div class="scroll-table">
+          <table class="atk-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Wield</th><th>Trait</th><th>Range</th>
+                <th>Dice</th><th>+Mod</th><th>Dmg</th><th>Note</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="weapons-body"></tbody>
+          </table>
+        </div>
+        <button class="add-btn" id="add-weapon-btn">+ Add Weapon</button>
+      </div>
+
+      <!-- 🎒 Inventory -->
       <div class="section">
         <div class="section-title">🎒 Inventory</div>
         <div id="inventory-list"></div>
         <button class="add-btn" id="add-inv-btn">+ Add Item</button>
       </div>
 
-      <!-- Domain Cards -->
+      <!-- 🃏 Domain Cards -->
       <div class="section">
-        <div class="section-title">🃏 Domain Cards & Class Features</div>
+        <div class="section-title">🃏 Domain Cards &amp; Class Features</div>
         <div id="domain-list"></div>
         <button class="add-btn" id="add-domain-btn">+ Add Card / Feature</button>
       </div>
 
-      <!-- Experiences -->
+      <!-- ✨ Experiences -->
       <div class="section">
         <div class="section-title">✨ Experiences</div>
-        <div id="experiences-wrap"></div>
+        <div id="experiences-list"></div>
+        <button class="add-btn" id="add-exp-btn">+ Add Experience</button>
       </div>
 
-      <!-- Notes -->
+      <!-- 📝 Notes -->
       <div class="section">
         <div class="section-title">📝 Notes</div>
         <textarea class="notes-area" id="f-notes" placeholder="Free-form notes…"></textarea>
       </div>
 
     </div><!-- /sheet-body -->
-  </div><!-- /sheet-tab -->
+  </div>
 
   <!-- ══ HISTORY TAB ══ -->
   <div id="history-tab" class="tab-content">
@@ -963,10 +704,8 @@
 
 </main>
 
-<!-- ── Floating save bar ── -->
-<div id="save-bar">
-  <button id="save-btn">💾 Save Changes</button>
-</div>
+<!-- ── Floating save ── -->
+<div id="save-bar"><button id="save-btn">💾 Save Changes</button></div>
 
 <!-- ── Save modal ── -->
 <div class="modal-overlay hidden" id="save-modal">
@@ -974,8 +713,7 @@
     <div class="modal-title">Save Character Changes</div>
     <div class="modal-body">
       <label class="modal-label" for="save-desc">Describe what changed</label>
-      <input class="modal-input" id="save-desc" type="text"
-        placeholder="e.g. Used two armor slots vs. the basilisk">
+      <input class="modal-input" id="save-desc" type="text" placeholder="e.g. Used two armor slots vs. the basilisk">
       <p class="modal-hint">This description will appear in the history timeline.</p>
     </div>
     <div class="modal-actions">
@@ -990,12 +728,9 @@
   <div class="modal">
     <div class="modal-title">Restore to This Point</div>
     <div class="modal-body">
-      <p style="margin-bottom:10px;font-size:0.9rem">
-        A new branch will be created from this snapshot. The current branch is preserved.
-      </p>
+      <p style="margin-bottom:9px;font-size:0.88rem">A new branch will be created from this snapshot. The current branch is preserved.</p>
       <label class="modal-label" for="restore-name">New branch name (optional)</label>
-      <input class="modal-input" id="restore-name" type="text"
-        placeholder="e.g. What if I kept the armor?">
+      <input class="modal-input" id="restore-name" type="text" placeholder="e.g. What if I kept the armor?">
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" id="restore-cancel">Cancel</button>
@@ -1018,6 +753,22 @@
 
 <script>
 // ════════════════════════════════════════
+// Constants
+// ════════════════════════════════════════
+
+const TRAITS   = ['agility','strength','finesse','instinct','presence','knowledge'];
+const RANGES   = ['Melee','Very Short','Close','Far','Very Far'];
+const DIE_SIDES= [4,6,8,10,12,20];
+const DMG_TYPES= ['physical','magical'];
+const WIELD    = ['main','off','dual'];
+
+const ATK_FLAGS = [
+  ['aoe','AoE'],['friendlyFire','Friendly Fire'],['noRoll','No Roll'],
+  ['utility','Utility'],['groundsFliers','Grounds Fliers'],
+  ['costStress','Costs Stress'],['needConstruct','Needs Construct']
+];
+
+// ════════════════════════════════════════
 // State
 // ════════════════════════════════════════
 
@@ -1030,34 +781,82 @@ let restoreTargetId   = null;
 // Utilities
 // ════════════════════════════════════════
 
-function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
-
-function isDirty() {
-  return JSON.stringify(workingCharacter) !== JSON.stringify(savedCharacter);
+function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
+function isDirty() { return JSON.stringify(workingCharacter) !== JSON.stringify(savedCharacter); }
+function markDirty() { document.getElementById('save-bar').classList.toggle('visible', isDirty()); }
+function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s.replace(' ','T'));
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
+    +', '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 }
-
-function markDirty() {
-  document.getElementById('save-bar').classList.toggle('visible', isDirty());
+function diceStr(count, sides, dmod) {
+  if (!count || !sides) return '—';
+  let s = count+'d'+sides;
+  if (dmod > 0) s += '+'+dmod;
+  else if (dmod < 0) s += dmod;
+  return s;
 }
 
 let toastTimer;
-function showToast(msg, type = 'ok') {
+function showToast(msg, type='ok') {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'show ' + type;
+  el.textContent = msg; el.className = 'show '+type;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ''; }, 2600);
+  toastTimer = setTimeout(() => { el.className=''; }, 2600);
 }
 
-function fmtDate(str) {
-  if (!str) return '—';
-  const d = new Date(str.replace(' ', 'T'));
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-    + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-}
+// ════════════════════════════════════════
+// Data migration (old → new format)
+// ════════════════════════════════════════
 
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function migrate(c) {
+  // Gold: number → {handfuls, bags, chests}
+  if (typeof c.resources.gold === 'number') {
+    c.resources.gold = { handfuls: c.resources.gold, bags: 0, chests: 0 };
+  }
+  // HP/Stress max defaults
+  if (!c.resources.hp.max)     c.resources.hp.max     = 12;
+  if (!c.resources.stress.max) c.resources.stress.max = 12;
+
+  // Thresholds: from old defenses or missing
+  if (!c.thresholds) {
+    c.thresholds = {
+      minor:  c.defenses?.majorThreshold ? Math.max(0, c.defenses.majorThreshold - 12) : 5,
+      major:  c.defenses?.majorThreshold  || 17,
+      severe: c.defenses?.severeThreshold || 38
+    };
+  }
+  if (c.defenses?.severeThreshold !== undefined) delete c.defenses.severeThreshold;
+  if (c.defenses?.majorThreshold  !== undefined) delete c.defenses.majorThreshold;
+
+  // Armor: old {base, slots:[]} → new {equippedId, slotsMax, slotsUsed, items:[]}
+  if (Array.isArray(c.armor?.slots)) {
+    const used = c.armor.slots.filter(Boolean).length;
+    c.armor = { equippedId: null, slotsMax: Math.max(c.armor.base||2, c.armor.slots.length), slotsUsed: used, items: [] };
+  }
+  if (!c.armor) c.armor = { equippedId: null, slotsMax: 4, slotsUsed: 0, items: [] };
+  if (!c.armor.items) c.armor.items = [];
+
+  // Attacks: dice:[n,s] → diceCount/diceSides
+  c.attacks = (c.attacks||[]).map(a => {
+    if (Array.isArray(a.dice)) {
+      const [count, sides] = a.dice;
+      return { ...a, diceCount: count||0, diceSides: sides||6, dice: undefined,
+        trait: a.trait||'presence', damageType: a.damageType||(a.type==='spell'?'magical':'physical') };
+    }
+    return { trait:'presence', damageType:'physical', ...a };
+  });
+
+  // Weapons: ensure exists
+  if (!c.weapons) c.weapons = [];
+
+  // Experiences: ensure modifier field
+  c.experiences = (c.experiences||[]).map(e => ({ modifier:2, ...e, id: e.id||uid() }));
+
+  return c;
 }
 
 // ════════════════════════════════════════
@@ -1069,223 +868,403 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById(btn.dataset.tab + '-tab').classList.add('active');
-
-    if (btn.dataset.tab === 'history')  loadHistory();
-    if (btn.dataset.tab === 'branches') loadBranches();
+    document.getElementById(btn.dataset.tab+'-tab').classList.add('active');
+    if (btn.dataset.tab==='history')  loadHistory();
+    if (btn.dataset.tab==='branches') loadBranches();
   });
 });
 
 // ════════════════════════════════════════
-// Load character
+// Load & render
 // ════════════════════════════════════════
 
 async function loadCharacter() {
-  const data = await fetch('/api/character').then(r => r.json());
+  const data = await fetch('/api/character').then(r=>r.json());
   currentSnapshotId = data.snapshotId;
-  workingCharacter  = deepCopy(data.character);
-  savedCharacter    = deepCopy(data.character);
+  workingCharacter  = migrate(deepCopy(data.character));
+  savedCharacter    = deepCopy(workingCharacter);
   renderSheet();
-  updateHeader(data.character, data.branchName);
+  updateHeader(data.branchName);
   document.getElementById('sheet-loading').style.display = 'none';
   document.getElementById('sheet-body').style.display    = '';
   markDirty();
 }
 
-function updateHeader(c, branchName) {
-  document.getElementById('hdr-name').textContent = c.basicInfo.name || 'River Sky';
-  const sub = [
-    c.basicInfo.ancestry, c.basicInfo.subclass || c.basicInfo.class,
-    'Lv.' + c.basicInfo.level,
-    branchName !== 'main' ? ('Branch: ' + branchName) : ''
-  ].filter(Boolean).join(' · ');
-  document.getElementById('hdr-subtitle').textContent = sub;
+function updateHeader(branchName) {
+  const c = workingCharacter;
+  document.getElementById('hdr-name').textContent = c.basicInfo.name || 'Character';
+  const parts = [c.basicInfo.ancestry, c.basicInfo.subclass||c.basicInfo.class, 'Lv.'+c.basicInfo.level];
+  if (branchName && branchName !== 'main') parts.push('Branch: '+branchName);
+  document.getElementById('hdr-subtitle').textContent = parts.filter(Boolean).join(' · ');
 }
-
-// ════════════════════════════════════════
-// Render sheet
-// ════════════════════════════════════════
 
 function renderSheet() {
   const c = workingCharacter;
 
-  // Resources
-  document.getElementById('hp-cur').textContent     = c.resources.hp.current;
-  document.getElementById('hp-max').value           = c.resources.hp.max;
+  // HP
+  document.getElementById('hp-cur').textContent = c.resources.hp.current;
+  document.getElementById('hp-max').value        = c.resources.hp.max;
+
+  // Stress
   document.getElementById('stress-cur').textContent = c.resources.stress.current;
-  document.getElementById('stress-max').value       = c.resources.stress.max;
-  document.getElementById('gold-val').textContent   = c.resources.gold;
-  document.getElementById('armor-base-val').textContent = c.armor.base;
-  document.getElementById('armor-base-input').value     = c.armor.base;
+  document.getElementById('stress-max').value        = c.resources.stress.max;
+
+  // Hope
   renderHope(c.resources.hope);
-  renderArmorSlots(c.armor.slots);
+
+  // Gold
+  const g = c.resources.gold;
+  document.getElementById('gold-chests').value   = g.chests;
+  document.getElementById('gold-bags').value     = g.bags;
+  document.getElementById('gold-handfuls').value = g.handfuls;
+
+  // Thresholds
+  document.getElementById('thr-minor').value  = c.thresholds.minor;
+  document.getElementById('thr-major').value  = c.thresholds.major;
+  document.getElementById('thr-severe').value = c.thresholds.severe;
+
+  // Armor slots
+  document.getElementById('armor-slots-max').value = c.armor.slotsMax;
+  renderArmorSlots(c.armor.slotsUsed, c.armor.slotsMax);
 
   // Conditions
   renderConditions(c.conditions);
 
   // Basic info
-  const bi = c.basicInfo;
-  document.getElementById('f-name').value        = bi.name;
-  document.getElementById('f-pronouns').value    = bi.pronouns;
-  document.getElementById('f-ancestry').value    = bi.ancestry;
-  document.getElementById('f-community').value   = bi.community;
-  document.getElementById('f-class').value       = bi.class;
-  document.getElementById('f-subclass').value    = bi.subclass;
-  document.getElementById('f-level').value       = bi.level;
-  document.getElementById('f-proficiency').value = bi.proficiency;
+  ['name','pronouns','ancestry','community','class','subclass'].forEach(k =>
+    document.getElementById('f-'+k).value = c.basicInfo[k]||'');
+  document.getElementById('f-level').value       = c.basicInfo.level;
+  document.getElementById('f-proficiency').value = c.basicInfo.proficiency;
 
   // Traits
-  for (const [k, v] of Object.entries(c.traits)) {
-    document.getElementById('t-' + k).value = v;
-  }
+  TRAITS.forEach(k => document.getElementById('t-'+k).value = c.traits[k]);
 
   // Defenses
   document.getElementById('d-evasion').value = c.defenses.evasion;
-  document.getElementById('d-severe').value  = c.defenses.severeThreshold;
-  document.getElementById('d-major').value   = c.defenses.majorThreshold;
 
-  // Attacks
+  // Armor section
+  renderArmorSection(c.armor);
+
+  // Attacks, weapons, inventory, domain cards, experiences, notes
   renderAttacks(c.attacks);
-
-  // Inventory
+  renderWeapons(c.weapons);
   renderInventory(c.inventory);
-
-  // Domain cards
   renderDomainCards(c.domainCards);
-
-  // Experiences
   renderExperiences(c.experiences);
-
-  // Notes
   document.getElementById('f-notes').value = c.notes;
 }
 
-// ── Hope pips ──
+// ── Hope pips (always max 6) ──
 function renderHope(val) {
   const wrap = document.getElementById('hope-pips');
   wrap.innerHTML = '';
-  for (let i = 0; i < 7; i++) {
-    const pip = document.createElement('button');
-    pip.className = 'hope-pip' + (i < val ? ' filled' : '');
-    pip.title = (i + 1) + ' Hope';
-    pip.addEventListener('click', () => {
-      const newVal = i < workingCharacter.resources.hope ? i : i + 1;
-      workingCharacter.resources.hope = newVal;
-      renderHope(newVal);
+  for (let i=0; i<6; i++) {
+    const b = document.createElement('button');
+    b.className = 'hope-pip'+(i<val?' filled':'');
+    b.title = (i+1)+' Hope';
+    b.addEventListener('click', () => {
+      workingCharacter.resources.hope = i < workingCharacter.resources.hope ? i : i+1;
+      renderHope(workingCharacter.resources.hope);
       markDirty();
     });
-    wrap.appendChild(pip);
+    wrap.appendChild(b);
   }
 }
 
 // ── Armor slots ──
-function renderArmorSlots(slots) {
+function renderArmorSlots(used, max) {
   const wrap = document.getElementById('armor-slots-wrap');
   wrap.innerHTML = '';
-  slots.forEach((marked, idx) => {
-    const s = document.createElement('button');
-    s.className = 'armor-slot' + (marked ? ' marked' : '');
-    s.title = 'Armor slot ' + (idx + 1);
-    s.addEventListener('click', () => {
-      workingCharacter.armor.slots[idx] = !workingCharacter.armor.slots[idx];
-      renderArmorSlots(workingCharacter.armor.slots);
+  for (let i=0; i<max; i++) {
+    const b = document.createElement('button');
+    b.className = 'armor-slot-btn'+(i<used?' marked':'');
+    b.addEventListener('click', () => {
+      const c = workingCharacter.armor;
+      // clicking a marked slot unmarks it (and all after); clicking unmarked marks up to that slot
+      c.slotsUsed = (i < c.slotsUsed) ? i : i+1;
+      renderArmorSlots(c.slotsUsed, c.slotsMax);
+      document.getElementById('armor-slot-count').textContent = c.slotsUsed+'/'+c.slotsMax;
       markDirty();
     });
-    wrap.appendChild(s);
-  });
+    wrap.appendChild(b);
+  }
+  document.getElementById('armor-slot-count').textContent = used+'/'+max;
 }
 
 // ── Conditions ──
 function renderConditions(conds) {
   const wrap = document.getElementById('conditions-wrap');
   wrap.innerHTML = '';
-  const labels = { vulnerable: 'Vulnerable', restrained: 'Restrained', hidden: 'Hidden', unconscious: 'Unconscious' };
-  for (const [key, label] of Object.entries(labels)) {
-    const tog = document.createElement('button');
-    tog.className = 'condition-toggle' + (conds[key] ? ' active' : '');
-    tog.textContent = label;
-    tog.addEventListener('click', () => {
+  const labels = {vulnerable:'Vulnerable',restrained:'Restrained',hidden:'Hidden',unconscious:'Unconscious'};
+  for (const [key,label] of Object.entries(labels)) {
+    const b = document.createElement('button');
+    b.className='condition-toggle'+(conds[key]?' active':'');
+    b.textContent = label;
+    b.addEventListener('click', () => {
       workingCharacter.conditions[key] = !workingCharacter.conditions[key];
-      tog.classList.toggle('active', workingCharacter.conditions[key]);
+      b.classList.toggle('active', workingCharacter.conditions[key]);
       markDirty();
     });
-    wrap.appendChild(tog);
+    wrap.appendChild(b);
   }
 }
 
-// ── Attacks ──
-const TYPE_COLORS = { spell: '#c0392b', weapon: '#1a5276', ability: '#6c3483' };
-const ATK_FLAGS = [
-  ['aoe',           'AoE'],
-  ['friendlyFire',  'Friendly Fire'],
-  ['noRoll',        'No Roll'],
-  ['utility',       'Utility'],
-  ['groundsFliers', 'Grounds Fliers'],
-  ['costStress',    'Costs Stress'],
-  ['needConstruct', 'Needs Construct']
-];
+// ── Armor section ──
+function renderArmorSection(armor) {
+  // Equipped select
+  const sel = document.getElementById('armor-equipped-select');
+  sel.innerHTML = '<option value="">— Unarmored —</option>';
+  armor.items.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item.id;
+    opt.textContent = item.name || '(Unnamed)';
+    if (item.id === armor.equippedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  updateEquippedStats(armor);
 
+  // Items list
+  const wrap = document.getElementById('armor-items-list');
+  wrap.innerHTML = '';
+  if (!armor.items.length) {
+    wrap.innerHTML = '<p class="empty-note">No armor items yet.</p>';
+    return;
+  }
+
+  // Header row
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:grid;grid-template-columns:auto 1fr 60px 60px 60px 60px 60px auto;gap:5px;padding:2px 0 5px;border-bottom:1px solid rgba(139,69,19,0.3)';
+  hdr.innerHTML = '<span></span>'+['Name','Mod','Score','Minor','Major','Severe','']
+    .map(t=>`<span style="font-family:'Cinzel',serif;font-size:0.6rem;letter-spacing:0.07em;color:var(--ink-light)">${t}</span>`).join('');
+  wrap.appendChild(hdr);
+
+  armor.items.forEach((item,idx) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:grid;grid-template-columns:auto 1fr 60px 60px 60px 60px 60px auto;gap:5px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(139,69,19,0.08)';
+    row.innerHTML = `
+      <input type="radio" class="armor-equip-radio" name="armor-equip" value="${item.id}" ${item.id===armor.equippedId?'checked':''} title="Equip this armor">
+      <input class="t-input" data-aidx="${idx}" data-akey="name" value="${esc(item.name||'')}" placeholder="Armor name">
+      <input class="t-input xs" data-aidx="${idx}" data-akey="modifier" type="number" value="${item.modifier||0}" title="Modifier">
+      <input class="t-input xs" data-aidx="${idx}" data-akey="baseScore" type="number" value="${item.baseScore||0}" title="Base score (= armor slots)">
+      <input class="t-input xs" data-aidx="${idx}" data-akey="baseMinor" type="number" value="${item.baseMinor||0}" title="Base minor threshold">
+      <input class="t-input xs" data-aidx="${idx}" data-akey="baseMajor" type="number" value="${item.baseMajor||0}" title="Base major threshold">
+      <input class="t-input xs" data-aidx="${idx}" data-akey="baseSevere" type="number" value="${item.baseSevere||0}" title="Base severe threshold">
+      <button class="del-btn" data-adel="${idx}">✕</button>
+    `;
+    wrap.appendChild(row);
+  });
+
+  // Wire inputs
+  wrap.querySelectorAll('[data-aidx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx = parseInt(inp.dataset.aidx), key = inp.dataset.akey;
+      workingCharacter.armor.items[idx][key] = inp.type==='number' ? (parseInt(inp.value)||0) : inp.value;
+      updateEquippedStats(workingCharacter.armor);
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-adel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.adel);
+      const removed = workingCharacter.armor.items.splice(idx,1)[0];
+      if (removed.id === workingCharacter.armor.equippedId) workingCharacter.armor.equippedId = null;
+      renderArmorSection(workingCharacter.armor);
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('.armor-equip-radio').forEach(radio => {
+    radio.addEventListener('change', () => {
+      workingCharacter.armor.equippedId = radio.value || null;
+      equipArmor(workingCharacter.armor);
+      updateEquippedStats(workingCharacter.armor);
+      markDirty();
+    });
+  });
+}
+
+function equipArmor(armor) {
+  if (!armor.equippedId) return;
+  const item = armor.items.find(a => a.id === armor.equippedId);
+  if (!item) return;
+  // Auto-apply: slots and thresholds
+  armor.slotsMax = item.baseScore || armor.slotsMax;
+  if (armor.slotsUsed > armor.slotsMax) armor.slotsUsed = armor.slotsMax;
+  const level = workingCharacter.basicInfo.level || 0;
+  workingCharacter.thresholds.minor  = (item.baseMinor  || 0) + level;
+  workingCharacter.thresholds.major  = (item.baseMajor  || 0) + level;
+  workingCharacter.thresholds.severe = (item.baseSevere || 0) + level;
+  // Re-render affected areas
+  document.getElementById('thr-minor').value  = workingCharacter.thresholds.minor;
+  document.getElementById('thr-major').value  = workingCharacter.thresholds.major;
+  document.getElementById('thr-severe').value = workingCharacter.thresholds.severe;
+  document.getElementById('armor-slots-max').value = armor.slotsMax;
+  renderArmorSlots(armor.slotsUsed, armor.slotsMax);
+}
+
+function updateEquippedStats(armor) {
+  const div = document.getElementById('armor-equipped-stats');
+  if (!armor.equippedId) { div.textContent = 'No armor equipped.'; return; }
+  const item = armor.items.find(a => a.id === armor.equippedId);
+  if (!item) { div.textContent = 'Equipped armor not found.'; return; }
+  const level = workingCharacter?.basicInfo?.level || 0;
+  div.innerHTML = `<strong>${esc(item.name)}</strong> &nbsp;·&nbsp; Score: ${item.baseScore||0} slots &nbsp;·&nbsp; Modifier: ${item.modifier>=0?'+':''}${item.modifier||0} &nbsp;·&nbsp; Thresholds (base+${level}): Minor ${(item.baseMinor||0)+level} / Major ${(item.baseMajor||0)+level} / Severe ${(item.baseSevere||0)+level}`;
+}
+
+// ── Select helper ──
+function makeSelect(cls, options, val, title='') {
+  return `<select class="${cls}" title="${title}">${options.map(o=>`<option value="${o}"${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
+}
+
+// ── Attacks ──
 function renderAttacks(attacks) {
   const tbody = document.getElementById('attacks-body');
   tbody.innerHTML = '';
   attacks.forEach((atk, idx) => {
     const tr = document.createElement('tr');
+    const rangeStr = (atk.range||[]).join(', ');
     tr.innerHTML = `
-      <td><input class="atk-input" data-idx="${idx}" data-key="name" value="${esc(atk.name)}" style="min-width:90px"></td>
+      <td><input class="t-input md" data-idx="${idx}" data-key="name" value="${esc(atk.name)}"></td>
       <td>
-        <select class="atk-input" data-idx="${idx}" data-key="type" style="width:80px">
+        <select class="t-input sm" data-idx="${idx}" data-key="type">
           <option value="spell"${atk.type==='spell'?' selected':''}>Spell</option>
           <option value="weapon"${atk.type==='weapon'?' selected':''}>Weapon</option>
           <option value="ability"${atk.type==='ability'?' selected':''}>Ability</option>
         </select>
       </td>
-      <td><input class="atk-input narrow" data-idx="${idx}" data-key="mod" type="number" value="${atk.mod}" style="width:50px"></td>
-      <td><input class="atk-input" data-idx="${idx}" data-key="str" value="${esc(atk.str || '—')}" style="width:80px" title="Dice string, e.g. 4d20+5"></td>
-      <td><input class="range-input" data-idx="${idx}" data-key="range" value="${esc((atk.range||[]).join(', '))}" title="Comma-separated ranges" style="min-width:100px"></td>
-      <td id="flags-${idx}"></td>
-      <td><input class="atk-input" data-idx="${idx}" data-key="note" value="${esc(atk.note||'')}" style="min-width:120px"></td>
+      <td><input class="t-input xs" data-idx="${idx}" data-key="mod" type="number" value="${atk.mod||0}"></td>
+      <td>${makeSelect('t-input sm', TRAITS.map(t=>t.charAt(0).toUpperCase()+t.slice(1)), (atk.trait||'presence').charAt(0).toUpperCase()+(atk.trait||'presence').slice(1), 'Trait').replace(`value="${(atk.trait||'presence').charAt(0).toUpperCase()+(atk.trait||'presence').slice(1)}"`, `value="${atk.trait||'presence'}" data-idx="${idx}" data-key="trait"`)}</td>
+      <td>
+        <div class="dice-cell">
+          <input class="t-input xs" data-idx="${idx}" data-key="diceCount" type="number" min="0" max="20" value="${atk.diceCount||0}" style="width:38px">
+          <select class="t-input" data-idx="${idx}" data-key="diceSides" style="width:54px">
+            ${DIE_SIDES.map(s=>`<option value="${s}"${s===(atk.diceSides||6)?' selected':''}>d${s}</option>`).join('')}
+          </select>
+        </div>
+      </td>
+      <td><input class="t-input xs" data-idx="${idx}" data-key="dmod" type="number" value="${atk.dmod||0}"></td>
+      <td>
+        <select class="t-input sm" data-idx="${idx}" data-key="damageType" style="width:82px">
+          <option value="">—</option>
+          <option value="physical"${atk.damageType==='physical'?' selected':''}>Physical</option>
+          <option value="magical"${atk.damageType==='magical'?' selected':''}>Magical</option>
+        </select>
+      </td>
+      <td><input class="t-input" data-idx="${idx}" data-key="range" value="${esc(rangeStr)}" placeholder="Melee, Far…" style="min-width:90px" title="Comma-separated ranges"></td>
+      <td id="atk-flags-${idx}"></td>
+      <td><input class="t-input" data-idx="${idx}" data-key="note" value="${esc(atk.note||'')}" style="min-width:110px"></td>
       <td><button class="del-btn" data-del="${idx}">✕</button></td>
     `;
     tbody.appendChild(tr);
 
-    // Render flag toggles
-    const flagCell = tr.querySelector(`#flags-${idx}`);
-    const flagWrap = document.createElement('div');
-    flagWrap.className = 'atk-flags';
+    // Flag toggles
+    const flagCell = tr.querySelector(`#atk-flags-${idx}`);
+    const fw = document.createElement('div');
+    fw.className = 'atk-flags';
     ATK_FLAGS.forEach(([key, label]) => {
-      const span = document.createElement('span');
-      span.className = 'atk-flag' + (atk[key] ? ' on' : '');
-      span.textContent = label;
-      span.addEventListener('click', () => {
+      const s = document.createElement('span');
+      s.className = 'atk-flag'+(atk[key]?' on':'');
+      s.textContent = label;
+      s.addEventListener('click', () => {
         workingCharacter.attacks[idx][key] = !workingCharacter.attacks[idx][key];
-        span.classList.toggle('on', workingCharacter.attacks[idx][key]);
+        s.classList.toggle('on', workingCharacter.attacks[idx][key]);
         markDirty();
       });
-      flagWrap.appendChild(span);
+      fw.appendChild(s);
     });
-    flagCell.appendChild(flagWrap);
+    flagCell.appendChild(fw);
   });
 
-  // Input listeners
-  tbody.querySelectorAll('.atk-input, .range-input').forEach(input => {
-    input.addEventListener('input', () => {
-      const idx = parseInt(input.dataset.idx);
-      const key = input.dataset.key;
-      if (key === 'mod') {
-        workingCharacter.attacks[idx][key] = parseInt(input.value) || 0;
+  // Wire all inputs/selects
+  tbody.querySelectorAll('[data-idx][data-key]').forEach(el => {
+    el.addEventListener('input', () => {
+      const idx = parseInt(el.dataset.idx), key = el.dataset.key;
+      if (['mod','diceCount','diceSides','dmod'].includes(key)) {
+        workingCharacter.attacks[idx][key] = parseInt(el.value)||0;
       } else if (key === 'range') {
-        workingCharacter.attacks[idx][key] = input.value.split(',').map(s => s.trim()).filter(Boolean);
+        workingCharacter.attacks[idx][key] = el.value.split(',').map(s=>s.trim()).filter(Boolean);
+      } else if (key === 'trait') {
+        workingCharacter.attacks[idx][key] = el.value.toLowerCase();
       } else {
-        workingCharacter.attacks[idx][key] = input.value;
+        workingCharacter.attacks[idx][key] = el.value;
       }
       markDirty();
     });
   });
 
-  tbody.querySelectorAll('.del-btn').forEach(btn => {
+  tbody.querySelectorAll('[data-del]').forEach(btn => {
     btn.addEventListener('click', () => {
-      workingCharacter.attacks.splice(parseInt(btn.dataset.del), 1);
+      workingCharacter.attacks.splice(parseInt(btn.dataset.del),1);
       renderAttacks(workingCharacter.attacks);
+      markDirty();
+    });
+  });
+}
+
+// ── Weapons ──
+function renderWeapons(weapons) {
+  const tbody = document.getElementById('weapons-body');
+  tbody.innerHTML = '';
+  if (!weapons.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="9" class="empty-note" style="padding:8px 5px">No weapons yet.</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+  weapons.forEach((w, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="t-input md" data-widx="${idx}" data-wkey="name" value="${esc(w.name||'')}"></td>
+      <td>
+        <select class="t-input sm" data-widx="${idx}" data-wkey="wield">
+          <option value="main"${w.wield==='main'?' selected':''}>Main Hand</option>
+          <option value="off"${w.wield==='off'?' selected':''}>Off Hand</option>
+          <option value="dual"${w.wield==='dual'?' selected':''}>Dual</option>
+        </select>
+      </td>
+      <td>
+        <select class="t-input sm" data-widx="${idx}" data-wkey="trait">
+          ${TRAITS.map(t=>`<option value="${t}"${t===w.trait?' selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="t-input sm" data-widx="${idx}" data-wkey="range">
+          ${RANGES.map(r=>`<option value="${r}"${r===w.range?' selected':''} >${r}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <div class="dice-cell">
+          <input class="t-input xs" data-widx="${idx}" data-wkey="diceCount" type="number" min="0" max="20" value="${w.diceCount||0}" style="width:38px">
+          <select class="t-input" data-widx="${idx}" data-wkey="diceSides" style="width:54px">
+            ${DIE_SIDES.map(s=>`<option value="${s}"${s===(w.diceSides||6)?' selected':''}>d${s}</option>`).join('')}
+          </select>
+        </div>
+      </td>
+      <td><input class="t-input xs" data-widx="${idx}" data-wkey="dmod" type="number" value="${w.dmod||0}"></td>
+      <td>
+        <select class="t-input sm" data-widx="${idx}" data-wkey="damageType" style="width:82px">
+          <option value="">—</option>
+          <option value="physical"${w.damageType==='physical'?' selected':''}>Physical</option>
+          <option value="magical"${w.damageType==='magical'?' selected':''}>Magical</option>
+        </select>
+      </td>
+      <td><input class="t-input" data-widx="${idx}" data-wkey="note" value="${esc(w.note||'')}" style="min-width:90px"></td>
+      <td><button class="del-btn" data-wdel="${idx}">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-widx][data-wkey]').forEach(el => {
+    el.addEventListener('input', () => {
+      const idx = parseInt(el.dataset.widx), key = el.dataset.wkey;
+      workingCharacter.weapons[idx][key] = ['diceCount','diceSides','dmod'].includes(key)
+        ? (parseInt(el.value)||0) : el.value;
+      markDirty();
+    });
+  });
+  tbody.querySelectorAll('[data-wdel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.weapons.splice(parseInt(btn.dataset.wdel),1);
+      renderWeapons(workingCharacter.weapons);
       markDirty();
     });
   });
@@ -1295,35 +1274,28 @@ function renderAttacks(attacks) {
 function renderInventory(items) {
   const wrap = document.getElementById('inventory-list');
   wrap.innerHTML = '';
-  if (!items.length) {
-    wrap.innerHTML = '<p style="font-style:italic;color:var(--ink-light);font-size:0.85rem;margin-bottom:4px">No items yet.</p>';
-    return;
-  }
-  items.forEach((item, idx) => {
+  if (!items.length) { wrap.innerHTML='<p class="empty-note">No items yet.</p>'; return; }
+  items.forEach((item,idx) => {
     const div = document.createElement('div');
     div.className = 'inv-item';
     div.innerHTML = `
-      <input class="field-input" data-idx="${idx}" data-key="name" value="${esc(item.name)}" placeholder="Item name">
-      <input class="field-input inv-desc" data-idx="${idx}" data-key="description" value="${esc(item.description)}" placeholder="Description">
-      <input class="field-input" data-idx="${idx}" data-key="quantity" type="number" min="0" value="${item.quantity}" style="width:60px">
-      <button class="del-btn" data-del="${idx}">✕</button>
+      <input class="field-input" data-iidx="${idx}" data-ikey="name" value="${esc(item.name)}" placeholder="Name">
+      <input class="field-input" data-iidx="${idx}" data-ikey="description" value="${esc(item.description)}" placeholder="Description">
+      <input class="field-input" data-iidx="${idx}" data-ikey="quantity" type="number" min="0" value="${item.quantity}" style="width:56px">
+      <button class="del-btn" data-idel="${idx}">✕</button>
     `;
     wrap.appendChild(div);
   });
-
-  wrap.querySelectorAll('.field-input').forEach(input => {
-    input.addEventListener('input', () => {
-      const idx = parseInt(input.dataset.idx);
-      const key = input.dataset.key;
-      workingCharacter.inventory[idx][key] = key === 'quantity'
-        ? (parseInt(input.value) || 0)
-        : input.value;
+  wrap.querySelectorAll('[data-iidx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.iidx), key=inp.dataset.ikey;
+      workingCharacter.inventory[idx][key] = key==='quantity' ? (parseInt(inp.value)||0) : inp.value;
       markDirty();
     });
   });
-  wrap.querySelectorAll('.del-btn').forEach(btn => {
+  wrap.querySelectorAll('[data-idel]').forEach(btn => {
     btn.addEventListener('click', () => {
-      workingCharacter.inventory.splice(parseInt(btn.dataset.del), 1);
+      workingCharacter.inventory.splice(parseInt(btn.dataset.idel),1);
       renderInventory(workingCharacter.inventory);
       markDirty();
     });
@@ -1334,35 +1306,28 @@ function renderInventory(items) {
 function renderDomainCards(cards) {
   const wrap = document.getElementById('domain-list');
   wrap.innerHTML = '';
-  if (!cards.length) {
-    wrap.innerHTML = '<p style="font-style:italic;color:var(--ink-light);font-size:0.85rem;margin-bottom:4px">No cards yet.</p>';
-    return;
-  }
-  cards.forEach((card, idx) => {
+  if (!cards.length) { wrap.innerHTML='<p class="empty-note">No cards yet.</p>'; return; }
+  cards.forEach((card,idx) => {
     const div = document.createElement('div');
-    div.className = 'domain-item';
-    div.innerHTML = `
-      <input class="field-input" data-idx="${idx}" data-key="name" value="${esc(card.name)}" placeholder="Card / feature name">
-      <input class="field-input" data-idx="${idx}" data-key="description" value="${esc(card.description)}" placeholder="Description">
-      <input class="field-input" data-idx="${idx}" data-key="level" type="number" min="1" max="10" value="${card.level}" style="width:50px">
-      <button class="del-btn" data-del="${idx}">✕</button>
+    div.className='domain-item';
+    div.innerHTML=`
+      <input class="field-input" data-didx="${idx}" data-dkey="name" value="${esc(card.name)}" placeholder="Name">
+      <input class="field-input" data-didx="${idx}" data-dkey="description" value="${esc(card.description)}" placeholder="Description">
+      <input class="field-input" data-didx="${idx}" data-dkey="level" type="number" min="1" max="10" value="${card.level||1}" style="width:46px">
+      <button class="del-btn" data-ddel="${idx}">✕</button>
     `;
     wrap.appendChild(div);
   });
-
-  wrap.querySelectorAll('.field-input').forEach(input => {
-    input.addEventListener('input', () => {
-      const idx = parseInt(input.dataset.idx);
-      const key = input.dataset.key;
-      workingCharacter.domainCards[idx][key] = key === 'level'
-        ? (parseInt(input.value) || 1)
-        : input.value;
+  wrap.querySelectorAll('[data-didx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.didx), key=inp.dataset.dkey;
+      workingCharacter.domainCards[idx][key] = key==='level'?(parseInt(inp.value)||1):inp.value;
       markDirty();
     });
   });
-  wrap.querySelectorAll('.del-btn').forEach(btn => {
+  wrap.querySelectorAll('[data-ddel]').forEach(btn => {
     btn.addEventListener('click', () => {
-      workingCharacter.domainCards.splice(parseInt(btn.dataset.del), 1);
+      workingCharacter.domainCards.splice(parseInt(btn.dataset.ddel),1);
       renderDomainCards(workingCharacter.domainCards);
       markDirty();
     });
@@ -1371,109 +1336,113 @@ function renderDomainCards(cards) {
 
 // ── Experiences ──
 function renderExperiences(exps) {
-  const wrap = document.getElementById('experiences-wrap');
+  const wrap = document.getElementById('experiences-list');
   wrap.innerHTML = '';
-  exps.forEach((exp, idx) => {
+  if (!exps.length) { wrap.innerHTML='<p class="empty-note">No experiences yet.</p>'; return; }
+  exps.forEach((exp,idx) => {
     const div = document.createElement('div');
-    div.className = 'experience-item';
-    div.innerHTML = `
-      <div class="field-row" style="margin-bottom:6px">
-        <label class="field-label">Experience ${idx + 1} — Name</label>
-        <input class="field-input" data-idx="${idx}" data-key="name" value="${esc(exp.name)}" placeholder="e.g. Written Word">
-      </div>
-      <div class="field-row">
-        <label class="field-label">Description</label>
-        <input class="field-input" data-idx="${idx}" data-key="description" value="${esc(exp.description)}" placeholder="When does this apply?">
-      </div>
+    div.className='experience-item';
+    div.innerHTML=`
+      <input class="field-input" data-eidx="${idx}" data-ekey="name" value="${esc(exp.name)}" placeholder="Experience name">
+      <input class="field-input" data-eidx="${idx}" data-ekey="description" value="${esc(exp.description)}" placeholder="When does this apply?">
+      <input class="field-input" data-eidx="${idx}" data-ekey="modifier" type="number" min="-9" max="9" value="${exp.modifier??2}" style="width:60px" title="Modifier (default +2)">
+      <button class="del-btn" data-edel="${idx}">✕</button>
     `;
     wrap.appendChild(div);
   });
-
-  wrap.querySelectorAll('.field-input').forEach(input => {
-    input.addEventListener('input', () => {
-      workingCharacter.experiences[parseInt(input.dataset.idx)][input.dataset.key] = input.value;
+  wrap.querySelectorAll('[data-eidx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.eidx), key=inp.dataset.ekey;
+      workingCharacter.experiences[idx][key] = key==='modifier'?(parseInt(inp.value)||0):inp.value;
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-edel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.experiences.splice(parseInt(btn.dataset.edel),1);
+      renderExperiences(workingCharacter.experiences);
       markDirty();
     });
   });
 }
 
-function esc(str) {
-  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 // ════════════════════════════════════════
-// Generic input wiring (basic info, traits, defenses)
+// Wire static inputs
 // ════════════════════════════════════════
 
 function wireInputs() {
   // Basic info
-  const biMap = { 'f-name':'name','f-pronouns':'pronouns','f-ancestry':'ancestry',
-    'f-community':'community','f-class':'class','f-subclass':'subclass',
-    'f-level':'level','f-proficiency':'proficiency' };
-  for (const [id, key] of Object.entries(biMap)) {
-    document.getElementById(id).addEventListener('input', e => {
-      const v = e.target.type === 'number' ? (parseInt(e.target.value)||0) : e.target.value;
-      workingCharacter.basicInfo[key] = v;
-      if (key === 'name') document.getElementById('hdr-name').textContent = v || 'River Sky';
+  ['name','pronouns','ancestry','community','class','subclass'].forEach(k => {
+    document.getElementById('f-'+k).addEventListener('input', e => {
+      workingCharacter.basicInfo[k] = e.target.value;
+      if (k==='name') document.getElementById('hdr-name').textContent = e.target.value||'Character';
       markDirty();
     });
-  }
+  });
+  ['level','proficiency'].forEach(k => {
+    document.getElementById('f-'+k).addEventListener('input', e => {
+      workingCharacter.basicInfo[k] = parseInt(e.target.value)||0;
+      markDirty();
+    });
+  });
 
   // Traits
-  ['agility','strength','finesse','instinct','presence','knowledge'].forEach(k => {
-    document.getElementById('t-' + k).addEventListener('input', e => {
-      workingCharacter.traits[k] = parseInt(e.target.value) || 0;
-      markDirty();
+  TRAITS.forEach(k => {
+    document.getElementById('t-'+k).addEventListener('input', e => {
+      workingCharacter.traits[k] = parseInt(e.target.value)||0; markDirty();
     });
   });
 
   // Defenses
   document.getElementById('d-evasion').addEventListener('input', e => {
-    workingCharacter.defenses.evasion = parseInt(e.target.value) || 0; markDirty();
-  });
-  document.getElementById('d-severe').addEventListener('input', e => {
-    workingCharacter.defenses.severeThreshold = parseInt(e.target.value) || 0; markDirty();
-  });
-  document.getElementById('d-major').addEventListener('input', e => {
-    workingCharacter.defenses.majorThreshold = parseInt(e.target.value) || 0; markDirty();
+    workingCharacter.defenses.evasion = parseInt(e.target.value)||0; markDirty();
   });
 
-  // HP / Stress trackers via +/− buttons
+  // HP / Stress +/−
   document.querySelectorAll('.tracker-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const field = btn.dataset.field;
-      const act   = btn.dataset.action;
-      if (field === 'hp') {
-        const max = workingCharacter.resources.hp.max;
-        workingCharacter.resources.hp.current = Math.max(0,
-          Math.min(max, workingCharacter.resources.hp.current + (act==='inc'?1:-1)));
-        document.getElementById('hp-cur').textContent = workingCharacter.resources.hp.current;
-      } else if (field === 'stress') {
-        const max = workingCharacter.resources.stress.max;
-        workingCharacter.resources.stress.current = Math.max(0,
-          Math.min(max, workingCharacter.resources.stress.current + (act==='inc'?1:-1)));
-        document.getElementById('stress-cur').textContent = workingCharacter.resources.stress.current;
-      } else if (field === 'gold') {
-        workingCharacter.resources.gold = Math.max(0, workingCharacter.resources.gold + (act==='inc'?1:-1));
-        document.getElementById('gold-val').textContent = workingCharacter.resources.gold;
-      }
+      const res = btn.dataset.res, act = btn.dataset.act;
+      const obj = workingCharacter.resources[res];
+      obj.current = Math.max(0, Math.min(obj.max, obj.current+(act==='inc'?1:-1)));
+      document.getElementById(res+'-cur').textContent = obj.current;
       markDirty();
     });
   });
-
-  // Max inputs
   document.getElementById('hp-max').addEventListener('input', e => {
-    workingCharacter.resources.hp.max = parseInt(e.target.value) || 1;
-    markDirty();
+    workingCharacter.resources.hp.max = parseInt(e.target.value)||1; markDirty();
   });
   document.getElementById('stress-max').addEventListener('input', e => {
-    workingCharacter.resources.stress.max = parseInt(e.target.value) || 1;
+    workingCharacter.resources.stress.max = parseInt(e.target.value)||1; markDirty();
+  });
+
+  // Gold
+  ['chests','bags','handfuls'].forEach(k => {
+    document.getElementById('gold-'+k).addEventListener('input', e => {
+      workingCharacter.resources.gold[k] = parseInt(e.target.value)||0; markDirty();
+    });
+  });
+
+  // Thresholds
+  ['minor','major','severe'].forEach(k => {
+    document.getElementById('thr-'+k).addEventListener('input', e => {
+      workingCharacter.thresholds[k] = parseInt(e.target.value)||0; markDirty();
+    });
+  });
+
+  // Armor slots max
+  document.getElementById('armor-slots-max').addEventListener('input', e => {
+    const v = Math.max(0, Math.min(12, parseInt(e.target.value)||0));
+    workingCharacter.armor.slotsMax = v;
+    if (workingCharacter.armor.slotsUsed > v) workingCharacter.armor.slotsUsed = v;
+    renderArmorSlots(workingCharacter.armor.slotsUsed, v);
     markDirty();
   });
-  document.getElementById('armor-base-input').addEventListener('input', e => {
-    const v = parseInt(e.target.value) || 0;
-    workingCharacter.armor.base = v;
-    document.getElementById('armor-base-val').textContent = v;
+
+  // Armor equipped select
+  document.getElementById('armor-equipped-select').addEventListener('change', e => {
+    workingCharacter.armor.equippedId = e.target.value || null;
+    equipArmor(workingCharacter.armor);
+    updateEquippedStats(workingCharacter.armor);
     markDirty();
   });
 
@@ -1482,25 +1451,30 @@ function wireInputs() {
     workingCharacter.notes = e.target.value; markDirty();
   });
 
-  // Add attack
+  // Add buttons
+  document.getElementById('add-armor-btn').addEventListener('click', () => {
+    workingCharacter.armor.items.push({ id:uid(), name:'', modifier:0, baseScore:4, baseMinor:0, baseMajor:0, baseSevere:0 });
+    renderArmorSection(workingCharacter.armor); markDirty();
+  });
   document.getElementById('add-attack-btn').addEventListener('click', () => {
-    workingCharacter.attacks.push({ name:'', type:'weapon', mod:0, dice:null, dmod:0, str:'—', range:[], note:'' });
-    renderAttacks(workingCharacter.attacks);
-    markDirty();
+    workingCharacter.attacks.push({ name:'', type:'spell', mod:0, diceCount:1, diceSides:6, dmod:0, damageType:'magical', trait:'presence', range:[], note:'' });
+    renderAttacks(workingCharacter.attacks); markDirty();
   });
-
-  // Add inventory
+  document.getElementById('add-weapon-btn').addEventListener('click', () => {
+    workingCharacter.weapons.push({ id:uid(), name:'', wield:'main', trait:'agility', range:'Melee', diceCount:1, diceSides:6, dmod:0, damageType:'physical', note:'' });
+    renderWeapons(workingCharacter.weapons); markDirty();
+  });
   document.getElementById('add-inv-btn').addEventListener('click', () => {
-    workingCharacter.inventory.push({ id: uid(), name:'', description:'', quantity:1, tags:[] });
-    renderInventory(workingCharacter.inventory);
-    markDirty();
+    workingCharacter.inventory.push({ id:uid(), name:'', description:'', quantity:1, tags:[] });
+    renderInventory(workingCharacter.inventory); markDirty();
   });
-
-  // Add domain
   document.getElementById('add-domain-btn').addEventListener('click', () => {
-    workingCharacter.domainCards.push({ id: uid(), name:'', description:'', level:1 });
-    renderDomainCards(workingCharacter.domainCards);
-    markDirty();
+    workingCharacter.domainCards.push({ id:uid(), name:'', description:'', level:1 });
+    renderDomainCards(workingCharacter.domainCards); markDirty();
+  });
+  document.getElementById('add-exp-btn').addEventListener('click', () => {
+    workingCharacter.experiences.push({ id:uid(), name:'', description:'', modifier:2 });
+    renderExperiences(workingCharacter.experiences); markDirty();
   });
 }
 
@@ -1510,239 +1484,175 @@ function wireInputs() {
 
 document.getElementById('save-btn').addEventListener('click', () => {
   if (!isDirty()) return;
-  const modal = document.getElementById('save-modal');
-  modal.classList.remove('hidden');
-  const input = document.getElementById('save-desc');
-  input.value = '';
-  document.getElementById('save-confirm').disabled = true;
-  setTimeout(() => input.focus(), 80);
+  document.getElementById('save-modal').classList.remove('hidden');
+  const inp = document.getElementById('save-desc');
+  inp.value=''; document.getElementById('save-confirm').disabled=true;
+  setTimeout(()=>inp.focus(),60);
 });
-
 document.getElementById('save-desc').addEventListener('input', e => {
   document.getElementById('save-confirm').disabled = !e.target.value.trim();
 });
-
-document.getElementById('save-cancel').addEventListener('click', () => {
-  document.getElementById('save-modal').classList.add('hidden');
-});
-
+document.getElementById('save-cancel').addEventListener('click', ()=>document.getElementById('save-modal').classList.add('hidden'));
 document.getElementById('save-confirm').addEventListener('click', async () => {
   const desc = document.getElementById('save-desc').value.trim();
   if (!desc) return;
   document.getElementById('save-modal').classList.add('hidden');
-
   try {
     const res = await fetch('/api/character/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: desc, character: workingCharacter })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({description:desc, character:workingCharacter})
     });
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     currentSnapshotId = data.snapshotId;
     savedCharacter = deepCopy(workingCharacter);
-    markDirty();
-    showToast('Saved: ' + desc);
-  } catch (err) {
-    showToast('Save failed: ' + err.message, 'err');
-  }
+    markDirty(); showToast('Saved: '+desc);
+  } catch(err) { showToast('Save failed: '+err.message,'err'); }
 });
 
 // ════════════════════════════════════════
-// History tab
+// History
 // ════════════════════════════════════════
 
 async function loadHistory() {
-  document.getElementById('history-loading').style.display = '';
-  document.getElementById('history-body').style.display    = 'none';
-
-  const data = await fetch('/api/history').then(r => r.json());
-
-  let html = '';
-  if (data.snapshots.length === 0) {
-    html = '<p style="color:var(--ink-light);font-style:italic">No history yet.</p>';
+  document.getElementById('history-loading').style.display='';
+  document.getElementById('history-body').style.display='none';
+  const data = await fetch('/api/history').then(r=>r.json());
+  let html='';
+  if (!data.snapshots.length) {
+    html='<p style="color:var(--ink-light);font-style:italic">No history yet.</p>';
   } else {
-    const branchData = await fetch('/api/branches').then(r => r.json());
-    const activeBranch = branchData.find(b => b.is_active);
-    if (activeBranch && activeBranch.parentSnapshot) {
-      const ps = activeBranch.parentSnapshot;
-      html += `<div class="fork-banner">↳ Forked from branch "<strong>${esc(ps.branch_name)}</strong>" at ${fmtDate(ps.created_at)}: <em>${esc(ps.description)}</em></div>`;
+    const branches = await fetch('/api/branches').then(r=>r.json());
+    const active = branches.find(b=>b.is_active);
+    if (active?.parentSnapshot) {
+      const ps=active.parentSnapshot;
+      html+=`<div class="fork-banner">↳ Forked from branch "<strong>${esc(ps.branch_name)}</strong>" at ${fmtDate(ps.created_at)}: <em>${esc(ps.description)}</em></div>`;
     }
-
-    html += '<div class="timeline">';
-    data.snapshots.forEach((snap, i) => {
-      const isCurrent = (snap.id === currentSnapshotId);
-      html += `
-        <div class="timeline-item${isCurrent?' current':''}">
-          <div class="timeline-meta">${fmtDate(snap.created_at)} · Snapshot #${snap.id}</div>
-          <div class="timeline-desc">${esc(snap.description)}${isCurrent?' <strong style="font-family:\'Cinzel\',serif;font-size:0.7rem;color:var(--gold)"> ← current</strong>':''}</div>
-          <div class="timeline-actions">
-            <button class="tl-btn" data-preview="${snap.id}">Preview</button>
-            <button class="tl-btn restore-btn" data-restore="${snap.id}">Restore from here…</button>
-          </div>
-        </div>`;
+    html+='<div class="timeline">';
+    data.snapshots.forEach(snap => {
+      const cur=snap.id===currentSnapshotId;
+      html+=`<div class="timeline-item${cur?' current':''}">
+        <div class="timeline-meta">${fmtDate(snap.created_at)} · Snapshot #${snap.id}</div>
+        <div class="timeline-desc">${esc(snap.description)}${cur?' <strong style="font-family:\'Cinzel\',serif;font-size:0.68rem;color:var(--gold)"> ← current</strong>':''}</div>
+        <div class="timeline-actions">
+          <button class="tl-btn" data-preview="${snap.id}">Preview</button>
+          <button class="tl-btn restore-btn" data-restore="${snap.id}">Restore from here…</button>
+        </div>
+      </div>`;
     });
-    html += '</div>';
+    html+='</div>';
   }
-
-  const body = document.getElementById('history-body');
-  body.innerHTML = html;
-  body.style.display = '';
-  document.getElementById('history-loading').style.display = 'none';
-
-  body.querySelectorAll('[data-preview]').forEach(btn => {
-    btn.addEventListener('click', () => openPreview(parseInt(btn.dataset.preview)));
-  });
-  body.querySelectorAll('[data-restore]').forEach(btn => {
-    btn.addEventListener('click', () => openRestoreModal(parseInt(btn.dataset.restore)));
-  });
+  const body=document.getElementById('history-body');
+  body.innerHTML=html; body.style.display='';
+  document.getElementById('history-loading').style.display='none';
+  body.querySelectorAll('[data-preview]').forEach(b=>b.addEventListener('click',()=>openPreview(+b.dataset.preview)));
+  body.querySelectorAll('[data-restore]').forEach(b=>b.addEventListener('click',()=>openRestoreModal(+b.dataset.restore)));
 }
 
 // ════════════════════════════════════════
-// Preview overlay
+// Preview
 // ════════════════════════════════════════
 
-async function openPreview(snapshotId) {
-  const overlay = document.getElementById('preview-overlay');
-  document.getElementById('preview-content').innerHTML = '<p style="font-style:italic;color:var(--ink-light)">Loading…</p>';
+async function openPreview(id) {
+  const overlay=document.getElementById('preview-overlay');
+  document.getElementById('preview-content').innerHTML='<p style="font-style:italic;color:var(--ink-light)">Loading…</p>';
   overlay.classList.remove('hidden');
-
-  const snap = await fetch('/api/snapshots/' + snapshotId).then(r => r.json());
-  const c    = snap.character;
-  const bi   = c.basicInfo;
-  const res  = c.resources;
-
-  document.getElementById('preview-title').textContent =
-    `Snapshot #${snap.id} — ${fmtDate(snap.created_at)}`;
-
-  document.getElementById('preview-content').innerHTML = `
-    <p style="font-style:italic;color:var(--ink-light);margin-bottom:12px;font-size:0.85rem">${esc(snap.description)}</p>
+  const snap=await fetch('/api/snapshots/'+id).then(r=>r.json());
+  const c=snap.character; const r=c.resources; const bi=c.basicInfo;
+  document.getElementById('preview-title').textContent=`Snapshot #${snap.id} — ${fmtDate(snap.created_at)}`;
+  const g=r.gold||{};
+  const goldStr = typeof r.gold==='number' ? r.gold+' gold'
+    : [g.chests?g.chests+'ch':'',g.bags?g.bags+'bg':'',g.handfuls?g.handfuls+'hf':''].filter(Boolean).join(', ')||'0';
+  document.getElementById('preview-content').innerHTML=`
+    <p style="font-style:italic;color:var(--ink-light);margin-bottom:10px;font-size:0.83rem">${esc(snap.description)}</p>
     <div class="preview-grid">
-      <div class="preview-field"><span class="preview-key">Name</span>${esc(bi.name)}</div>
-      <div class="preview-field"><span class="preview-key">Class</span>${esc(bi.class)} ${esc(bi.subclass)}</div>
-      <div class="preview-field"><span class="preview-key">Level</span>${bi.level}</div>
-      <div class="preview-field"><span class="preview-key">HP</span>${res.hp.current} / ${res.hp.max}</div>
-      <div class="preview-field"><span class="preview-key">Stress</span>${res.stress.current} / ${res.stress.max}</div>
-      <div class="preview-field"><span class="preview-key">Hope</span>${res.hope}</div>
-      <div class="preview-field"><span class="preview-key">Gold</span>${res.gold}</div>
-      <div class="preview-field"><span class="preview-key">Evasion</span>${c.defenses.evasion}</div>
-      <div class="preview-field"><span class="preview-key">Armor</span>${c.armor.base} (${c.armor.slots.filter(Boolean).length} slots used)</div>
+      <div><span class="preview-key">Name</span>${esc(bi.name)}</div>
+      <div><span class="preview-key">Class</span>${esc(bi.class)} ${esc(bi.subclass)}</div>
+      <div><span class="preview-key">Level</span>${bi.level}</div>
+      <div><span class="preview-key">HP</span>${r.hp.current}/${r.hp.max}</div>
+      <div><span class="preview-key">Stress</span>${r.stress.current}/${r.stress.max}</div>
+      <div><span class="preview-key">Hope</span>${r.hope}</div>
+      <div><span class="preview-key">Gold</span>${goldStr}</div>
+      <div><span class="preview-key">Evasion</span>${c.defenses?.evasion||'—'}</div>
+      <div><span class="preview-key">Armor Slots</span>${c.armor?.slotsUsed||0}/${c.armor?.slotsMax||0}</div>
     </div>
-    <div style="margin-top:12px">
-      <span class="preview-key">Traits</span>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:0.85rem">
-        ${Object.entries(c.traits).map(([k,v]) =>
-          `<span><strong style="font-family:'Cinzel',serif;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.06em">${k}</strong> ${v>=0?'+':''}${v}</span>`
-        ).join('')}
+    ${c.thresholds?`<div style="margin-top:10px"><span class="preview-key">Thresholds</span>Minor ${c.thresholds.minor} / Major ${c.thresholds.major} / Severe ${c.thresholds.severe}</div>`:''}
+    <div style="margin-top:10px"><span class="preview-key">Traits</span>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:3px;font-size:0.82rem">
+        ${Object.entries(c.traits||{}).map(([k,v])=>`<span><strong style="font-family:'Cinzel',serif;font-size:0.6rem;text-transform:uppercase">${k}</strong> ${v>=0?'+':''}${v}</span>`).join('')}
       </div>
     </div>
-    ${c.conditions && Object.values(c.conditions).some(Boolean) ? `
-      <div style="margin-top:10px">
-        <span class="preview-key">Active Conditions</span>
-        <div style="color:var(--danger);font-size:0.85rem;margin-top:4px">
-          ${Object.entries(c.conditions).filter(([,v])=>v).map(([k])=>k).join(', ')}
-        </div>
-      </div>` : ''}
-    <div style="margin-top:12px">
-      <span class="preview-key">Attacks (${c.attacks.length})</span>
-      <div style="margin-top:4px;font-size:0.82rem">
-        ${c.attacks.map(a => `<div>${esc(a.name)} — ${esc(a.str)} (${esc(a.type)})</div>`).join('')}
-      </div>
+    ${Object.values(c.conditions||{}).some(Boolean)?`<div style="margin-top:8px"><span class="preview-key">Conditions</span><div style="color:var(--danger);font-size:0.82rem;margin-top:2px">${Object.entries(c.conditions||{}).filter(([,v])=>v).map(([k])=>k).join(', ')}</div></div>`:''}
+    <div style="margin-top:10px"><span class="preview-key">Attacks (${(c.attacks||[]).length})</span>
+      <div style="margin-top:3px;font-size:0.8rem">${(c.attacks||[]).map(a=>`<div>${esc(a.name)} — ${diceStr(a.diceCount,a.diceSides,a.dmod)} (${esc(a.type)})</div>`).join('')}</div>
     </div>
-    ${c.inventory.length ? `
-      <div style="margin-top:10px">
-        <span class="preview-key">Inventory (${c.inventory.length} items)</span>
-        <div style="margin-top:4px;font-size:0.82rem">
-          ${c.inventory.map(i => `<div>${esc(i.name)} ×${i.quantity}</div>`).join('')}
-        </div>
-      </div>` : ''}
+    ${(c.inventory||[]).length?`<div style="margin-top:8px"><span class="preview-key">Inventory (${c.inventory.length})</span><div style="margin-top:3px;font-size:0.8rem">${c.inventory.map(i=>`<div>${esc(i.name)} ×${i.quantity}</div>`).join('')}</div></div>`:''}
   `;
 }
-
-document.getElementById('preview-close').addEventListener('click', () => {
-  document.getElementById('preview-overlay').classList.add('hidden');
-});
+document.getElementById('preview-close').addEventListener('click',()=>document.getElementById('preview-overlay').classList.add('hidden'));
 
 // ════════════════════════════════════════
-// Restore modal
+// Restore
 // ════════════════════════════════════════
 
-function openRestoreModal(snapshotId) {
-  restoreTargetId = snapshotId;
-  document.getElementById('restore-name').value = '';
+function openRestoreModal(id) {
+  restoreTargetId=id;
+  document.getElementById('restore-name').value='';
   document.getElementById('restore-modal').classList.remove('hidden');
-  setTimeout(() => document.getElementById('restore-name').focus(), 80);
+  setTimeout(()=>document.getElementById('restore-name').focus(),60);
 }
-
-document.getElementById('restore-cancel').addEventListener('click', () => {
-  document.getElementById('restore-modal').classList.add('hidden');
-});
-
+document.getElementById('restore-cancel').addEventListener('click',()=>document.getElementById('restore-modal').classList.add('hidden'));
 document.getElementById('restore-confirm').addEventListener('click', async () => {
-  const branchName = document.getElementById('restore-name').value.trim();
+  const name=document.getElementById('restore-name').value.trim();
   document.getElementById('restore-modal').classList.add('hidden');
-
   try {
-    const res = await fetch('/api/branches/restore/' + restoreTargetId, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ branchName: branchName || undefined })
+    const res=await fetch('/api/branches/restore/'+restoreTargetId,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({branchName:name||undefined})
     });
     if (!res.ok) throw new Error(await res.text());
     showToast('Branch created — reloading…');
-    setTimeout(() => location.reload(), 900);
-  } catch (err) {
-    showToast('Restore failed: ' + err.message, 'err');
-  }
+    setTimeout(()=>location.reload(),900);
+  } catch(err) { showToast('Restore failed: '+err.message,'err'); }
 });
 
 // ════════════════════════════════════════
-// Branches tab
+// Branches
 // ════════════════════════════════════════
 
 async function loadBranches() {
-  document.getElementById('branches-loading').style.display = '';
-  document.getElementById('branches-body').style.display    = 'none';
-
-  const branches = await fetch('/api/branches').then(r => r.json());
-
-  let html = '';
-  branches.slice().reverse().forEach(b => {
-    const isActive = !!b.is_active;
-    html += `
-      <div class="branch-item${isActive?' active-branch':''}">
-        <div class="branch-header">
-          <span class="branch-name">${esc(b.name)}</span>
-          ${isActive ? '<span class="badge">Active</span>' : ''}
-        </div>
-        <div class="branch-meta">
-          Created ${fmtDate(b.created_at)} · ${b.snapshotCount} snapshot${b.snapshotCount!==1?'s':''}
-          ${b.parentSnapshot ? `<br>↳ Forked from "<em>${esc(b.parentSnapshot.branch_name)}</em>" · <em>${esc(b.parentSnapshot.description)}</em>` : ''}
-        </div>
-        <div class="branch-actions">
-          <button class="switch-btn" data-switch="${b.id}" ${isActive?'disabled':''}>
-            ${isActive ? 'Current branch' : 'Switch to this branch'}
-          </button>
-        </div>
-      </div>`;
+  document.getElementById('branches-loading').style.display='';
+  document.getElementById('branches-body').style.display='none';
+  const branches=await fetch('/api/branches').then(r=>r.json());
+  let html='';
+  branches.slice().reverse().forEach(b=>{
+    const active=!!b.is_active;
+    html+=`<div class="branch-item${active?' active-branch':''}">
+      <div class="branch-header">
+        <span class="branch-name">${esc(b.name)}</span>
+        ${active?'<span class="badge">Active</span>':''}
+      </div>
+      <div class="branch-meta">
+        Created ${fmtDate(b.created_at)} · ${b.snapshotCount} snapshot${b.snapshotCount!==1?'s':''}
+        ${b.parentSnapshot?`<br>↳ Forked from "<em>${esc(b.parentSnapshot.branch_name)}</em>" · <em>${esc(b.parentSnapshot.description)}</em>`:''}
+      </div>
+      <div><button class="switch-btn" data-switch="${b.id}" ${active?'disabled':''}>
+        ${active?'Current branch':'Switch to this branch'}
+      </button></div>
+    </div>`;
   });
-
-  const body = document.getElementById('branches-body');
-  body.innerHTML = html || '<p style="color:var(--ink-light);font-style:italic">No branches found.</p>';
-  body.style.display = '';
-  document.getElementById('branches-loading').style.display = 'none';
-
-  body.querySelectorAll('[data-switch]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = parseInt(btn.dataset.switch);
+  const body=document.getElementById('branches-body');
+  body.innerHTML=html||'<p style="color:var(--ink-light);font-style:italic">No branches.</p>';
+  body.style.display='';
+  document.getElementById('branches-loading').style.display='none';
+  body.querySelectorAll('[data-switch]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
       try {
-        const res = await fetch('/api/branches/switch/' + id, { method: 'POST' });
+        const res=await fetch('/api/branches/switch/'+btn.dataset.switch,{method:'POST'});
         if (!res.ok) throw new Error(await res.text());
         showToast('Switched branch — reloading…');
-        setTimeout(() => location.reload(), 900);
-      } catch (err) {
-        showToast('Switch failed: ' + err.message, 'err');
-      }
+        setTimeout(()=>location.reload(),900);
+      } catch(err) { showToast('Switch failed: '+err.message,'err'); }
     });
   });
 }
