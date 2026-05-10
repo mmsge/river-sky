@@ -290,6 +290,14 @@
 
     /* ── Dice display ── */
     .dice-cell { display: flex; align-items: center; gap: 3px; }
+    .prof-toggle {
+      width: 18px; height: 18px; font-size: 0.64rem; font-weight: 700;
+      border: 1px solid rgba(139,69,19,0.25); border-radius: 3px;
+      background: rgba(139,69,19,0.05); color: var(--ink-light);
+      cursor: pointer; padding: 0; line-height: 1; flex-shrink: 0;
+    }
+    .prof-toggle.on { background: #2e86c1; color: #fff; border-color: #2471a3; }
+    .mod-cell { display: flex; align-items: center; gap: 3px; }
 
     /* ── Armor items ── */
     .armor-item {
@@ -890,6 +898,12 @@ function diceStr(count, sides, dmod) {
   else if (dmod < 0) s += dmod;
   return s;
 }
+function effectiveDiceCount(atk) {
+  return atk.diceCountUseProf ? (workingCharacter.basicInfo.proficiency || 0) : (atk.diceCount || 0);
+}
+function effectiveMod(atk) {
+  return atk.modUseProf ? (workingCharacter.basicInfo.proficiency || 0) : (atk.mod || 0);
+}
 
 let toastTimer;
 function showToast(msg, type='ok') {
@@ -1255,11 +1269,17 @@ function renderAttacks(attacks) {
           <option value="ability"${atk.type==='ability'?' selected':''}>Ability</option>
         </select>
       </td>
-      <td><input class="t-input xs" data-idx="${idx}" data-key="mod" type="number" value="${atk.mod||0}"></td>
+      <td>
+        <div class="mod-cell">
+          <button class="prof-toggle${atk.modUseProf?' on':''}" data-idx="${idx}" data-pflag="modUseProf" title="Use Proficiency">P</button>
+          <input class="t-input xs" data-idx="${idx}" data-key="mod" type="number" value="${effectiveMod(atk)}"${atk.modUseProf?' disabled':''}>
+        </div>
+      </td>
       <td>${makeSelect('t-input sm', TRAITS.map(t=>t.charAt(0).toUpperCase()+t.slice(1)), (atk.trait||'presence').charAt(0).toUpperCase()+(atk.trait||'presence').slice(1), 'Trait').replace(`value="${(atk.trait||'presence').charAt(0).toUpperCase()+(atk.trait||'presence').slice(1)}"`, `value="${atk.trait||'presence'}" data-idx="${idx}" data-key="trait"`)}</td>
       <td>
         <div class="dice-cell">
-          <input class="t-input xs" data-idx="${idx}" data-key="diceCount" type="number" min="0" max="20" value="${atk.diceCount||0}" style="width:38px">
+          <button class="prof-toggle${atk.diceCountUseProf?' on':''}" data-idx="${idx}" data-pflag="diceCountUseProf" title="Use Proficiency">P</button>
+          <input class="t-input xs" data-idx="${idx}" data-key="diceCount" type="number" min="0" max="20" value="${effectiveDiceCount(atk)}" style="width:38px"${atk.diceCountUseProf?' disabled':''}>
           <select class="t-input" data-idx="${idx}" data-key="diceSides" style="width:54px">
             ${DIE_SIDES.map(s=>`<option value="${s}"${s===(atk.diceSides||6)?' selected':''}>d${s}</option>`).join('')}
           </select>
@@ -1296,6 +1316,19 @@ function renderAttacks(attacks) {
       fw.appendChild(s);
     });
     flagCell.appendChild(fw);
+  });
+
+  // Prof-toggle buttons
+  tbody.querySelectorAll('[data-pflag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.idx), flag = btn.dataset.pflag;
+      workingCharacter.attacks[i][flag] = !workingCharacter.attacks[i][flag];
+      const on = workingCharacter.attacks[i][flag];
+      btn.classList.toggle('on', on);
+      const input = btn.nextElementSibling;
+      if (input) input.disabled = on;
+      markDirty();
+    });
   });
 
   // Wire all inputs/selects
@@ -1357,7 +1390,8 @@ function renderWeapons(weapons) {
       </td>
       <td>
         <div class="dice-cell">
-          <input class="t-input xs" data-widx="${idx}" data-wkey="diceCount" type="number" min="0" max="20" value="${w.diceCount||0}" style="width:38px">
+          <button class="prof-toggle${w.diceCountUseProf?' on':''}" data-widx="${idx}" data-wpflag="diceCountUseProf" title="Use Proficiency">P</button>
+          <input class="t-input xs" data-widx="${idx}" data-wkey="diceCount" type="number" min="0" max="20" value="${w.diceCountUseProf ? (workingCharacter.basicInfo.proficiency||0) : (w.diceCount||0)}" style="width:38px"${w.diceCountUseProf?' disabled':''}>
           <select class="t-input" data-widx="${idx}" data-wkey="diceSides" style="width:54px">
             ${DIE_SIDES.map(s=>`<option value="${s}"${s===(w.diceSides||6)?' selected':''}>d${s}</option>`).join('')}
           </select>
@@ -1375,6 +1409,18 @@ function renderWeapons(weapons) {
       <td><button class="del-btn" data-wdel="${idx}">✕</button></td>
     `;
     tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('[data-wpflag]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.widx), flag = btn.dataset.wpflag;
+      workingCharacter.weapons[i][flag] = !workingCharacter.weapons[i][flag];
+      const on = workingCharacter.weapons[i][flag];
+      btn.classList.toggle('on', on);
+      const input = btn.nextElementSibling;
+      if (input) input.disabled = on;
+      markDirty();
+    });
   });
 
   tbody.querySelectorAll('[data-widx][data-wkey]').forEach(el => {
