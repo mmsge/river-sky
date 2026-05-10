@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>River Sky — Roll Odds Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --parchment: #f4e8c1;
+      --ink: #2b1d0e;
+      --ink-light: #5c3d1e;
+      --border: #8b4513;
+      --gold: #c8860a;
+      --spell: #8b1a0a;
+      --weapon: #1a3d5c;
+      --ability: #4a1a6e;
+      --danger: #8b0000;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--parchment);
+      background-image:
+        radial-gradient(ellipse at 15% 30%, rgba(139,90,43,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 70%, rgba(100,60,20,0.07) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,90,43,0.015) 3px, rgba(139,90,43,0.015) 4px),
+        repeating-linear-gradient(0deg,  transparent, transparent 4px, rgba(139,90,43,0.01)  4px, rgba(139,90,43,0.01)  5px);
+      font-family: 'IM Fell English', Georgia, serif;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at top left,    rgba(100,60,10,0.13) 0%, transparent 28%),
+        radial-gradient(ellipse at bottom right, rgba(100,60,10,0.11) 0%, transparent 28%),
+        radial-gradient(ellipse at top right,    rgba(80,40,10,0.07)  0%, transparent 22%);
+    }
+
+    body > * { position: relative; z-index: 1; }
+
+    header {
+      text-align: center;
+      padding: 14px 16px 14px;
+      border-bottom: 3px double var(--border);
+      background: linear-gradient(180deg, rgba(200,134,10,0.09) 0%, transparent 100%);
+    }
+    .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .back-link {
+      font-family: 'Cinzel', serif; font-size: 0.75rem;
+      color: var(--ink-light); text-decoration: none;
+      border: 1px solid var(--border); border-radius: 3px;
+      padding: 3px 10px; background: rgba(139,69,19,0.06);
+      transition: all 0.15s;
+    }
+    .back-link:hover { background: rgba(200,134,10,0.15); color: var(--ink); }
+    .char-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-shadow: 1px 1px 0 rgba(200,134,10,0.3);
+    }
+    .char-subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.7rem, 2vw, 0.85rem);
+      color: var(--ink-light);
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+    }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 24px 14px 60px; }
+
+    .section-h2 {
+      font-family: 'Cinzel', serif; font-size: 0.95rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink);
+      border-bottom: 2px solid rgba(139,69,19,0.35);
+      padding-bottom: 9px; margin-bottom: 18px;
+    }
+
+    .ornament { text-align: center; color: var(--border); font-size: 1.1rem; letter-spacing: 0.3em; margin: 28px 0 28px; opacity: 0.45; }
+
+    /* Two-column calc layout */
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 22px;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+    @media (max-width: 680px) { .calc-grid { grid-template-columns: 1fr; } }
+
+    /* Form panel */
+    .form-panel {
+      background: rgba(244,232,193,0.7);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 15px;
+      box-shadow: inset 0 0 20px rgba(139,69,19,0.05), 2px 2px 8px rgba(0,0,0,0.09);
+    }
+    .form-panel h3 {
+      font-family: 'Cinzel', serif; font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-light);
+      border-bottom: 1px solid rgba(139,69,19,0.3);
+      padding-bottom: 6px; margin-bottom: 12px;
+    }
+    .field-group { margin-bottom: 13px; }
+    .field-label { display: block; font-size: 0.83rem; font-weight: bold; margin-bottom: 5px; }
+    .number-row { display: flex; align-items: center; gap: 8px; }
+    .number-row input[type="number"] {
+      width: 60px; padding: 4px 6px; text-align: center;
+      font-family: 'IM Fell English', serif; font-size: 0.9rem;
+      background: rgba(244,232,193,0.8);
+      border: 1px solid var(--border); border-radius: 3px; color: var(--ink);
+    }
+    .field-select {
+      width: 100%; padding: 5px 7px;
+      font-family: 'IM Fell English', serif; font-size: 0.88rem;
+      background: rgba(244,232,193,0.8);
+      border: 1px solid var(--border); border-radius: 3px; color: var(--ink);
+    }
+
+    /* Results panel */
+    .results-panel {
+      background: rgba(255,248,230,0.88);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 15px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.07);
+      min-height: 120px;
+    }
+
+    /* Result stats */
+    .result-row { display: flex; gap: 22px; flex-wrap: wrap; margin-bottom: 14px; }
+    .result-stat { display: flex; flex-direction: column; }
+    .result-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
+    .result-val { font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; }
+    .result-val.gifted { color: var(--gold); }
+    .result-delta { font-family: 'Cinzel', serif; font-size: 0.92rem; color: #1a5c1a; }
+    .result-delta.negative { color: var(--danger); }
+
+    /* Probability bars */
+    .prob-bar-wrap { margin: 8px 0; }
+    .prob-bar-label { font-size: 0.8rem; margin-bottom: 3px; }
+    .prob-bar-track {
+      height: 22px; background: rgba(139,69,19,0.09);
+      border: 1px solid rgba(139,69,19,0.22); border-radius: 3px; overflow: hidden;
+    }
+    .prob-bar-fill {
+      height: 100%; background: rgba(139,69,19,0.42); border-radius: 3px;
+      transition: width 0.22s ease;
+    }
+    .prob-bar-fill.gifted { background: rgba(200,134,10,0.68); }
+
+    .result-note {
+      font-size: 0.76rem; font-style: italic; color: var(--ink-light);
+      margin-top: 12px; border-top: 1px solid rgba(139,69,19,0.15); padding-top: 8px;
+    }
+
+    /* Chart */
+    .chart-canvas {
+      display: block; width: 100%; height: 200px;
+      cursor: crosshair; border: 1px solid rgba(139,69,19,0.18);
+      border-radius: 2px; background: rgba(244,232,193,0.28);
+    }
+    .chart-stats { display: flex; gap: 14px; margin-top: 7px; flex-wrap: wrap; }
+    .cs { display: flex; flex-direction: column; }
+    .cs-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
+    .cs-val { font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; }
+    .cs-val.gifted { color: var(--gold); }
+    .cs-val.delta { color: #1a5c1a; }
+    .threshold-lbl { font-size: 0.76rem; font-style: italic; color: #a00; margin-top: 5px; min-height: 1.1em; }
+    .chart-legend { display: flex; gap: 14px; margin-top: 6px; font-size: 0.76rem; font-style: italic; }
+    .legend-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 3px; }
+
+    /* Gift dice list */
+    .gift-list { margin-bottom: 6px; }
+    .gift-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+    .gift-row input[type="number"] { width: 46px; }
+    .gift-row .die-select { flex: 1; padding: 4px 5px; font-family: 'IM Fell English', serif; font-size: 0.86rem; background: rgba(244,232,193,0.8); border: 1px solid var(--border); border-radius: 3px; color: var(--ink); }
+    .gift-row-label { font-size: 0.82rem; color: var(--ink-light); }
+    .remove-die-btn { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; line-height: 1; background: rgba(139,69,19,0.1); border: 1px solid rgba(139,69,19,0.3); border-radius: 3px; cursor: pointer; color: var(--ink-light); flex-shrink: 0; }
+    .remove-die-btn:hover { background: rgba(139,0,0,0.12); color: var(--danger); }
+    .add-die-btn { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.06em; padding: 4px 10px; background: rgba(200,134,10,0.12); border: 1px solid rgba(200,134,10,0.4); border-radius: 3px; cursor: pointer; color: var(--ink-light); transition: all 0.15s; }
+    .add-die-btn:hover { background: rgba(200,134,10,0.22); color: var(--ink); }
+    .gift-empty { font-size: 0.78rem; font-style: italic; color: var(--ink-light); margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-nav">
+    <a href="/" class="back-link">← Combat Advisor</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="/character.html" class="back-link">📜 Character</a>
+      <a href="/sessions.html" class="back-link">📖 Sessions</a>
+    </div>
+  </div>
+  <div class="char-title">Roll Odds Calculator</div>
+  <div class="char-subtitle">Action Rolls &nbsp;·&nbsp; Damage Distributions</div>
+</header>
+
+<main>
+
+  <!-- ══ ACTION ROLL ══ -->
+  <section>
+    <h2 class="section-h2">⚄ Action Roll</h2>
+    <div class="calc-grid">
+
+      <aside class="form-panel">
+        <h3>Inputs</h3>
+
+        <div class="field-group">
+          <label class="field-label">Base dice (duality roll)</label>
+          <div class="number-row">
+            <input type="number" id="act-base-n" value="2" min="1" max="4" style="width:46px">
+            <span style="font-size:0.88rem">d</span>
+            <select id="act-base-sides" class="field-select" style="width:70px">
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="12" selected>12</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="act-mod">Modifier</label>
+          <div class="number-row">
+            <input type="number" id="act-mod" value="0" min="-5" max="10">
+            <span style="font-size:0.78rem;color:var(--ink-light)">–5 to +10</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="act-diff">Difficulty (DC)</label>
+          <div class="number-row">
+            <input type="number" id="act-diff" value="15" min="2" max="30">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label">Gift dice</label>
+          <div class="gift-list" id="act-gift-list"></div>
+          <button class="add-die-btn" id="act-gift-add">+ Add Die</button>
+        </div>
+      </aside>
+
+      <div class="results-panel" id="act-results"></div>
+    </div>
+  </section>
+
+  <div class="ornament">✦ ✦ ✦</div>
+
+  <!-- ══ DAMAGE ROLL ══ -->
+  <section>
+    <h2 class="section-h2">⚔ Damage Roll</h2>
+    <div class="calc-grid">
+
+      <aside class="form-panel">
+        <h3>Inputs</h3>
+
+        <div class="field-group">
+          <label class="field-label">Dice</label>
+          <div class="number-row">
+            <input type="number" id="dmg-n" value="2" min="1" max="8">
+            <span style="font-size:0.88rem">d</span>
+            <select id="dmg-sides" class="field-select" style="width:70px">
+              <option value="4">4</option>
+              <option value="6" selected>6</option>
+              <option value="8">8</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+              <option value="20">20</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="dmg-mod">Flat modifier</label>
+          <div class="number-row">
+            <input type="number" id="dmg-mod" value="0" min="0" max="20">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="dmg-gift">Gift (bonus die)</label>
+          <select id="dmg-gift" class="field-select">
+            <option value="none">— No Gift —</option>
+            <option value="4">+d4</option>
+            <option value="6">+d6</option>
+            <option value="8">+d8</option>
+            <option value="10">+d10</option>
+            <option value="12">+d12</option>
+          </select>
+        </div>
+      </aside>
+
+      <div class="results-panel">
+        <div id="dmg-stats" class="chart-stats" style="margin-bottom:12px"></div>
+        <canvas id="dmg-canvas" class="chart-canvas"></canvas>
+        <div class="chart-legend">
+          <span><span class="legend-swatch" style="background:rgba(139,69,19,0.50)"></span>Base</span>
+          <span id="dmg-gift-legend" style="display:none"><span class="legend-swatch" style="background:rgba(200,134,10,0.78)"></span>With Gift</span>
+        </div>
+        <div class="threshold-lbl" id="dmg-lbl">← Hover chart to see cumulative chance</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════
+// MATH
+// ══════════════════════════════════════════
+
+// Returns {crit, hit, total} for n duality dice of given sides
+// crit  = doubles (matching pair) — always succeed regardless of DC
+// hit   = non-doubles that still meet or beat the DC
+// total = crit + hit
+function hitBreakdown(mod, diff, n = 2, sides = 12) {
+  let crits = 0, hits = 0;
+  const total = Math.pow(sides, n);
+  function roll(dice, idx, sum) {
+    if (idx === n) {
+      const isDouble = n >= 2 && dice[0] === dice[1];
+      if (isDouble) crits++;
+      else if (sum + mod >= diff) hits++;
+      return;
+    }
+    for (let f = 1; f <= sides; f++) { dice[idx] = f; roll(dice, idx + 1, sum + f); }
+  }
+  roll([], 0, 0);
+  return { crit: crits / total, hit: hits / total, total: (crits + hits) / total };
+}
+
+function hitProb(mod, diff, n = 2, sides = 12) {
+  return hitBreakdown(mod, diff, n, sides).total;
+}
+
+// Weighted breakdown over a bonus distribution
+// Crit is independent of bonus dice (doubles on base dice only)
+function hitBreakdownWithBonusDist(mod, diff, n, sides, bonusDist) {
+  const base = hitBreakdown(mod, diff, n, sides);
+  let weightedHit = 0;
+  for (const [bonus, bonusP] of Object.entries(bonusDist))
+    weightedHit += bonusP * hitBreakdown(mod + parseInt(bonus), diff, n, sides).hit;
+  return { crit: base.crit, hit: weightedHit, total: base.crit + weightedHit };
+}
+
+// Build combined distribution from array of {count, sides} gift dice
+function buildBonusDist(giftDice) {
+  let dist = { 0: 1 };
+  for (const { count, sides } of giftDice)
+    if (count > 0) dist = combineDists(dist, diceDist(count, sides));
+  return dist;
+}
+
+function diceDist(n, sides) {
+  let d = {};
+  for (let f = 1; f <= sides; f++) d[f] = 1;
+  for (let i = 1; i < n; i++) {
+    const nd = {};
+    for (const [k, c] of Object.entries(d))
+      for (let f = 1; f <= sides; f++) {
+        const key = +k + f;
+        nd[key] = (nd[key] || 0) + c;
+      }
+    d = nd;
+  }
+  const total = Math.pow(sides, n);
+  const out = {};
+  for (const [k, c] of Object.entries(d)) out[+k] = c / total;
+  return out;
+}
+
+function shiftDist(dist, mod) {
+  if (!mod) return { ...dist };
+  const out = {};
+  for (const [k, p] of Object.entries(dist)) out[+k + mod] = p;
+  return out;
+}
+
+function distStats(dist) {
+  const keys = Object.keys(dist).map(Number).sort((a,b) => a - b);
+  let mean = 0, modeP = 0, modeV = keys[0];
+  for (const k of keys) {
+    mean += k * dist[k];
+    if (dist[k] > modeP) { modeP = dist[k]; modeV = k; }
+  }
+  return { min: keys[0], max: keys[keys.length - 1], mean, mode: modeV, modeP };
+}
+
+function cdfRight(dist, threshold) {
+  let p = 0;
+  for (const [k, prob] of Object.entries(dist))
+    if (+k >= threshold) p += prob;
+  return p;
+}
+
+// Exact convolution of two independent distributions
+function combineDists(d1, d2) {
+  const out = {};
+  for (const [k1, p1] of Object.entries(d1))
+    for (const [k2, p2] of Object.entries(d2))
+      out[+k1 + +k2] = (out[+k1 + +k2] || 0) + p1 * p2;
+  return out;
+}
+
+// ══════════════════════════════════════════
+// CHART
+// ══════════════════════════════════════════
+
+function drawChart(canvas, series, threshX) {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const cw = Math.round(rect.width * dpr);
+  const ch = Math.round(rect.height * dpr);
+  if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const PAD = { t: 8, r: 10, b: 38, l: 44 };
+  const CW = W - PAD.l - PAD.r, CH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0, 0, W, H);
+
+  let xMin = Infinity, xMax = -Infinity, yMax = 0;
+  for (const { dist } of series) {
+    for (const [k, p] of Object.entries(dist)) {
+      const kk = +k;
+      if (kk < xMin) xMin = kk;
+      if (kk > xMax) xMax = kk;
+      if (p > yMax) yMax = p;
+    }
+  }
+  if (xMin === Infinity) { ctx.restore(); return; }
+  const range = xMax - xMin + 1;
+  const bw = CW / range;
+
+  ctx.strokeStyle = 'rgba(139,69,19,0.13)'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.t + CH - (i / 4) * CH;
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + CW, y); ctx.stroke();
+  }
+
+  for (const { dist, color, alpha = 1 } of series) {
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    for (const [k, p] of Object.entries(dist)) {
+      const x = PAD.l + (+k - xMin) * bw;
+      const bh = yMax > 0 ? (p / yMax) * CH : 0;
+      ctx.fillRect(x + 0.5, PAD.t + CH - bh, Math.max(1, bw - 1), bh);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.strokeStyle = 'rgba(43,29,14,0.65)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t);
+  ctx.lineTo(PAD.l, PAD.t + CH);
+  ctx.lineTo(PAD.l + CW, PAD.t + CH);
+  ctx.stroke();
+
+  ctx.fillStyle = '#5c3d1e'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.font = '9px IM Fell English, serif';
+  for (let i = 0; i <= 4; i++) {
+    const pct = (i / 4) * yMax * 100;
+    const y = PAD.t + CH - (i / 4) * CH;
+    ctx.fillText(pct.toFixed(pct < 10 ? 1 : 0) + '%', PAD.l - 3, y);
+  }
+
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const tickEvery = range > 60 ? 10 : range > 30 ? 5 : range > 15 ? 2 : 1;
+  let lastLX = -Infinity;
+  for (let k = xMin; k <= xMax; k++) {
+    if (k % tickEvery === 0 || k === xMin || k === xMax) {
+      const x = PAD.l + (k - xMin) * bw + bw / 2;
+      if (x - lastLX > 16) { ctx.fillText(k, x, PAD.t + CH + 4); lastLX = x; }
+    }
+  }
+
+  if (threshX != null && threshX >= xMin && threshX <= xMax) {
+    const tx = PAD.l + (threshX - xMin) * bw + bw / 2;
+    ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(tx, PAD.t); ctx.lineTo(tx, PAD.t + CH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.restore();
+}
+
+function setupDrag(canvas, series, labelEl) {
+  function xValAt(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    const relX = clientX - rect.left;
+    let xMin = Infinity, xMax = -Infinity;
+    for (const { dist } of series)
+      for (const k of Object.keys(dist)) { const kk = +k; if (kk < xMin) xMin = kk; if (kk > xMax) xMax = kk; }
+    const bw = (rect.width - 54) / (xMax - xMin + 1);
+    return Math.max(xMin, Math.min(xMax, Math.round(xMin + (relX - 44) / bw)));
+  }
+
+  function update(clientX) {
+    const xv = xValAt(clientX);
+    let sumCdf = 0;
+    for (const { dist } of series) sumCdf += cdfRight(dist, xv);
+    const pct = Math.round((sumCdf / series.length) * 100);
+    if (labelEl) labelEl.textContent = `≥${xv} damage: ${pct}% chance`;
+    drawChart(canvas, series, xv);
+  }
+
+  canvas.addEventListener('mousemove', e => update(e.clientX));
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); update(e.touches[0].clientX); }, { passive: false });
+  canvas.addEventListener('mouseleave', () => {
+    if (labelEl) labelEl.textContent = '← Hover chart to see cumulative chance';
+    drawChart(canvas, series, null);
+  });
+}
+
+// ══════════════════════════════════════════
+// ACTION ROLL — GIFT DICE LIST
+// ══════════════════════════════════════════
+
+const DIE_OPTIONS = [4, 6, 8, 10, 12, 20];
+
+function makeDieSelect(selectedSides) {
+  const sel = document.createElement('select');
+  sel.className = 'die-select';
+  for (const s of DIE_OPTIONS) {
+    const opt = document.createElement('option');
+    opt.value = s; opt.textContent = 'd' + s;
+    if (s === selectedSides) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  return sel;
+}
+
+function addGiftDieRow(count = 1, sides = 8) {
+  const list = document.getElementById('act-gift-list');
+
+  const row = document.createElement('div');
+  row.className = 'gift-row';
+
+  const countInput = document.createElement('input');
+  countInput.type = 'number'; countInput.min = 1; countInput.max = 8; countInput.value = count;
+  countInput.addEventListener('input', renderActionRoll);
+
+  const label = document.createElement('span');
+  label.className = 'gift-row-label'; label.textContent = '×';
+
+  const sidesSel = makeDieSelect(sides);
+  sidesSel.addEventListener('change', renderActionRoll);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'remove-die-btn'; removeBtn.textContent = '✕';
+  removeBtn.type = 'button';
+  removeBtn.addEventListener('click', () => { row.remove(); renderActionRoll(); });
+
+  row.append(countInput, label, sidesSel, removeBtn);
+  list.appendChild(row);
+  renderActionRoll();
+}
+
+function getGiftDice() {
+  const rows = document.querySelectorAll('#act-gift-list .gift-row');
+  return Array.from(rows).map(row => ({
+    count: Math.max(1, parseInt(row.querySelector('input').value) || 1),
+    sides: parseInt(row.querySelector('select').value)
+  }));
+}
+
+// ══════════════════════════════════════════
+// ACTION ROLL RENDERER
+// ══════════════════════════════════════════
+
+function renderActionRoll() {
+  const baseN     = Math.max(1, Math.min(4, parseInt(document.getElementById('act-base-n').value) || 2));
+  const baseSides = parseInt(document.getElementById('act-base-sides').value) || 12;
+  const mod       = parseInt(document.getElementById('act-mod').value) || 0;
+  const diff      = parseInt(document.getElementById('act-diff').value) || 15;
+
+  const giftDice = getGiftDice();
+  const hasGift  = giftDice.length > 0;
+
+  const base = hitBreakdown(mod, diff, baseN, baseSides);
+  let gifted = base;
+
+  if (hasGift) {
+    const bonusDist = buildBonusDist(giftDice);
+    gifted = hitBreakdownWithBonusDist(mod, diff, baseN, baseSides, bonusDist);
+  }
+
+  const delta    = gifted.total - base.total;
+  const modStr   = mod >= 0 ? '+' + mod : '' + mod;
+  const giftLabel = hasGift ? giftDice.map(d => `${d.count}d${d.sides}`).join(' + ') : '';
+
+  const pct = v => (v * 100).toFixed(1) + '%';
+
+  document.getElementById('act-results').innerHTML = `
+    <div class="result-row">
+      <div class="result-stat">
+        <span class="result-label">Total success</span>
+        <span class="result-val">${pct(base.total)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Crit ✦ (doubles)</span>
+        <span class="result-val">${pct(base.crit)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Clean hit</span>
+        <span class="result-val">${pct(base.hit)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Failure</span>
+        <span class="result-val" style="color:var(--danger)">${pct(1 - base.total)}</span>
+      </div>
+    </div>
+
+    <div class="prob-bar-wrap">
+      <div class="prob-bar-label">Base total — ${pct(base.total)}</div>
+      <div class="prob-bar-track" style="position:relative;overflow:hidden">
+        <div class="prob-bar-fill" style="width:${pct(base.total)}"></div>
+        <div style="position:absolute;top:0;left:0;height:100%;width:${pct(base.crit)};background:rgba(200,134,10,0.55);pointer-events:none"></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--ink-light);margin-top:2px">
+        <span style="display:inline-block;width:10px;height:8px;background:rgba(200,134,10,0.55);border-radius:1px;vertical-align:middle"></span> Crit portion &nbsp;
+        <span style="display:inline-block;width:10px;height:8px;background:rgba(139,69,19,0.42);border-radius:1px;vertical-align:middle"></span> Clean hit portion
+      </div>
+    </div>
+
+    ${hasGift ? `
+    <div class="prob-bar-wrap" style="margin-top:10px">
+      <div class="prob-bar-label">With ${giftLabel} — ${pct(gifted.total)}
+        <span class="result-delta${delta < 0 ? ' negative' : ''}" style="margin-left:8px;font-size:0.88rem">${delta >= 0 ? '+' : ''}${pct(delta)}</span>
+      </div>
+      <div class="prob-bar-track" style="position:relative;overflow:hidden">
+        <div class="prob-bar-fill gifted" style="width:${pct(gifted.total)}"></div>
+        <div style="position:absolute;top:0;left:0;height:100%;width:${pct(gifted.crit)};background:rgba(200,134,10,0.7);pointer-events:none"></div>
+      </div>
+    </div>
+    <div class="result-row" style="margin-top:10px">
+      <div class="result-stat">
+        <span class="result-label">Gifted total</span>
+        <span class="result-val gifted">${pct(gifted.total)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Crit ✦</span>
+        <span class="result-val">${pct(gifted.crit)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Clean hit</span>
+        <span class="result-val gifted">${pct(gifted.hit)}</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-label">Improvement</span>
+        <span class="result-val result-delta${delta < 0 ? ' negative' : ''}">${delta >= 0 ? '+' : ''}${pct(delta)}</span>
+      </div>
+    </div>` : ''}
+
+    <p class="result-note">
+      Doubles = crit (always succeed). Min non-crit roll: ${baseN + 1}. Roll ${baseN}d${baseSides}, DC ${diff}, modifier ${modStr}.
+    </p>
+  `;
+}
+
+// ══════════════════════════════════════════
+// DAMAGE ROLL RENDERER
+// ══════════════════════════════════════════
+
+function renderDamageRoll() {
+  const n     = Math.max(1, Math.min(8, parseInt(document.getElementById('dmg-n').value) || 1));
+  const sides = parseInt(document.getElementById('dmg-sides').value) || 6;
+  const mod   = Math.max(0, parseInt(document.getElementById('dmg-mod').value) || 0);
+  const gift  = document.getElementById('dmg-gift').value;
+
+  const baseDist  = shiftDist(diceDist(n, sides), mod);
+  const baseStats = distStats(baseDist);
+
+  const hasGift = gift !== 'none';
+  let giftDist, giftStats;
+  if (hasGift) {
+    giftDist  = combineDists(baseDist, diceDist(1, parseInt(gift)));
+    giftStats = distStats(giftDist);
+  }
+
+  const statsEl = document.getElementById('dmg-stats');
+  statsEl.innerHTML = `
+    <div class="cs"><span class="cs-label">Base Mean</span><span class="cs-val">${baseStats.mean.toFixed(1)}</span></div>
+    <div class="cs"><span class="cs-label">Range</span><span class="cs-val">${baseStats.min}–${baseStats.max}</span></div>
+    ${hasGift ? `
+    <div class="cs"><span class="cs-label">Gifted Mean</span><span class="cs-val gifted">${giftStats.mean.toFixed(1)}</span></div>
+    <div class="cs"><span class="cs-label">Gifted Range</span><span class="cs-val gifted">${giftStats.min}–${giftStats.max}</span></div>
+    <div class="cs"><span class="cs-label">Mean +</span><span class="cs-val delta">+${(giftStats.mean - baseStats.mean).toFixed(1)}</span></div>
+    ` : ''}
+  `;
+
+  document.getElementById('dmg-gift-legend').style.display = hasGift ? 'inline' : 'none';
+
+  // Clone canvas to clear event listeners from previous render
+  const oldCanvas = document.getElementById('dmg-canvas');
+  const canvas = oldCanvas.cloneNode(false);
+  oldCanvas.replaceWith(canvas);
+
+  const labelEl = document.getElementById('dmg-lbl');
+  labelEl.textContent = '← Hover chart to see cumulative chance';
+
+  const series = [{ dist: baseDist, color: 'rgba(139,69,19,0.52)', alpha: 1 }];
+  if (hasGift) series.push({ dist: giftDist, color: 'rgba(200,134,10,0.78)', alpha: 0.75 });
+
+  requestAnimationFrame(() => {
+    drawChart(canvas, series, null);
+    setupDrag(canvas, series, labelEl);
+    if (!canvas._ro) {
+      canvas._ro = new ResizeObserver(() => drawChart(canvas, series, null));
+      canvas._ro.observe(canvas);
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+
+['act-base-n', 'act-base-sides', 'act-mod', 'act-diff'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderActionRoll));
+
+document.getElementById('act-gift-add').addEventListener('click', () => addGiftDieRow());
+
+['dmg-n', 'dmg-sides', 'dmg-mod', 'dmg-gift'].forEach(id =>
+  document.getElementById(id).addEventListener('input', renderDamageRoll));
+
+renderActionRoll();
+renderDamageRoll();
+</script>
+</body>
+</html>

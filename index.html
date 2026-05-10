@@ -272,8 +272,9 @@
 <body>
 
 <header>
-  <div style="text-align:right;padding-bottom:6px">
+  <div style="text-align:right;padding-bottom:6px;display:flex;justify-content:flex-end;gap:8px">
     <a href="/character.html" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">📜 Character Sheet</a>
+    <a href="/odds.html" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">🎲 Roll Odds</a>
   </div>
   <div class="char-title">River Sky</div>
   <div class="char-subtitle">Ribbet Wordsmith &nbsp;·&nbsp; Level 5 &nbsp;·&nbsp; Proficiency 4</div>
@@ -440,13 +441,17 @@ const ATTACK_COLOR = {
 // MATH
 // ══════════════════════════════════════════
 
-function hitProb(mod, diff) {
-  let hits = 0;
+function hitBreakdown(mod, diff) {
+  let crits = 0, hits = 0;
   for (let a = 1; a <= 12; a++)
-    for (let b = 1; b <= 12; b++)
-      if (a === b || a + b + mod >= diff) hits++;
-  return hits / 144;
+    for (let b = 1; b <= 12; b++) {
+      if (a === b) crits++;
+      else if (a + b + mod >= diff) hits++;
+    }
+  return { crit: crits / 144, hit: hits / 144, total: (crits + hits) / 144 };
 }
+
+function hitProb(mod, diff) { return hitBreakdown(mod, diff).total; }
 
 // Returns {value: probability} exact distribution via convolution
 function diceDist(n, sides) {
@@ -610,7 +615,7 @@ function runAdvisor() {
     const ad = atk.utility ? null : meanOf(atk);
     const hitStr = hp != null ? Math.round(hp * 100) + '%' : (atk.noRoll ? 'Auto ✓' : '—');
     const dmgStr = ad != null ? ad.toFixed(1) : 'Utility';
-    const badge = BADGES[i] || (i+1) + '.';
+    const badge  = BADGES[i] || (i+1) + '.';
 
     html += `<div class="attack-card type-${atk.type}">
       <div class="attack-card-header">
