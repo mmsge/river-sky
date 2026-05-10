@@ -70,6 +70,7 @@
       flex: 1; padding: 10px 0 6px;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
       background: none; border: none; cursor: pointer; color: var(--ink-mute);
+      touch-action: manipulation;
     }
     .tab-btn.active { color: var(--accent); }
     .tab-btn svg { display: block; }
@@ -87,7 +88,7 @@
     .pip {
       border-radius: 50%; padding: 0; cursor: pointer;
       border-width: 1.5px; border-style: solid; background: transparent;
-      transition: background 80ms;
+      transition: background 80ms; touch-action: manipulation;
     }
     .pip.filled { background: currentColor; }
 
@@ -100,7 +101,7 @@
       padding: 6px 11px; border-radius: 999px; cursor: pointer;
       border: 1px solid var(--border); background: transparent;
       color: var(--ink-soft); font-family: var(--font); font-size: 12px;
-      font-weight: 500; letter-spacing: 0.02em;
+      font-weight: 500; letter-spacing: 0.02em; touch-action: manipulation;
     }
     .chip.active { border-color: var(--ink); background: var(--ink); color: #fff; }
 
@@ -133,7 +134,7 @@
       background: var(--surface); border-radius: 10px; border: 1px solid var(--border);
       padding: 14px 14px 14px 14px; cursor: pointer; user-select: none;
       display: flex; align-items: stretch; gap: 12px;
-      position: relative; overflow: hidden;
+      position: relative; overflow: hidden; touch-action: manipulation;
     }
     .atk-slash { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0.85; }
     .atk-left { flex: 1; min-width: 0; padding-left: 4px; }
@@ -179,6 +180,7 @@
       font-family: var(--font); font-size: 12px; font-weight: 500; padding: 6px 12px;
       border-radius: 999px; cursor: pointer; border: 1px solid var(--border);
       background: transparent; color: var(--ink-soft); text-transform: capitalize; letter-spacing: 0.01em;
+      touch-action: manipulation;
     }
     .cond-btn.on { border-color: var(--hp); background: #f5e6e0; color: var(--hp); font-weight: 600; }
 
@@ -186,6 +188,7 @@
     .domain-card {
       background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
       padding: 12px 14px; cursor: pointer; position: relative; overflow: hidden;
+      touch-action: manipulation;
     }
     .card-recall {
       position: absolute; top: 8px; right: 12px;
@@ -208,7 +211,7 @@
       font-size: 11px; font-weight: 600; cursor: pointer;
       letter-spacing: 0.04em;
       display: inline-flex; align-items: center; gap: 6px;
-      white-space: nowrap; flex-shrink: 0;
+      white-space: nowrap; flex-shrink: 0; touch-action: manipulation;
     }
     .session-btn.idle { background: var(--accent-s); color: var(--accent); border: 1px solid var(--accent); }
     .session-btn.live { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
@@ -222,7 +225,7 @@
       align-items: flex-end; justify-content: center;
     }
     #overlay.open { display: flex; }
-    .scrim { position: absolute; inset: 0; background: rgba(20,16,10,0.45); }
+    .scrim { position: absolute; inset: 0; background: rgba(20,16,10,0.45); touch-action: manipulation; }
     .sheet {
       position: relative; z-index: 1; width: 100%; max-width: 480px;
       background: var(--surface); border-radius: 16px 16px 0 0;
@@ -527,27 +530,6 @@ function openEndModal() {
   `);
 }
 
-// ─── Long-press gesture ────────────────────────────────────────────────────
-
-let _press = null, _pressX = 0, _pressY = 0;
-
-function initLongPress() {
-  const el = document.getElementById('content');
-  el.addEventListener('pointerdown', e => {
-    const card = e.target.closest('.attack-card');
-    if (!card) return;
-    _pressX = e.clientX; _pressY = e.clientY;
-    _press = setTimeout(() => { _press = null; openAttackDetail(card.dataset.id); }, 380);
-  });
-  const cancel = () => { clearTimeout(_press); _press = null; };
-  el.addEventListener('pointerup', cancel);
-  el.addEventListener('pointercancel', cancel);
-  el.addEventListener('pointermove', e => {
-    if (!_press) return;
-    if (Math.abs(e.clientX - _pressX) > 8 || Math.abs(e.clientY - _pressY) > 8) cancel();
-  });
-}
-
 // ─── Tab & filter ──────────────────────────────────────────────────────────
 
 function switchTab(tab) {
@@ -587,7 +569,7 @@ function toggleCard(id) {
 // ─── Pip row HTML ──────────────────────────────────────────────────────────
 
 function pipRow(resource, value, max, cssColor, size) {
-  size = size || 14;
+  size = size || 28;
   let h = `<div class="pip-row">`;
   for (let i = 0; i < max; i++) {
     const filled = i < value;
@@ -651,7 +633,7 @@ function renderCombat() {
 
       <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
         <span class="lbl">HOPE</span>
-        ${pipRow('hope', hope, hopeMax, 'var(--hope)', 16)}
+        ${pipRow('hope', hope, hopeMax, 'var(--hope)', 28)}
         <span style="margin-left:auto;font-family:var(--font);font-size:11px;color:var(--ink-mute)">tap to spend</span>
       </div>
 
@@ -682,7 +664,7 @@ function renderCombat() {
         const tc     = typeColor(a.type);
         const hc     = hitColor(hitPct);
         return `
-          <div class="attack-card" data-id="${esc(a.id)}">
+          <div class="attack-card" onclick="openAttackDetail('${esc(a.id)}')" data-id="${esc(a.id)}">
             <div class="atk-slash" style="background:${tc}"></div>
             <div class="atk-left">
               <div class="atk-name">${esc(a.name)}</div>
@@ -700,7 +682,7 @@ function renderCombat() {
         `;
       }).join('')}
       <div style="font-family:var(--font);font-size:10.5px;color:var(--ink-mute);text-align:center;padding:6px 0;font-style:italic">
-        Long-press any attack for full details
+        Tap any attack for full details
       </div>
     </div>
   `;
@@ -899,7 +881,6 @@ function render() {
 async function init() {
   await Promise.all([loadCharacter(), loadSession()]);
   render();
-  initLongPress();
   if (S.session) {
     startTimer();
     // Try to parse session count from name for future auto-increment
