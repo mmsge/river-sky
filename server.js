@@ -500,6 +500,21 @@ app.get('/api/sessions/:id', (req, res) => {
   res.json({ ...session, entries });
 });
 
+// GET /api/backup
+app.get('/api/backup', requireAuth, (req, res) => {
+  const branches       = db.prepare('SELECT * FROM branches ORDER BY id ASC').all();
+  const snapshots      = db.prepare('SELECT * FROM snapshots ORDER BY id ASC').all();
+  const sessions       = db.prepare('SELECT * FROM sessions ORDER BY id ASC').all();
+  const sessionEntries = db.prepare('SELECT * FROM session_entries ORDER BY id ASC').all();
+  const appState       = db.prepare('SELECT * FROM app_state').all();
+
+  const date = new Date().toISOString().slice(0, 10);
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="daggerheart-backup-${date}.json"`);
+  res.json({ exportedAt: new Date().toISOString(), version: 1,
+    branches, snapshots, sessions, sessionEntries, appState });
+});
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 
 initDb();
