@@ -831,6 +831,19 @@
 
 <script>
 // ════════════════════════════════════════
+// Auth
+// ════════════════════════════════════════
+
+async function apiFetch(url, opts = {}) {
+  const res = await fetch(url, opts);
+  if (res.status === 401) {
+    window.location.href = '/login.html?return=' + encodeURIComponent(location.pathname);
+    return null;
+  }
+  return res;
+}
+
+// ════════════════════════════════════════
 // Constants
 // ════════════════════════════════════════
 
@@ -1608,10 +1621,11 @@ document.getElementById('save-confirm').addEventListener('click', async () => {
   if (!desc) return;
   document.getElementById('save-modal').classList.add('hidden');
   try {
-    const res = await fetch('/api/character/save', {
+    const res = await apiFetch('/api/character/save', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({description:desc, character:workingCharacter})
     });
+    if (!res) return;
     if (!res.ok) throw new Error(await res.text());
     const data = await res.json();
     currentSnapshotId = data.snapshotId;
@@ -1719,10 +1733,11 @@ document.getElementById('restore-confirm').addEventListener('click', async () =>
   const name=document.getElementById('restore-name').value.trim();
   document.getElementById('restore-modal').classList.add('hidden');
   try {
-    const res=await fetch('/api/branches/restore/'+restoreTargetId,{
+    const res=await apiFetch('/api/branches/restore/'+restoreTargetId,{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify({branchName:name||undefined})
     });
+    if (!res) return;
     if (!res.ok) throw new Error(await res.text());
     showToast('Branch created — reloading…');
     setTimeout(()=>location.reload(),900);
@@ -1761,7 +1776,8 @@ async function loadBranches() {
   body.querySelectorAll('[data-switch]').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
       try {
-        const res=await fetch('/api/branches/switch/'+btn.dataset.switch,{method:'POST'});
+        const res=await apiFetch('/api/branches/switch/'+btn.dataset.switch,{method:'POST'});
+        if (!res) return;
         if (!res.ok) throw new Error(await res.text());
         showToast('Switched branch — reloading…');
         setTimeout(()=>location.reload(),900);
@@ -1815,10 +1831,11 @@ async function loadSession() {
       </div>`;
     document.getElementById('session-start-btn').addEventListener('click', async () => {
       const name = document.getElementById('session-name-input').value.trim();
-      await fetch('/api/session/start', {
+      const r = await apiFetch('/api/session/start', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ name: name || undefined })
       });
+      if (!r) return;
       loadSession();
     });
   } else {
@@ -1859,16 +1876,18 @@ async function loadSession() {
     document.getElementById('session-add-note-btn').addEventListener('click', async () => {
       const content = document.getElementById('session-note-input').value.trim();
       if (!content) return;
-      await fetch('/api/session/note', {
+      const r = await apiFetch('/api/session/note', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ content })
       });
+      if (!r) return;
       loadSession();
     });
 
     document.getElementById('session-end-btn').addEventListener('click', async () => {
       if (!confirm('End the current session?')) return;
-      await fetch('/api/session/end', { method: 'POST' });
+      const r = await apiFetch('/api/session/end', { method: 'POST' });
+      if (!r) return;
       loadSession();
     });
   }
