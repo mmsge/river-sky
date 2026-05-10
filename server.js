@@ -3,6 +3,7 @@
 const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
+const crypto  = require('crypto');
 const { DatabaseSync } = require('node:sqlite');
 
 // ── Database ──────────────────────────────────────────────────────────────────
@@ -230,6 +231,56 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(__dirname, { index: 'index.html' }));
 
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+const APP_PASSWORD = process.env.APP_PASSWORD;
+if (!APP_PASSWORD) {
+  console.warn('WARNING: APP_PASSWORD is not set — write endpoints are unprotected');
+}
+
+const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
+const sessionStore = new Map();
+
+function parseCookies(req) {
+  const cookies = {};
+  const header  = req.headers.cookie;
+  if (header) header.split(';').forEach(part => {
+    const [k, ...v] = part.trim().split('=');
+    cookies[k.trim()] = decodeURIComponent(v.join('='));
+  });
+  return cookies;
+}
+
+function requireAuth(req, res, next) {
+  if (!APP_PASSWORD) return next();
+  const token  = parseCookies(req).session;
+  const expiry = token && sessionStore.get(token);
+  if (!expiry || expiry < Date.now()) {
+    if (token) sessionStore.delete(token);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+}
+
+app.post('/api/login', (req, res) => {
+  const { password } = req.body ?? {};
+  if (!APP_PASSWORD || password !== APP_PASSWORD) {
+    return res.status(401).json({ error: 'Invalid password' });
+  }
+  const token  = crypto.randomBytes(32).toString('hex');
+  const expiry = Date.now() + SESSION_TTL;
+  sessionStore.set(token, expiry);
+  res.setHeader('Set-Cookie', `session=${token}; HttpOnly; SameSite=Strict; Max-Age=${SESSION_TTL / 1000}; Path=/`);
+  res.json({ ok: true });
+});
+
+app.post('/api/logout', (req, res) => {
+  const token = parseCookies(req).session;
+  if (token) sessionStore.delete(token);
+  res.setHeader('Set-Cookie', 'session=; HttpOnly; SameSite=Strict; Max-Age=0; Path=/');
+  res.json({ ok: true });
+});
+
 // GET /api/character
 app.get('/api/character', (req, res) => {
   const branch   = getActiveBranch();
@@ -245,7 +296,7 @@ app.get('/api/character', (req, res) => {
 });
 
 // POST /api/character/save
-app.post('/api/character/save', (req, res) => {
+app.post('/api/character/save', requireAuth, (req, res) => {
   const { description, character } = req.body;
   if (!description || !description.trim()) {
     return res.status(400).json({ error: 'description is required' });
@@ -313,7 +364,7 @@ app.get('/api/branches', (req, res) => {
 });
 
 // POST /api/branches/restore/:snapshotId
-app.post('/api/branches/restore/:snapshotId', (req, res) => {
+app.post('/api/branches/restore/:snapshotId', requireAuth, (req, res) => {
   const snapshotId = parseInt(req.params.snapshotId, 10);
   const source = db.prepare('SELECT * FROM snapshots WHERE id = ?').get(snapshotId);
   if (!source) return res.status(404).json({ error: 'Snapshot not found' });
@@ -344,7 +395,7 @@ app.post('/api/branches/restore/:snapshotId', (req, res) => {
 });
 
 // POST /api/branches/switch/:branchId
-app.post('/api/branches/switch/:branchId', (req, res) => {
+app.post('/api/branches/switch/:branchId', requireAuth, (req, res) => {
   const branchId = parseInt(req.params.branchId, 10);
   const branch = db.prepare('SELECT * FROM branches WHERE id = ?').get(branchId);
   if (!branch) return res.status(404).json({ error: 'Branch not found' });
@@ -384,7 +435,7 @@ app.get('/api/session/active', (req, res) => {
 });
 
 // POST /api/session/start
-app.post('/api/session/start', (req, res) => {
+app.post('/api/session/start', requireAuth, (req, res) => {
   if (getActiveSessionId()) return res.status(409).json({ error: 'A session is already active' });
 
   const branch = getActiveBranch();
@@ -399,7 +450,7 @@ app.post('/api/session/start', (req, res) => {
 });
 
 // POST /api/session/end
-app.post('/api/session/end', (req, res) => {
+app.post('/api/session/end', requireAuth, (req, res) => {
   const sessionId = getActiveSessionId();
   if (!sessionId) return res.status(404).json({ error: 'No active session' });
 
@@ -412,7 +463,7 @@ app.post('/api/session/end', (req, res) => {
 });
 
 // POST /api/session/note
-app.post('/api/session/note', (req, res) => {
+app.post('/api/session/note', requireAuth, (req, res) => {
   const sessionId = getActiveSessionId();
   if (!sessionId) return res.status(404).json({ error: 'No active session' });
 

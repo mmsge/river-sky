@@ -2,7 +2,7 @@ IMAGE     = daggerheart
 CONTAINER = daggerheart
 PORT      = 4000
 
-.PHONY: deploy build run stop logs status
+.PHONY: deploy build run stop logs status ssh
 
 # Pull latest code, rebuild image, restart container
 deploy: build run
@@ -18,6 +18,7 @@ run:
 		--restart=always \
 		-p $(PORT):4000 \
 		-v ./db:/app/db:Z \
+		-e APP_PASSWORD=$(APP_PASSWORD) \
 		$(IMAGE)
 
 stop:
@@ -29,3 +30,6 @@ logs:
 
 status:
 	podman ps --filter name=$(CONTAINER)
+
+ssh:
+	ssh ap-mcp -t "cd /var/www/daggerheart-app/river-sk && exec \$$SHELL"
