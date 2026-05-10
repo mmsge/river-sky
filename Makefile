@@ -32,4 +32,4 @@ status:
 	podman ps --filter name=$(CONTAINER)
 
 ssh:
-	ssh ap-mcp -t "cd /var/www/daggerheart-app/river-sk && exec \$$SHELL"
+	ssh -t ap-mcp 'cd /var/www/daggerheart-app/river-sky && exec $$SHELL'
