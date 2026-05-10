@@ -267,6 +267,16 @@
       font-style: italic; color: var(--ink-light); font-size: 0.85rem;
     }
     .ornament { text-align: center; color: var(--border); font-size: 1.1rem; letter-spacing: 0.3em; margin: 6px 0 18px; opacity: 0.45; }
+    .sync-caption {
+      font-size: 0.72rem; font-style: italic; color: var(--ink-light);
+      opacity: 0.7; margin-bottom: 10px; margin-top: -8px;
+    }
+    .sync-error {
+      background: #fff0f0; border-left: 3px solid var(--danger);
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.84rem; color: var(--danger);
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -354,6 +364,8 @@
 
       <div class="results-panel">
         <h2>🗡 Attack Rankings</h2>
+        <p id="sync-caption" class="sync-caption" style="display:none">Synced from character sheet</p>
+        <div id="sync-error" class="sync-error" style="display:none">⚠ Could not load character data — attacks unavailable. Check that the server is running.</div>
         <div id="advisor-out">
           <p class="results-empty"><em>Set combat conditions and press "Consult the Field Manual" to see ranked attack options.</em></p>
         </div>
@@ -390,38 +402,10 @@
 'use strict';
 
 // ══════════════════════════════════════════
-// DATA
+// DATA  (populated from /api/character on load)
 // ══════════════════════════════════════════
 
-const ATTACKS = [
-  { name:'Fireball',        type:'spell',  mod:4, dice:[4,20], dmod:5,  str:'4d20+5',
-    range:['Far'], aoe:true, friendlyFire:true,
-    note:'AoE Very Close around target. Reaction Roll DC13: fail=full damage, success=half.' },
-  { name:'Wild Flame',      type:'spell',  mod:4, dice:[2,6],  dmod:0,  str:'2d6',
-    range:['Melee'], aoe:true,
-    note:'Up to 3 targets in Melee range of River.' },
-  { name:'Wall of Flame',   type:'spell',  mod:4, dice:[4,10], dmod:3,  str:'4d10+3',
-    range:['Melee','Close','Far'], noRoll:true,
-    note:'Flat damage to anything crossing. No attack roll needed against crossing creatures.' },
-  { name:'Mystic Tether',   type:'spell',  mod:4, dice:null,   dmod:0,  str:'—',
-    range:['Far'], utility:true, groundsFliers:true,
-    note:'No damage. Restrains target at Far range. Also grounds flying enemies.' },
-  { name:'Blunderburst',    type:'weapon', mod:2, dice:[2,8],  dmod:6,  str:'2d8+6',
-    range:['Close'],
-    note:'Reliable single-target Close attack. Highest flat modifier of any weapon.' },
-  { name:'Bladed Whip',     type:'weapon', mod:1, dice:[4,8],  dmod:3,  str:'4d8+3',
-    range:['Melee'],
-    note:'High die-count Melee strike. Lower hit modifier but strong damage ceiling.' },
-  { name:'Whip',            type:'weapon', mod:4, dice:[2,6],  dmod:0,  str:'2d6',
-    range:['Melee','Very Short'],
-    note:'Highest hit modifier of any weapon. Light damage but nearly guaranteed to land.' },
-  { name:'Long Tongue',     type:'weapon', mod:2, dice:[4,12], dmod:0,  str:'4d12',
-    range:['Close'], costStress:true,
-    note:'Exceptional damage ceiling. Costs 1 Stress — a strong trade when Stress is available.' },
-  { name:'Construct Attack',type:'ability',mod:4, dice:[2,10], dmod:3,  str:'2d10+3',
-    range:['Melee','Close','Far'], needConstruct:true,
-    note:'Flexible range and high hit modifier. Maximises value while the construct is active.' },
-];
+let ATTACKS = [];
 
 const TYPE_COLOR = { spell:'#c0392b', weapon:'#1a5276', ability:'#6c3483' };
 
@@ -510,14 +494,91 @@ function meanOf(atk) {
   return atk.dice[0] * (atk.dice[1] + 1) / 2 + atk.dmod;
 }
 
-// Precompute all distributions
-const DISTS = {};
-for (const atk of ATTACKS) {
-  if (!atk.dice) continue;
-  const raw = diceDist(atk.dice[0], atk.dice[1]);
-  const full = shiftDist(raw, atk.dmod);
-  DISTS[atk.name] = { full };
-  if (atk.friendlyFire) DISTS[atk.name].half = halfDist(full);
+let DISTS = {};
+
+function buildDists() {
+  DISTS = {};
+  for (const atk of ATTACKS) {
+    if (!atk.dice) continue;
+    const raw = diceDist(atk.dice[0], atk.dice[1]);
+    const full = shiftDist(raw, atk.dmod);
+    DISTS[atk.name] = { full };
+    if (atk.friendlyFire) DISTS[atk.name].half = halfDist(full);
+  }
+}
+
+// ══════════════════════════════════════════
+// CHARACTER SYNC
+// ══════════════════════════════════════════
+
+function migrateAttacks(rawAttacks) {
+  return (rawAttacks || []).map(a => {
+    if (Array.isArray(a.dice)) {
+      const [count, sides] = a.dice;
+      return { ...a, diceCount: count || 0, diceSides: sides || 6, dice: undefined };
+    }
+    return { diceCount: 0, diceSides: 6, ...a };
+  });
+}
+
+function mapToAdvisorAttack(atk, proficiency) {
+  const mod       = atk.modUseProf       ? proficiency : (atk.mod       || 0);
+  const diceCount = atk.diceCountUseProf ? proficiency : (atk.diceCount || 0);
+  const diceSides = atk.diceSides || 6;
+  const dmod      = atk.dmod || 0;
+  const range     = Array.isArray(atk.range)
+    ? atk.range
+    : (atk.range || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  let str;
+  if (!diceCount) {
+    str = '—';
+  } else {
+    str = `${diceCount}d${diceSides}`;
+    if (dmod > 0) str += `+${dmod}`;
+    else if (dmod < 0) str += `${dmod}`;
+  }
+
+  return {
+    name:          atk.name,
+    type:          atk.type || 'weapon',
+    mod,
+    dice:          diceCount > 0 ? [diceCount, diceSides] : null,
+    dmod,
+    str,
+    range,
+    note:          atk.note || '',
+    aoe:           !!atk.aoe,
+    friendlyFire:  !!atk.friendlyFire,
+    noRoll:        !!atk.noRoll,
+    utility:       !!atk.utility,
+    groundsFliers: !!atk.groundsFliers,
+    costStress:    !!atk.costStress,
+    needConstruct: !!atk.needConstruct,
+  };
+}
+
+async function initAttacks() {
+  const out = document.getElementById('advisor-out');
+  out.innerHTML = '<p class="results-empty"><em>Loading attacks from character sheet…</em></p>';
+
+  try {
+    const resp = await fetch('/api/character');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    const prof     = data.character.basicInfo?.proficiency || 0;
+    const migrated = migrateAttacks(data.character.attacks);
+    ATTACKS        = migrated.map(a => mapToAdvisorAttack(a, prof));
+    buildDists();
+
+    document.getElementById('sync-caption').style.display = '';
+    out.innerHTML = '<p class="results-empty"><em>Set combat conditions and press “Consult the Field Manual” to see ranked attack options.</em></p>';
+  } catch (err) {
+    document.getElementById('sync-error').style.display = '';
+    out.innerHTML = '<p class="results-empty"><em>Set combat conditions and press “Consult the Field Manual” to see ranked attack options.</em></p>';
+    console.error('Failed to load character:', err);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -891,6 +952,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (tab === 'browser' && !browserBuilt) { browserBuilt = true; buildBrowser(); }
   });
 });
+
+initAttacks();
 </script>
 </body>
 </html>
