@@ -532,6 +532,77 @@
 
     /* ── section subheader ── */
     .sub-label { font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:0.08em; color:var(--ink-light); margin-top:8px; margin-bottom:4px; }
+
+    /* ══════════════════════════════════════════════════
+       PRINT / PDF  (@media print)
+       ══════════════════════════════════════════════════ */
+    @media print {
+      @page { size: A4 portrait; margin: 12mm 14mm; }
+
+      body { background: #fff !important; background-image: none !important;
+             color: #000 !important; font-size: 10pt; }
+      body::before { display: none; }
+
+      /* Hide all interactive chrome */
+      .header-nav, .tabs, #save-bar, #toast, .modal-overlay, .preview-overlay,
+      #history-tab, #branches-tab, #session-tab,
+      .add-btn, .del-btn, .edit-btn, .tracker-max-input,
+      .notes-area { display: none !important; }
+      button { display: none !important; }
+
+      /* Always show the sheet tab regardless of which tab is active */
+      #sheet-tab  { display: block !important; padding: 0 !important; }
+      #sheet-body { display: block !important; }
+      #sheet-loading { display: none !important; }
+
+      /* Header: keep character name, hide nav */
+      header { border-bottom: 1pt solid #000; padding: 4mm 0 3mm;
+               background: none !important; box-shadow: none !important; }
+      .char-title   { font-size: 18pt; color: #000; text-shadow: none; }
+      .char-subtitle { font-size: 9pt; color: #333; }
+
+      /* Sections */
+      .section { border: 0.5pt solid #888; background: none !important;
+                 padding: 4pt 6pt; margin-bottom: 6pt; break-inside: avoid; }
+      .section-title { font-size: 7pt; color: #444; border-bottom: 0.5pt solid #bbb; }
+
+      /* Pips: print with correct fill colors */
+      .resource-pip, .hope-pip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+      /* Max write-in line instead of editable input */
+      .pip-max-row .tracker-max-input { display: none !important; }
+      .pip-max-row::after { content: 'Max: ____'; font-size: 7pt; color: #555; }
+
+      /* Conditions: render as labelled printable boxes */
+      .condition-toggle {
+        display: inline-block !important;
+        border: 1pt solid #000 !important;
+        background: none !important;
+        color: #000 !important;
+        padding: 2pt 6pt !important;
+        font-size: 8pt;
+        margin: 2pt;
+      }
+
+      /* Inputs look like underlined write-in fields */
+      input { border: none !important; border-bottom: 0.5pt solid #000 !important;
+              background: none !important; }
+
+      /* Notes section: replace textarea with ruled lines */
+      #sheet-body .section:last-child::after {
+        content: '';
+        display: block;
+        height: 60mm;
+        background-image: repeating-linear-gradient(
+          to bottom, transparent, transparent 6mm, #ccc 6mm, #ccc 6.4mm
+        );
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Don't append URLs after links */
+      a::after { content: '' !important; }
+    }
   </style>
 </head>
 <body>
@@ -543,6 +614,8 @@
       <span id="session-indicator" style="display:none;font-family:'Cinzel',serif;font-size:0.72rem;color:#1a5c1a;cursor:pointer;border:1px solid #1a5c1a;border-radius:3px;padding:3px 8px;background:rgba(26,92,26,0.07)">● Session</span>
       <a href="/sessions.html" class="back-link">📖 Sessions</a>
       <a href="/odds.html" class="back-link">🎲 Roll Odds</a>
+      <button id="backup-btn" class="back-link" style="cursor:pointer;background:none;border:none;font-family:'Cinzel',serif;">⬇ Backup</button>
+      <button id="print-btn"  class="back-link" style="cursor:pointer;background:none;border:none;font-family:'Cinzel',serif;">🖨 Print</button>
     </div>
   </div>
   <div class="char-title" id="hdr-name">River Sky</div>
@@ -1950,6 +2023,30 @@ async function loadSession() {
 wireInputs();
 loadCharacter();
 loadSession(); // prime the session indicator on page load
+
+// ════════════════════════════════════════
+// Backup & Print
+// ════════════════════════════════════════
+
+document.getElementById('backup-btn').addEventListener('click', async () => {
+  try {
+    const res = await apiFetch('/api/backup');
+    if (!res) return;
+    if (!res.ok) throw new Error(await res.text());
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `daggerheart-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Backup downloaded');
+  } catch(err) { showToast('Backup failed: ' + err.message, 'err'); }
+});
+
+document.getElementById('print-btn').addEventListener('click', () => window.print());
 </script>
 </body>
 </html>
