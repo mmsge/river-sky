@@ -334,6 +334,23 @@
     }
     .experience-item:last-child { border-bottom: none; }
 
+    /* ── Features ── */
+    .feature-item {
+      display: grid; grid-template-columns: 1fr 2fr auto;
+      gap: 5px; align-items: start; padding: 6px 0;
+      border-bottom: 1px solid rgba(139,69,19,0.12);
+    }
+    .feature-item:last-child { border-bottom: none; }
+
+    /* ── Downtime Projects ── */
+    .project-item {
+      display: grid; grid-template-columns: 1fr 60px 60px 2fr auto;
+      gap: 5px; align-items: center; padding: 6px 0;
+      border-bottom: 1px solid rgba(139,69,19,0.12);
+    }
+    .project-item:last-child { border-bottom: none; }
+    .project-item.complete .proj-score { color: var(--gold); font-weight: bold; }
+
     /* ── Notes ── */
     .notes-area {
       width: 100%; min-height: 90px;
@@ -799,6 +816,13 @@
             <button class="add-btn" id="add-domain-btn">+ Add Card / Feature</button>
           </div>
 
+          <!-- ✦ Features -->
+          <div class="section">
+            <div class="section-title">✦ Features</div>
+            <div id="features-list"></div>
+            <button class="add-btn" id="add-feature-btn">+ Add Feature</button>
+          </div>
+
           <!-- ✨ Experiences -->
           <div class="section">
             <div class="section-title">✨ Experiences</div>
@@ -833,6 +857,13 @@
           </table>
         </div>
         <button class="add-btn" id="add-attack-btn">+ Add Attack / Spell</button>
+      </div>
+
+      <!-- 🔨 Downtime Projects (full width) -->
+      <div class="section">
+        <div class="section-title">🔨 Downtime Projects</div>
+        <div id="projects-list"></div>
+        <button class="add-btn" id="add-project-btn">+ Add Project</button>
       </div>
 
       <!-- 📝 Notes (full width) -->
@@ -1130,7 +1161,9 @@ function renderSheet() {
   renderWeapons(c.weapons);
   renderInventory(c.inventory);
   renderDomainCards(c.domainCards);
+  renderFeatures(c.features ?? []);
   renderExperiences(c.experiences);
+  renderProjects(c.downtimeProjects ?? []);
   document.getElementById('f-notes').value = c.notes;
 }
 
@@ -1610,6 +1643,72 @@ function renderExperiences(exps) {
   });
 }
 
+// ── Features ──
+function renderFeatures(features) {
+  const wrap = document.getElementById('features-list');
+  wrap.innerHTML = '';
+  if (!features.length) { wrap.innerHTML='<p class="empty-note">No features yet.</p>'; return; }
+  features.forEach((feat,idx) => {
+    const div = document.createElement('div');
+    div.className='feature-item';
+    div.innerHTML=`
+      <input class="field-input" data-fiidx="${idx}" data-fikey="name" value="${esc(feat.name)}" placeholder="Feature name">
+      <input class="field-input" data-fiidx="${idx}" data-fikey="description" value="${esc(feat.description)}" placeholder="Description">
+      <button class="del-btn" data-fidel="${idx}">✕</button>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('[data-fiidx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.fiidx), key=inp.dataset.fikey;
+      workingCharacter.features[idx][key] = inp.value;
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-fidel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.features.splice(parseInt(btn.dataset.fidel),1);
+      renderFeatures(workingCharacter.features);
+      markDirty();
+    });
+  });
+}
+
+// ── Downtime Projects ──
+function renderProjects(projects) {
+  const wrap = document.getElementById('projects-list');
+  wrap.innerHTML = '';
+  if (!projects.length) { wrap.innerHTML='<p class="empty-note">No projects yet.</p>'; return; }
+  projects.forEach((proj,idx) => {
+    const div = document.createElement('div');
+    const done = proj.target > 0 && proj.current >= proj.target;
+    div.className='project-item'+(done?' complete':'');
+    div.innerHTML=`
+      <input class="field-input" data-pridx="${idx}" data-prkey="name" value="${esc(proj.name)}" placeholder="Project name">
+      <input class="field-input proj-score" data-pridx="${idx}" data-prkey="current" type="number" min="0" value="${proj.current??0}" title="Current score">
+      <input class="field-input proj-score" data-pridx="${idx}" data-prkey="target" type="number" min="0" value="${proj.target??0}" title="Target score">
+      <input class="field-input" data-pridx="${idx}" data-prkey="reward" value="${esc(proj.reward)}" placeholder="Reward on completion">
+      <button class="del-btn" data-prdel="${idx}">✕</button>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('[data-pridx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.pridx), key=inp.dataset.prkey;
+      workingCharacter.downtimeProjects[idx][key] = (key==='current'||key==='target') ? (parseInt(inp.value)||0) : inp.value;
+      renderProjects(workingCharacter.downtimeProjects);
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-prdel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.downtimeProjects.splice(parseInt(btn.dataset.prdel),1);
+      renderProjects(workingCharacter.downtimeProjects);
+      markDirty();
+    });
+  });
+}
+
 // ════════════════════════════════════════
 // Wire static inputs
 // ════════════════════════════════════════
@@ -1718,6 +1817,16 @@ function wireInputs() {
   document.getElementById('add-exp-btn').addEventListener('click', () => {
     workingCharacter.experiences.push({ id:uid(), name:'', description:'', modifier:2 });
     renderExperiences(workingCharacter.experiences); markDirty();
+  });
+  document.getElementById('add-feature-btn').addEventListener('click', () => {
+    if (!workingCharacter.features) workingCharacter.features = [];
+    workingCharacter.features.push({ id:uid(), name:'', description:'' });
+    renderFeatures(workingCharacter.features); markDirty();
+  });
+  document.getElementById('add-project-btn').addEventListener('click', () => {
+    if (!workingCharacter.downtimeProjects) workingCharacter.downtimeProjects = [];
+    workingCharacter.downtimeProjects.push({ id:uid(), name:'', current:0, target:0, reward:'' });
+    renderProjects(workingCharacter.downtimeProjects); markDirty();
   });
 }
 
