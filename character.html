@@ -338,6 +338,23 @@
     }
     .experience-item:last-child { border-bottom: none; }
 
+    /* ── Features ── */
+    .feature-item {
+      display: grid; grid-template-columns: 1fr 2fr auto;
+      gap: 5px; align-items: start; padding: 6px 0;
+      border-bottom: 1px solid rgba(139,69,19,0.12);
+    }
+    .feature-item:last-child { border-bottom: none; }
+
+    /* ── Downtime Projects ── */
+    .project-item {
+      display: grid; grid-template-columns: 1fr 60px 60px 2fr auto;
+      gap: 5px; align-items: center; padding: 6px 0;
+      border-bottom: 1px solid rgba(139,69,19,0.12);
+    }
+    .project-item:last-child { border-bottom: none; }
+    .project-item.complete .proj-score { color: var(--gold); font-weight: bold; }
+
     /* ── Notes ── */
     .notes-area {
       width: 100%; min-height: 90px;
@@ -803,6 +820,13 @@
             <button class="add-btn" id="add-domain-btn">+ Add Card / Feature</button>
           </div>
 
+          <!-- ✦ Features -->
+          <div class="section">
+            <div class="section-title">✦ Features</div>
+            <div id="features-list"></div>
+            <button class="add-btn" id="add-feature-btn">+ Add Feature</button>
+          </div>
+
           <!-- ✨ Experiences -->
           <div class="section">
             <div class="section-title">✨ Experiences</div>
@@ -837,6 +861,13 @@
           </table>
         </div>
         <button class="add-btn" id="add-attack-btn">+ Add Attack / Spell</button>
+      </div>
+
+      <!-- 🔨 Downtime Projects (full width) -->
+      <div class="section">
+        <div class="section-title">🔨 Downtime Projects</div>
+        <div id="projects-list"></div>
+        <button class="add-btn" id="add-project-btn">+ Add Project</button>
       </div>
 
       <!-- 📝 Notes (full width) -->
@@ -960,7 +991,111 @@ let restoreTargetId   = null;
 
 function deepCopy(o) { return JSON.parse(JSON.stringify(o)); }
 function isDirty() { return JSON.stringify(workingCharacter) !== JSON.stringify(savedCharacter); }
-function markDirty() { document.getElementById('save-bar').classList.toggle('visible', isDirty()); }
+function markDirty() {
+  document.getElementById('save-bar').classList.toggle('visible', isDirty());
+  if (isDirty()) scheduleAutosave();
+}
+
+function generateAutosaveDescription(oldChar, newChar) {
+  if (!oldChar || !newChar) return 'Autosaved';
+  const changes = [];
+
+  // Basic info
+  const basicLabels = { name:'Name', class:'Class', subclass:'Subclass', level:'Level',
+    proficiency:'Proficiency', ancestry:'Ancestry', community:'Community', pronouns:'Pronouns' };
+  for (const [f, label] of Object.entries(basicLabels)) {
+    const o = oldChar.basicInfo?.[f], n = newChar.basicInfo?.[f];
+    if (o !== n) changes.push(`${label}: "${n}"`);
+  }
+
+  // Traits
+  for (const t of ['agility','strength','finesse','instinct','presence','knowledge']) {
+    const o = oldChar.traits?.[t], n = newChar.traits?.[t];
+    if (o !== n) changes.push(`${t[0].toUpperCase()+t.slice(1)} ${o}→${n}`);
+  }
+
+  // HP, Stress, Hope, Gold
+  const r0 = oldChar.resources || {}, r1 = newChar.resources || {};
+  if (r0.hp?.current !== r1.hp?.current) changes.push(`HP ${r0.hp?.current}→${r1.hp?.current}`);
+  if (r0.hp?.max !== r1.hp?.max) changes.push(`Max HP ${r0.hp?.max}→${r1.hp?.max}`);
+  if (r0.stress?.current !== r1.stress?.current) changes.push(`Stress ${r0.stress?.current}→${r1.stress?.current}`);
+  if (r0.stress?.max !== r1.stress?.max) changes.push(`Max Stress ${r0.stress?.max}→${r1.stress?.max}`);
+  if (r0.hope !== r1.hope) changes.push(`Hope ${r0.hope}→${r1.hope}`);
+  if (r0.gold?.handfuls !== r1.gold?.handfuls) changes.push(`Gold handfuls ${r0.gold?.handfuls}→${r1.gold?.handfuls}`);
+  if (r0.gold?.bags !== r1.gold?.bags) changes.push(`Gold bags ${r0.gold?.bags}→${r1.gold?.bags}`);
+  if (r0.gold?.chests !== r1.gold?.chests) changes.push(`Gold chests ${r0.gold?.chests}→${r1.gold?.chests}`);
+
+  // Thresholds & evasion
+  if (oldChar.thresholds?.major !== newChar.thresholds?.major) changes.push(`Major threshold ${oldChar.thresholds?.major}→${newChar.thresholds?.major}`);
+  if (oldChar.thresholds?.severe !== newChar.thresholds?.severe) changes.push(`Severe threshold ${oldChar.thresholds?.severe}→${newChar.thresholds?.severe}`);
+  if (oldChar.defenses?.evasion !== newChar.defenses?.evasion) changes.push(`Evasion ${oldChar.defenses?.evasion}→${newChar.defenses?.evasion}`);
+
+  // Conditions
+  for (const c of ['vulnerable','restrained','hidden','unconscious']) {
+    const o = oldChar.conditions?.[c], n = newChar.conditions?.[c];
+    if (o !== n) changes.push(`${c[0].toUpperCase()+c.slice(1)} ${n ? 'gained' : 'cleared'}`);
+  }
+
+  // Named arrays: diff by name
+  function namedDiff(oldArr, newArr, label) {
+    const oldNames = new Set((oldArr||[]).map(i=>i.name).filter(Boolean));
+    const newNames = new Set((newArr||[]).map(i=>i.name).filter(Boolean));
+    for (const n of newNames) if (!oldNames.has(n)) changes.push(`${label} "${n}" added`);
+    for (const n of oldNames) if (!newNames.has(n)) changes.push(`${label} "${n}" removed`);
+    if (changes.length === 0 && (oldArr||[]).length !== (newArr||[]).length) changes.push(`${label}s updated`);
+  }
+  namedDiff(oldChar.attacks, newChar.attacks, 'Attack');
+  namedDiff(oldChar.weapons, newChar.weapons, 'Weapon');
+  namedDiff(oldChar.experiences, newChar.experiences, 'Experience');
+
+  // Count-only arrays
+  function countDiff(oldArr, newArr, label) {
+    const delta = (newArr||[]).length - (oldArr||[]).length;
+    if (delta !== 0) changes.push(`${label}s ${delta > 0 ? '+' : ''}${delta}`);
+  }
+  countDiff(oldChar.inventory, newChar.inventory, 'Item');
+  countDiff(oldChar.features, newChar.features, 'Feature');
+  countDiff(oldChar.domainCards, newChar.domainCards, 'Card');
+  countDiff(oldChar.downtimeProjects, newChar.downtimeProjects, 'Project');
+
+  // Armor
+  if (oldChar.armor?.slotsUsed !== newChar.armor?.slotsUsed) changes.push(`Armor slots ${oldChar.armor?.slotsUsed}→${newChar.armor?.slotsUsed}`);
+  if (oldChar.armor?.equippedId !== newChar.armor?.equippedId) changes.push('Armor equipped changed');
+
+  // Notes
+  if (oldChar.notes !== newChar.notes) changes.push('Notes updated');
+
+  if (changes.length === 0) return 'Autosaved';
+  const desc = changes.join('; ');
+  return desc.length > 200 ? desc.slice(0, 197) + '…' : desc;
+}
+
+let _autosaveTimer = null;
+
+function scheduleAutosave() {
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(performAutosave, 2000);
+}
+
+async function performAutosave() {
+  if (!isDirty()) return;
+  const description = generateAutosaveDescription(savedCharacter, workingCharacter);
+  try {
+    const res = await apiFetch('/api/character/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description, character: workingCharacter }),
+    });
+    if (!res?.ok) return;
+    const data = await res.json();
+    currentSnapshotId = data.snapshotId;
+    savedCharacter = deepCopy(workingCharacter);
+    markDirty();
+    showToast(`Saved: ${description}`, 'ok');
+  } catch (_) {
+    // silent — don't interrupt the user on autosave failure
+  }
+}
 function esc(s) { return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function fmtDate(s) {
@@ -1134,7 +1269,9 @@ function renderSheet() {
   renderWeapons(c.weapons);
   renderInventory(c.inventory);
   renderDomainCards(c.domainCards);
+  renderFeatures(c.features ?? []);
   renderExperiences(c.experiences);
+  renderProjects(c.downtimeProjects ?? []);
   document.getElementById('f-notes').value = c.notes;
 }
 
@@ -1614,6 +1751,72 @@ function renderExperiences(exps) {
   });
 }
 
+// ── Features ──
+function renderFeatures(features) {
+  const wrap = document.getElementById('features-list');
+  wrap.innerHTML = '';
+  if (!features.length) { wrap.innerHTML='<p class="empty-note">No features yet.</p>'; return; }
+  features.forEach((feat,idx) => {
+    const div = document.createElement('div');
+    div.className='feature-item';
+    div.innerHTML=`
+      <input class="field-input" data-fiidx="${idx}" data-fikey="name" value="${esc(feat.name)}" placeholder="Feature name">
+      <input class="field-input" data-fiidx="${idx}" data-fikey="description" value="${esc(feat.description)}" placeholder="Description">
+      <button class="del-btn" data-fidel="${idx}">✕</button>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('[data-fiidx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.fiidx), key=inp.dataset.fikey;
+      workingCharacter.features[idx][key] = inp.value;
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-fidel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.features.splice(parseInt(btn.dataset.fidel),1);
+      renderFeatures(workingCharacter.features);
+      markDirty();
+    });
+  });
+}
+
+// ── Downtime Projects ──
+function renderProjects(projects) {
+  const wrap = document.getElementById('projects-list');
+  wrap.innerHTML = '';
+  if (!projects.length) { wrap.innerHTML='<p class="empty-note">No projects yet.</p>'; return; }
+  projects.forEach((proj,idx) => {
+    const div = document.createElement('div');
+    const done = proj.target > 0 && proj.current >= proj.target;
+    div.className='project-item'+(done?' complete':'');
+    div.innerHTML=`
+      <input class="field-input" data-pridx="${idx}" data-prkey="name" value="${esc(proj.name)}" placeholder="Project name">
+      <input class="field-input proj-score" data-pridx="${idx}" data-prkey="current" type="number" min="0" value="${proj.current??0}" title="Current score">
+      <input class="field-input proj-score" data-pridx="${idx}" data-prkey="target" type="number" min="0" value="${proj.target??0}" title="Target score">
+      <input class="field-input" data-pridx="${idx}" data-prkey="reward" value="${esc(proj.reward)}" placeholder="Reward on completion">
+      <button class="del-btn" data-prdel="${idx}">✕</button>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('[data-pridx]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx=parseInt(inp.dataset.pridx), key=inp.dataset.prkey;
+      workingCharacter.downtimeProjects[idx][key] = (key==='current'||key==='target') ? (parseInt(inp.value)||0) : inp.value;
+      renderProjects(workingCharacter.downtimeProjects);
+      markDirty();
+    });
+  });
+  wrap.querySelectorAll('[data-prdel]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workingCharacter.downtimeProjects.splice(parseInt(btn.dataset.prdel),1);
+      renderProjects(workingCharacter.downtimeProjects);
+      markDirty();
+    });
+  });
+}
+
 // ════════════════════════════════════════
 // Wire static inputs
 // ════════════════════════════════════════
@@ -1722,6 +1925,16 @@ function wireInputs() {
   document.getElementById('add-exp-btn').addEventListener('click', () => {
     workingCharacter.experiences.push({ id:uid(), name:'', description:'', modifier:2 });
     renderExperiences(workingCharacter.experiences); markDirty();
+  });
+  document.getElementById('add-feature-btn').addEventListener('click', () => {
+    if (!workingCharacter.features) workingCharacter.features = [];
+    workingCharacter.features.push({ id:uid(), name:'', description:'' });
+    renderFeatures(workingCharacter.features); markDirty();
+  });
+  document.getElementById('add-project-btn').addEventListener('click', () => {
+    if (!workingCharacter.downtimeProjects) workingCharacter.downtimeProjects = [];
+    workingCharacter.downtimeProjects.push({ id:uid(), name:'', current:0, target:0, reward:'' });
+    renderProjects(workingCharacter.downtimeProjects); markDirty();
   });
 }
 

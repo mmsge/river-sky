@@ -166,6 +166,8 @@ function seed() {
       { id: 'exp1', name: 'Experience 1', description: '', modifier: 2 },
       { id: 'exp2', name: 'Experience 2', description: '', modifier: 2 }
     ],
+    features: [],
+    downtimeProjects: [],
     notes: ''
   };
 
