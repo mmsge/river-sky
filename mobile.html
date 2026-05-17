@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>River Sky — Companion</title>
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & tokens ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #f6f3ee;
+      --surface:   #ffffff;
+      --surface2:  #efeae1;
+      --border:    rgba(46,38,28,0.10);
+      --border-s:  rgba(46,38,28,0.18);
+      --ink:       #1d1814;
+      --ink-soft:  #5a4f44;
+      --ink-mute:  #8a7d6f;
+      --accent:    #b06a2c;
+      --accent-s:  #f1e3d2;
+      --hp:        #a83232;
+      --stress:    #3f4d6e;
+      --hope:      #c79019;
+      --spell:     #a83232;
+      --weapon:    #26506e;
+      --ability:   #5b3b86;
+      --font:      'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --serif:     'Newsreader', 'Iowan Old Style', Georgia, serif;
+    }
+    html, body {
+      height: 100%; overflow: hidden;
+      background: var(--bg);
+      -webkit-tap-highlight-color: transparent;
+      font-family: var(--font);
+      color: var(--ink);
+    }
+
+    /* ── App shell ───────────────────────────────────────── */
+    #app {
+      height: 100dvh;
+      display: flex; flex-direction: column;
+      max-width: 480px; margin: 0 auto;
+    }
+    #topbar {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .app-title {
+      font-family: var(--serif); font-size: 14px; font-weight: 600;
+      color: var(--ink); letter-spacing: 0.01em;
+    }
+    .topbar-right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+    #content { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    #tabbar {
+      flex-shrink: 0;
+      display: flex;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ── Tab bar ─────────────────────────────────────────── */
+    .tab-btn {
+      flex: 1; padding: 10px 0 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: none; border: none; cursor: pointer; color: var(--ink-mute);
+    }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn svg { display: block; }
+    .tab-label { font-family: var(--font); font-size: 10.5px; font-weight: 500; letter-spacing: 0.02em; }
+    .tab-btn.active .tab-label { font-weight: 600; }
+
+    /* ── Common labels ───────────────────────────────────── */
+    .lbl {
+      font-family: var(--font); font-size: 10.5px; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute);
+    }
+
+    /* ── Pip rows ────────────────────────────────────────── */
+    .pip-row { display: flex; flex-wrap: wrap; gap: 5px; }
+    .pip {
+      border-radius: 50%; padding: 0; cursor: pointer;
+      border-width: 1.5px; border-style: solid; background: transparent;
+      transition: background 80ms;
+    }
+    .pip.filled { background: currentColor; }
+
+    /* ── Filter chips ────────────────────────────────────── */
+    .chips {
+      padding: 14px 16px 8px; display: flex; gap: 6px; flex-wrap: wrap;
+      background: var(--bg); position: sticky; top: 0; z-index: 2;
+    }
+    .chip {
+      padding: 6px 11px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--ink-soft); font-family: var(--font); font-size: 12px;
+      font-weight: 500; letter-spacing: 0.02em;
+    }
+    .chip.active { border-color: var(--ink); background: var(--ink); color: #fff; }
+
+    /* ── Resource header ─────────────────────────────────── */
+    .resources {
+      background: var(--surface); padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .res-hero {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; white-space: nowrap;
+    }
+    .char-name { font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+    .char-meta { font-family: var(--font); font-size: 11px; color: var(--ink-mute); flex-shrink: 0; }
+    .eva-badge {
+      margin-left: auto; font-family: var(--font); font-size: 11px; color: var(--ink-soft);
+      border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; flex-shrink: 0;
+    }
+    .thresholds {
+      margin-top: 12px; display: flex; border-radius: 6px;
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    .thresh { flex: 1; padding: 7px 10px; }
+    .thresh-lbl { font-family: var(--font); font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--ink-mute); }
+    .thresh-val { font-family: var(--serif); font-size: 14px; font-weight: 600; color: var(--ink); }
+
+    /* ── Attack cards ────────────────────────────────────── */
+    .attacks { padding: 4px 12px 24px; display: flex; flex-direction: column; gap: 8px; }
+    .attack-card {
+      background: var(--surface); border-radius: 10px; border: 1px solid var(--border);
+      padding: 14px 14px 14px 14px; cursor: pointer; user-select: none;
+      display: flex; align-items: stretch; gap: 12px;
+      position: relative; overflow: hidden;
+    }
+    .atk-slash { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0.85; }
+    .atk-left { flex: 1; min-width: 0; padding-left: 4px; }
+    .atk-name {
+      font-family: var(--serif); font-size: 17px; font-weight: 600;
+      color: var(--ink); letter-spacing: -0.01em; line-height: 1.15;
+    }
+    .atk-meta { font-family: var(--font); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+    .atk-tags { margin-top: 9px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .atk-tag {
+      font-family: var(--font); font-size: 10px; font-weight: 600;
+      color: var(--accent); background: var(--accent-s); border-radius: 3px;
+      padding: 2px 6px; letter-spacing: 0.02em; white-space: nowrap;
+    }
+    .atk-right {
+      display: flex; flex-direction: column; align-items: flex-end;
+      justify-content: center; min-width: 118px; gap: 6px; flex-shrink: 0;
+      border-left: 1px solid var(--border); padding-left: 12px;
+    }
+    .atk-dice {
+      font-family: var(--serif); font-size: 30px; font-weight: 500; font-style: italic;
+      color: var(--ink); line-height: 1; letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .atk-stats {
+      display: flex; align-items: baseline; justify-content: flex-end; gap: 10px;
+      font-family: var(--font); font-size: 10.5px;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+
+    /* ── Section cards (Sheet tab) ───────────────────────── */
+    .s-card { background: var(--surface); border-radius: 10px; border: 1px solid var(--border); padding: 12px 14px; }
+    .traits-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .trait-cell { background: var(--surface2); border-radius: 6px; padding: 9px 6px; text-align: center; }
+    .trait-key { font-family: var(--font); font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; color: var(--ink-mute); text-transform: uppercase; }
+    .trait-val { font-family: var(--serif); font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; margin-top: 3px; }
+    .trait-skills { font-family: var(--font); font-size: 8.5px; color: var(--ink-mute); margin-top: 4px; line-height: 1.3; }
+    .def-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+    .def-cell { text-align: center; }
+    .def-val { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--ink); }
+    .def-key { font-family: var(--font); font-size: 9.5px; font-weight: 600; color: var(--ink-mute); letter-spacing: 0.1em; }
+    .cond-btn {
+      font-family: var(--font); font-size: 12px; font-weight: 500; padding: 6px 12px;
+      border-radius: 999px; cursor: pointer; border: 1px solid var(--border);
+      background: transparent; color: var(--ink-soft); text-transform: capitalize; letter-spacing: 0.01em;
+    }
+    .cond-btn.on { border-color: var(--hp); background: #f5e6e0; color: var(--hp); font-weight: 600; }
+
+    /* ── Domain cards ────────────────────────────────────── */
+    .domain-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; cursor: pointer; position: relative; overflow: hidden;
+    }
+    .card-recall {
+      position: absolute; top: 8px; right: 12px;
+      font-family: var(--serif); font-size: 36px; font-style: italic;
+      color: var(--accent-s); line-height: 1; font-weight: 500; pointer-events: none;
+    }
+
+    /* ── Notes ───────────────────────────────────────────── */
+    #notes-ta {
+      width: 100%; min-height: 240px; resize: vertical;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-family: var(--serif); font-size: 14px;
+      color: var(--ink); line-height: 1.6; outline: none;
+    }
+    #notes-ta:focus { border-color: var(--accent); }
+
+    /* ── Session button ──────────────────────────────────── */
+    .session-btn {
+      border-radius: 6px; padding: 4px 10px; font-family: var(--font);
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      letter-spacing: 0.04em;
+      display: inline-flex; align-items: center; gap: 6px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .session-btn.idle { background: var(--accent-s); color: var(--accent); border: 1px solid var(--accent); }
+    .session-btn.live { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+    .s-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+    @keyframes rs-pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .s-dot.pulse { animation: rs-pulse 1.4s ease-in-out infinite; }
+
+    /* ── Overlay / bottom sheets ─────────────────────────── */
+    #overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      align-items: flex-end; justify-content: center;
+    }
+    #overlay.open { display: flex; }
+    .scrim { position: absolute; inset: 0; background: rgba(20,16,10,0.45); }
+    .sheet {
+      position: relative; z-index: 1; width: 100%; max-width: 480px;
+      background: var(--surface); border-radius: 16px 16px 0 0;
+      padding: 18px 18px 32px; box-shadow: 0 -8px 32px rgba(0,0,0,0.18);
+    }
+    .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border-s); margin: 0 auto 16px; }
+
+    /* ── Loading ─────────────────────────────────────────── */
+    .loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 200px; color: var(--ink-mute); font-family: var(--serif);
+      font-size: 14px; font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header id="topbar">
+    <span class="app-title">Codex</span>
+    <div class="topbar-right">
+      <button id="session-btn" class="session-btn idle" onclick="handleSessionBtn()">
+        <span class="s-dot" style="background:var(--accent)"></span>Start session
+      </button>
+    </div>
+  </header>
+
+  <main id="content">
+    <div class="loading">Loading…</div>
+  </main>
+
+  <nav id="tabbar">
+    <button class="tab-btn active" data-tab="combat" onclick="switchTab('combat')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M14 4l6 6-9 9-6 0 0-6 9-9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M5 19l-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Combat</span>
+    </button>
+    <button class="tab-btn" data-tab="sheet" onclick="switchTab('sheet')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span class="tab-label">Sheet</span>
+    </button>
+    <button class="tab-btn" data-tab="cards" onclick="switchTab('cards')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <rect x="4" y="6" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="9" y="3" width="11" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <span class="tab-label">Cards</span>
+    </button>
+    <button class="tab-btn" data-tab="notes" onclick="switchTab('notes')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M5 4h11l4 4v12a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M16 4v4h4" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <span class="tab-label">Notes</span>
+    </button>
+  </nav>
+</div>
+
+<div id="overlay">
+  <div class="scrim" onclick="closeOverlay()"></div>
+  <div class="sheet" id="sheet-inner"></div>
+</div>
+
+<script>
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function esc(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function diceStr(a) {
+  if (!a.diceCount) return '—';
+  let s = `${a.diceCount}d${a.diceSides}`;
+  if (a.dmod > 0) s += `+${a.dmod}`;
+  else if (a.dmod < 0) s += a.dmod;
+  return s;
+}
+
+function avgDmg(a) {
+  if (!a.diceCount) return 0;
+  return a.diceCount * (a.diceSides + 1) / 2 + (a.dmod || 0);
+}
+
+function hitChance(mod, diff) {
+  diff = diff || 14;
+  let crits = 0, hits = 0;
+  for (let x = 1; x <= 12; x++) {
+    for (let y = 1; y <= 12; y++) {
+      if (x === y) crits++;
+      else if (x + y + mod >= diff) hits++;
+    }
+  }
+  return (crits + hits) / 144;
+}
+
+function fmtMod(n) { return n >= 0 ? '+' + n : '' + n; }
+
+function typeColor(t) {
+  if (t === 'spell') return 'var(--spell)';
+  if (t === 'weapon') return 'var(--weapon)';
+  if (t === 'ability') return 'var(--ability)';
+  return 'var(--ink)';
+}
+
+function hitColor(pct) {
+  if (pct >= 70) return '#3a7a4a';
+  if (pct >= 50) return 'var(--accent)';
+  return 'var(--hp)';
+}
+
+function fmtElapsed(startedAt) {
+  if (!startedAt) return '0m';
+  const t = new Date(String(startedAt).replace(' ', 'T')).getTime();
+  if (isNaN(t)) return '?';
+  const ms = Date.now() - t;
+  if (ms < 0) return '0m';
+  const totalMin = Math.floor(ms / 60000);
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return h ? `${h}h ${String(m).padStart(2,'0')}m` : `${totalMin}m`;
+}
+
+// ─── State ─────────────────────────────────────────────────────────────────
+
+const S = {
+  char: null,
+  tab: 'combat',
+  filter: 'All',
+  openCardId: null,
+  session: null,
+};
+
+// Normalised resource accessors — defensive against schema variations
+function getRes(name) {
+  const c = S.char;
+  if (!c || !c.resources) return 0;
+  const r = c.resources[name];
+  if (r == null) return 0;
+  if (typeof r === 'object') return r.current ?? 0;
+  return r;
+}
+function getResMax(name, fallback) {
+  const c = S.char;
+  if (!c || !c.resources) return fallback;
+  const r = c.resources[name];
+  if (r == null) return c.resources[name + 'Max'] || fallback;
+  if (typeof r === 'object') return r.max ?? fallback;
+  return c.resources[name + 'Max'] || fallback;
+}
+function setRes(name, value) {
+  const r = S.char.resources[name];
+  if (typeof r === 'object') S.char.resources[name].current = value;
+  else S.char.resources[name] = value;
+}
+
+// ─── API ───────────────────────────────────────────────────────────────────
+
+async function loadCharacter() {
+  const r = await fetch('/api/character');
+  if (!r.ok) return;
+  const d = await r.json();
+  S.char = d.character;
+}
+
+async function loadSession() {
+  const r = await fetch('/api/session/active');
+  if (!r.ok) return;
+  const d = await r.json();
+  S.session = d.session || null;
+}
+
+let _saveTimer = null;
+function scheduleSave() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(doSave, 1500);
+}
+async function doSave() {
+  if (!S.char) return;
+  const r = await fetch('/api/character/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ description: 'Mobile sync', character: S.char }),
+  });
+  if (r.status === 401) window.location = 'login.html';
+}
+
+// ─── Session management ────────────────────────────────────────────────────
+
+let _timerInterval = null;
+
+function startTimer() {
+  clearInterval(_timerInterval);
+  _timerInterval = setInterval(refreshSessionBtn, 1000);
+}
+function stopTimer() {
+  clearInterval(_timerInterval);
+  _timerInterval = null;
+}
+
+function refreshSessionBtn() {
+  const btn = document.getElementById('session-btn');
+  if (!btn) return;
+  if (S.session) {
+    const elapsed = fmtElapsed(S.session.started_at);
+    btn.className = 'session-btn live';
+    btn.innerHTML = `<span class="s-dot pulse" style="background:#fff"></span>${esc(S.session.name)} · ${elapsed}`;
+  } else {
+    btn.className = 'session-btn idle';
+    btn.innerHTML = `<span class="s-dot" style="background:var(--accent)"></span>Start session`;
+  }
+}
+
+async function handleSessionBtn() {
+  if (S.session) {
+    openEndModal();
+  } else {
+    const count = parseInt(localStorage.getItem('rs.sc') || '7') + 1;
+    const name = `Session ${count}`;
+    const r = await fetch('/api/session/start', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    });
+    if (r.status === 401) { window.location = 'login.html'; return; }
+    if (!r.ok) return;
+    const d = await r.json();
+    localStorage.setItem('rs.sc', count);
+    S.session = { id: d.sessionId, name, started_at: new Date().toISOString() };
+    startTimer();
+    refreshSessionBtn();
+  }
+}
+
+async function endSession() {
+  const r = await fetch('/api/session/end', { method: 'POST' });
+  if (r.status === 401) { window.location = 'login.html'; return; }
+  S.session = null;
+  stopTimer();
+  refreshSessionBtn();
+  closeOverlay();
+}
+
+// ─── Overlay ───────────────────────────────────────────────────────────────
+
+function openOverlay(html) {
+  document.getElementById('sheet-inner').innerHTML = html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('sheet-inner').innerHTML = '';
+}
+
+function openAttackDetail(id) {
+  const a = (S.char.attacks || []).find(x => x.id === id);
+  if (!a) return;
+  const tc = typeColor(a.type);
+  const hp = Math.round(hitChance(a.mod, 14) * 100);
+  const dmg = avgDmg(a);
+  openOverlay(`
+    <div class="sheet-handle"></div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px">
+      <div style="font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);letter-spacing:-0.01em">${esc(a.name)}</div>
+      <div style="font-family:var(--font);font-size:11px;font-weight:600;color:${tc};text-transform:uppercase;letter-spacing:0.1em">${esc(a.type)}</div>
+    </div>
+    <div style="padding:14px 16px;background:var(--surface2);border-radius:8px;display:flex;align-items:baseline;gap:14px">
+      <div style="font-family:var(--serif);font-size:42px;font-weight:500;font-style:italic;color:var(--ink);line-height:1;letter-spacing:-0.02em">${esc(diceStr(a))}</div>
+      <div style="flex:1">
+        <div class="lbl">AVG</div>
+        <div style="font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin-top:2px">${dmg.toFixed(1)}</div>
+      </div>
+      <div>
+        <div class="lbl">HIT</div>
+        <div style="font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin-top:2px">${esc(fmtMod(a.mod))} <span style="color:var(--accent)">· ${hp}%</span></div>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="lbl">RANGE</div>
+      <div style="font-family:var(--font);font-size:13px;color:var(--ink);margin-top:3px">${esc((a.range || []).join(' · '))}</div>
+    </div>
+    ${a.tags && a.tags.length ? `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:5px">${a.tags.map(t => `<span style="font-family:var(--font);font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-s);border-radius:3px;padding:3px 7px">${esc(t)}</span>`).join('')}</div>` : ''}
+    ${a.note ? `<div style="margin-top:14px;font-family:var(--serif);font-size:14px;color:var(--ink-soft);line-height:1.5;border-top:1px solid var(--border);padding-top:12px">${esc(a.note)}</div>` : ''}
+  `);
+}
+
+function openEndModal() {
+  const elapsed = S.session ? fmtElapsed(S.session.started_at) : '0m';
+  const name = S.session ? S.session.name : 'Session';
+  openOverlay(`
+    <div class="sheet-handle"></div>
+    <div style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-0.01em">End ${esc(name)}?</div>
+    <div style="font-family:var(--font);font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.5">Logged ${esc(elapsed)} of play. Notes and resources are saved.</div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button onclick="closeOverlay()" style="flex:1;padding:10px 0;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--ink-soft);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">Keep playing</button>
+      <button onclick="endSession()" style="flex:1;padding:10px 0;border-radius:8px;background:var(--accent);border:1px solid var(--accent);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">End session</button>
+    </div>
+  `);
+}
+
+// ─── Long-press gesture ────────────────────────────────────────────────────
+
+let _press = null, _pressX = 0, _pressY = 0;
+
+function initLongPress() {
+  const el = document.getElementById('content');
+  el.addEventListener('pointerdown', e => {
+    const card = e.target.closest('.attack-card');
+    if (!card) return;
+    _pressX = e.clientX; _pressY = e.clientY;
+    _press = setTimeout(() => { _press = null; openAttackDetail(card.dataset.id); }, 380);
+  });
+  const cancel = () => { clearTimeout(_press); _press = null; };
+  el.addEventListener('pointerup', cancel);
+  el.addEventListener('pointercancel', cancel);
+  el.addEventListener('pointermove', e => {
+    if (!_press) return;
+    if (Math.abs(e.clientX - _pressX) > 8 || Math.abs(e.clientY - _pressY) > 8) cancel();
+  });
+}
+
+// ─── Tab & filter ──────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  if (S.tab === 'notes') {
+    const ta = document.getElementById('notes-ta');
+    if (ta && S.char) { S.char.notes = ta.value; }
+  }
+  S.tab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  render();
+  document.getElementById('content').scrollTop = 0;
+}
+
+function setFilter(f) { S.filter = f; render(); }
+
+// ─── Pip taps ──────────────────────────────────────────────────────────────
+
+function setPip(resource, value) {
+  if (!S.char) return;
+  setRes(resource, value);
+  scheduleSave();
+  render();
+}
+
+function toggleCondition(key) {
+  if (!S.char || !S.char.conditions) return;
+  S.char.conditions[key] = !S.char.conditions[key];
+  scheduleSave();
+  render();
+}
+
+function toggleCard(id) {
+  S.openCardId = S.openCardId === id ? null : id;
+  render();
+}
+
+// ─── Pip row HTML ──────────────────────────────────────────────────────────
+
+function pipRow(resource, value, max, cssColor, size) {
+  size = size || 14;
+  let h = `<div class="pip-row">`;
+  for (let i = 0; i < max; i++) {
+    const filled = i < value;
+    const next = (i + 1 === value) ? i : i + 1;
+    h += `<button class="pip${filled ? ' filled' : ''}" style="width:${size}px;height:${size}px;border-color:${cssColor};color:${cssColor}" onclick="setPip('${resource}',${next})"></button>`;
+  }
+  return h + '</div>';
+}
+
+// ─── Render: Combat ────────────────────────────────────────────────────────
+
+function renderCombat() {
+  const c = S.char;
+  if (!c) return '<div class="loading">No data</div>';
+
+  const hp      = getRes('hp');
+  const hpMax   = getResMax('hp', 12);
+  const str     = getRes('stress');
+  const strMax  = getResMax('stress', 12);
+  const hope    = getRes('hope');
+  const hopeMax = getResMax('hope', 6);
+
+  const def = c.defenses || {};
+  const evasion = def.evasion ?? '—';
+  const major   = def.major   ?? '—';
+  const severe  = def.severe  ?? '—';
+
+  const bi   = c.basicInfo || {};
+  const name = bi.name || c.name || 'Character';
+  const lvl  = bi.level || c.level || '?';
+  const prof = bi.proficiency || c.proficiency || '?';
+
+  const attacks  = c.attacks || [];
+  const RANGES   = ['All','Melee','Close','Far','Very Far'];
+  const filtered = S.filter === 'All' ? attacks : attacks.filter(a => (a.range || []).includes(S.filter));
+
+  return `
+    <div class="resources">
+      <div class="res-hero">
+        <div class="char-name">${esc(name)}</div>
+        <div class="char-meta">L${esc(lvl)} · P+${esc(prof)}</div>
+        <div class="eva-badge">EVA ${esc(evasion)}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px">
+            <span class="lbl">HP</span>
+            <span style="font-family:var(--serif);font-size:15px;font-weight:600;color:var(--hp)">${hp}<span style="color:var(--ink-mute);font-weight:400">/${hpMax}</span></span>
+          </div>
+          ${pipRow('hp', hp, hpMax, 'var(--hp)')}
+        </div>
+        <div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px">
+            <span class="lbl">STRESS</span>
+            <span style="font-family:var(--serif);font-size:15px;font-weight:600;color:var(--stress)">${str}<span style="color:var(--ink-mute);font-weight:400">/${strMax}</span></span>
+          </div>
+          ${pipRow('stress', str, strMax, 'var(--stress)')}
+        </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;align-items:center;gap:10px">
+        <span class="lbl">HOPE</span>
+        ${pipRow('hope', hope, hopeMax, 'var(--hope)', 16)}
+        <span style="margin-left:auto;font-family:var(--font);font-size:11px;color:var(--ink-mute)">tap to spend</span>
+      </div>
+
+      <div class="thresholds">
+        <div class="thresh" style="background:#fff;border-right:1px solid var(--border)">
+          <div class="thresh-lbl">1 HP</div>
+          <div class="thresh-val">&lt; ${esc(major)}</div>
+        </div>
+        <div class="thresh" style="background:#fbf3ea;border-right:1px solid var(--border)">
+          <div class="thresh-lbl">MAJOR</div>
+          <div class="thresh-val">${esc(major)}+</div>
+        </div>
+        <div class="thresh" style="background:#f5e6e0">
+          <div class="thresh-lbl">SEVERE</div>
+          <div class="thresh-val">${esc(severe)}+</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips">
+      ${RANGES.map(r => `<button class="chip${S.filter===r?' active':''}" onclick="setFilter('${r}')">${esc(r)}</button>`).join('')}
+    </div>
+
+    <div class="attacks">
+      ${filtered.map(a => {
+        const hitPct = Math.round(hitChance(a.mod, 14) * 100);
+        const dmg    = avgDmg(a);
+        const tc     = typeColor(a.type);
+        const hc     = hitColor(hitPct);
+        return `
+          <div class="attack-card" data-id="${esc(a.id)}">
+            <div class="atk-slash" style="background:${tc}"></div>
+            <div class="atk-left">
+              <div class="atk-name">${esc(a.name)}</div>
+              <div class="atk-meta" style="color:${tc}">${esc(a.type)} <span style="color:var(--ink-mute)">· ${esc((a.range||[]).join(' / '))}</span></div>
+              ${a.tags && a.tags.length ? `<div class="atk-tags">${a.tags.slice(0,3).map(t=>`<span class="atk-tag">${esc(t)}</span>`).join('')}</div>` : ''}
+            </div>
+            <div class="atk-right">
+              <div class="atk-dice">${esc(diceStr(a))}</div>
+              <div class="atk-stats">
+                <div><span style="color:var(--ink-mute);font-weight:600;letter-spacing:0.06em">${esc(fmtMod(a.mod))} </span><span style="color:${hc};font-weight:700">${hitPct}%</span></div>
+                <div><span style="color:var(--ink-mute);font-weight:600;letter-spacing:0.06em">avg </span><span style="color:var(--ink);font-weight:700">${dmg.toFixed(1)}</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+      <div style="font-family:var(--font);font-size:10.5px;color:var(--ink-mute);text-align:center;padding:6px 0;font-style:italic">
+        Long-press any attack for full details
+      </div>
+    </div>
+  `;
+}
+
+// ─── Render: Sheet ─────────────────────────────────────────────────────────
+
+function renderSheet() {
+  const c = S.char;
+  if (!c) return '<div class="loading">No data</div>';
+
+  const bi   = c.basicInfo    || {};
+  const tr   = c.traits       || {};
+  const def  = c.defenses     || {};
+  const cond = c.conditions   || {};
+  const exp  = c.experiences  || [];
+  const gold = c.gold         || {};
+  const inv  = c.inventory    || [];
+
+  const armor    = getRes('armor');
+  const armorMax = getResMax('armor', 4);
+
+  const TRAIT_KEYS = ['agility','strength','finesse','instinct','presence','knowledge'];
+
+  function traitVal(t) {
+    if (t == null) return '—';
+    const v = typeof t === 'object' ? (t.val ?? 0) : t;
+    return fmtMod(Number(v));
+  }
+  function traitSkills(t) {
+    return (typeof t === 'object' && t.skills) ? t.skills : '';
+  }
+
+  return `
+    <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:14px">
+
+      <div class="s-card">
+        <div style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-0.01em">${esc(bi.name||'')}</div>
+        <div style="font-family:var(--font);font-size:12px;color:var(--ink-soft);margin-top:2px">${esc([bi.pronouns,bi.ancestry,bi.community].filter(Boolean).join(' · '))}</div>
+        <div style="display:flex;gap:14px;margin-top:10px;font-family:var(--font);font-size:12px;color:var(--ink-soft);align-items:center">
+          <span><b style="color:var(--ink);font-weight:600">${esc(bi.class||'')}</b>${bi.subclass ? ' · '+esc(bi.subclass) : ''}</span>
+          <span style="margin-left:auto">Lvl <b style="color:var(--ink);font-weight:600">${esc(bi.level||'')}</b> · Prof <b style="color:var(--ink);font-weight:600">+${esc(bi.proficiency||'')}</b></span>
+        </div>
+      </div>
+
+      <div class="s-card">
+        <div class="lbl" style="margin-bottom:10px">TRAITS</div>
+        <div class="traits-grid">
+          ${TRAIT_KEYS.map(k => `
+            <div class="trait-cell">
+              <div class="trait-key">${k}</div>
+              <div class="trait-val">${esc(traitVal(tr[k]))}</div>
+              ${traitSkills(tr[k]) ? `<div class="trait-skills">${esc(traitSkills(tr[k]))}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="s-card">
+        <div class="lbl" style="margin-bottom:8px">DEFENSES</div>
+        <div class="def-grid">
+          <div class="def-cell"><div class="def-val">${esc(def.evasion??'—')}</div><div class="def-key">EVASION</div></div>
+          <div class="def-cell"><div class="def-val">${esc(def.major??'—')}</div><div class="def-key">MAJOR</div></div>
+          <div class="def-cell"><div class="def-val">${esc(def.severe??'—')}</div><div class="def-key">SEVERE</div></div>
+          <div class="def-cell"><div class="def-val">${armor}/${armorMax}</div><div class="def-key">ARMOR</div></div>
+        </div>
+      </div>
+
+      ${Object.keys(cond).length ? `
+        <div class="s-card">
+          <div class="lbl" style="margin-bottom:8px">CONDITIONS</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            ${Object.keys(cond).map(k => `
+              <button class="cond-btn${cond[k]?' on':''}" onclick="toggleCondition('${esc(k)}')">${esc(k)}</button>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${exp.length ? `
+        <div class="s-card">
+          <div class="lbl" style="margin-bottom:8px">EXPERIENCES</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            ${exp.map(e => `
+              <div style="display:flex;align-items:baseline;gap:10px">
+                <div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--accent);min-width:28px">+${esc(e.mod)}</div>
+                <div>
+                  <div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--ink)">${esc(e.name)}</div>
+                  ${e.note ? `<div style="font-family:var(--font);font-size:11.5px;color:var(--ink-soft);line-height:1.4">${esc(e.note)}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="s-card" style="display:flex;align-items:baseline;justify-content:space-between">
+        <div class="lbl">GOLD</div>
+        <div style="font-family:var(--serif);font-size:13px;color:var(--ink-soft)">
+          <span style="color:var(--ink);font-weight:600">${esc(gold.chests??0)}</span> chests ·
+          <span style="color:var(--ink);font-weight:600"> ${esc(gold.bags??0)}</span> bags ·
+          <span style="color:var(--ink);font-weight:600"> ${esc(gold.handfuls??0)}</span> handfuls
+        </div>
+      </div>
+
+      ${inv.length ? `
+        <div class="s-card">
+          <div class="lbl" style="margin-bottom:8px">INVENTORY</div>
+          ${inv.map((it, i) => `
+            <div style="display:flex;align-items:baseline;gap:10px;padding:8px 0;${i>0?'border-top:1px solid var(--border)':''}">
+              <div style="font-family:var(--serif);font-size:14px;font-weight:600;color:var(--ink);min-width:24px">×${esc(it.qty??1)}</div>
+              <div style="flex:1">
+                <div style="font-family:var(--serif);font-size:14px;color:var(--ink)">${esc(it.name)}</div>
+                ${it.note ? `<div style="font-family:var(--font);font-size:11px;color:var(--ink-mute);line-height:1.4">${esc(it.note)}</div>` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ─── Render: Cards ─────────────────────────────────────────────────────────
+
+function renderCards() {
+  const c = S.char;
+  if (!c) return '<div class="loading">No data</div>';
+  const cards = c.domainCards || [];
+  if (!cards.length) {
+    return '<div style="padding:24px 16px;font-family:var(--serif);font-style:italic;color:var(--ink-mute)">No domain cards on record.</div>';
+  }
+  return `
+    <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:10px">
+      <div class="lbl">DOMAIN CARDS · ${cards.length}</div>
+      ${cards.map(card => {
+        const open = S.openCardId === card.id;
+        return `
+          <div class="domain-card${open?' s-card':''}" onclick="toggleCard('${esc(card.id)}')" style="${open?'border-color:var(--border-s)':''}">
+            <div class="card-recall">${esc(card.recall)}</div>
+            <div style="display:flex;align-items:baseline;gap:8px;padding-right:36px">
+              <div style="font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-0.01em;flex:1">${esc(card.name)}</div>
+            </div>
+            <div style="font-family:var(--font);font-size:10.5px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px">
+              ${esc(card.domain)} · ${esc(card.type)} · L${esc(card.level)}
+            </div>
+            <div style="font-family:var(--serif);font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin-top:8px">
+              ${esc(open ? card.text : card.summary)}
+            </div>
+            <div style="margin-top:8px;font-family:var(--font);font-size:10px;color:var(--ink-mute);font-style:italic">
+              Recall ${esc(card.recall)} · ${open ? 'Tap to collapse' : 'Tap to expand'}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+// ─── Render: Notes ─────────────────────────────────────────────────────────
+
+function renderNotes() {
+  const notes = S.char ? (S.char.notes || '') : '';
+  return `
+    <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:14px">
+      <div class="lbl">SESSION NOTES</div>
+      <textarea id="notes-ta" placeholder="Add a note for tonight's session…">${esc(notes)}</textarea>
+      <div style="font-family:var(--font);font-size:11px;color:var(--ink-mute);font-style:italic">Saved automatically</div>
+    </div>
+  `;
+}
+
+function attachNotesEvents() {
+  const ta = document.getElementById('notes-ta');
+  if (!ta) return;
+  ta.addEventListener('input', () => {
+    if (S.char) S.char.notes = ta.value;
+    scheduleSave();
+  });
+}
+
+// ─── Main render ───────────────────────────────────────────────────────────
+
+function render() {
+  const el = document.getElementById('content');
+  switch (S.tab) {
+    case 'combat': el.innerHTML = renderCombat(); break;
+    case 'sheet':  el.innerHTML = renderSheet();  break;
+    case 'cards':  el.innerHTML = renderCards();  break;
+    case 'notes':  el.innerHTML = renderNotes();  attachNotesEvents(); break;
+  }
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────
+
+async function init() {
+  await Promise.all([loadCharacter(), loadSession()]);
+  render();
+  initLongPress();
+  if (S.session) {
+    startTimer();
+    // Try to parse session count from name for future auto-increment
+    const m = S.session.name && S.session.name.match(/(\d+)/);
+    if (m) localStorage.setItem('rs.sc', m[1]);
+  }
+  refreshSessionBtn();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
