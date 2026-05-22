@@ -1,0 +1,9 @@
+services:
+  daggerheart:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./db:/app/db
+    env_file: .env
