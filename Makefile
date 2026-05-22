@@ -5,7 +5,10 @@ PORT      = 4000
 .PHONY: deploy build run stop logs status ssh
 
 # Pull latest code, rebuild image, restart container
-deploy: build run
+deploy:
+	git pull --ff-only
+	$(MAKE) build
+	$(MAKE) run
 
 build:
 	podman build -t $(IMAGE) .
@@ -17,8 +20,8 @@ run:
 		--name $(CONTAINER) \
 		--restart=always \
 		-p $(PORT):4000 \
+		--env-file .env \
 		-v ./db:/app/db:Z \
-		-e APP_PASSWORD=$(APP_PASSWORD) \
 		$(IMAGE)
 
 stop:
