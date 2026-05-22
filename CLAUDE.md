@@ -10,7 +10,7 @@ This service runs on a shared Hetzner VPS (SSH alias `msge`, IP `157.180.66.111`
 | GitHub repo | `mmsge/river-sky` |
 | Domain | `rpg.msge.no` |
 | Host port | `4000` (must be `0.0.0.0:4000`, not `127.0.0.1:4000`) |
-| Runtime | Podman (rootless) |
+| Runtime | Docker Compose |
 | Deploy | `make deploy` (pulls latest code, rebuilds image, restarts container) |
 
 ## Central ingress — do not manage Caddy here
