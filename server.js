@@ -66,9 +66,109 @@ function initDb() {
     CREATE INDEX IF NOT EXISTS idx_entries_session ON session_entries(session_id);
   `);
 
+  createNewTables();
+  migrateSchema();
+
   const count = db.prepare('SELECT COUNT(*) AS n FROM branches').get().n;
   if (count === 0) {
     seed();
+  } else {
+    backfill();
+  }
+}
+
+// ── Multi-character / multi-campaign schema ─────────────────────────────────────
+
+function createNewTables() {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS characters (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      name       TEXT    NOT NULL,
+      created_at TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      name        TEXT    NOT NULL,
+      description TEXT    NOT NULL DEFAULT '',
+      created_at  TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+    );
+
+    CREATE TABLE IF NOT EXISTS campaign_characters (
+      campaign_id  INTEGER NOT NULL REFERENCES campaigns(id),
+      character_id INTEGER NOT NULL REFERENCES characters(id),
+      PRIMARY KEY (campaign_id, character_id)
+    );
+  `);
+}
+
+function hasColumn(table, col) {
+  // `table` is always an internal literal — PRAGMA cannot be parameterized.
+  return db.prepare(`PRAGMA table_info(${table})`).all().some(c => c.name === col);
+}
+
+function migrateSchema() {
+  // Additive, nullable columns (the safe ALTER form — no default needed).
+  if (!hasColumn('branches', 'character_id')) {
+    db.exec('ALTER TABLE branches ADD COLUMN character_id INTEGER REFERENCES characters(id)');
+  }
+  if (!hasColumn('sessions', 'campaign_id')) {
+    db.exec('ALTER TABLE sessions ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id)');
+  }
+  // Indexes go after the ALTERs so the columns exist.
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_branches_character ON branches(character_id);
+    CREATE INDEX IF NOT EXISTS idx_sessions_campaign  ON sessions(campaign_id);
+  `);
+}
+
+// Idempotent backfill for installs that predate the multi-character model.
+function backfill() {
+  const charCount = db.prepare('SELECT COUNT(*) AS n FROM characters').get().n;
+
+  if (charCount === 0) {
+    // Derive a name from the existing character data.
+    const active = db.prepare('SELECT * FROM branches WHERE is_active = 1 LIMIT 1').get()
+                || db.prepare('SELECT * FROM branches ORDER BY id ASC LIMIT 1').get();
+    let charName = 'River Sky';
+    if (active) {
+      const snap = getLatestSnapshot(active.id);
+      if (snap) {
+        try {
+          const c = JSON.parse(snap.character_data);
+          if (c?.basicInfo?.name) charName = c.basicInfo.name;
+        } catch { /* keep default */ }
+      }
+    }
+
+    const characterId = db.prepare('INSERT INTO characters (name) VALUES (?)').run(charName).lastInsertRowid;
+    db.prepare('UPDATE branches SET character_id = ? WHERE character_id IS NULL').run(characterId);
+
+    const campaignId = db.prepare(
+      "INSERT INTO campaigns (name, description) VALUES ('Main Campaign', '')"
+    ).run().lastInsertRowid;
+    db.prepare('INSERT OR IGNORE INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
+      .run(campaignId, characterId);
+    db.prepare('UPDATE sessions SET campaign_id = ? WHERE campaign_id IS NULL').run(campaignId);
+
+    setActiveCharacterId(characterId);
+    return;
+  }
+
+  // Safety net: re-link anything left orphaned by a partial migration.
+  const orphanBranches = db.prepare('SELECT COUNT(*) AS n FROM branches WHERE character_id IS NULL').get().n;
+  if (orphanBranches > 0) {
+    const firstChar = db.prepare('SELECT id FROM characters ORDER BY id ASC LIMIT 1').get();
+    if (firstChar) db.prepare('UPDATE branches SET character_id = ? WHERE character_id IS NULL').run(firstChar.id);
+  }
+  const orphanSessions = db.prepare('SELECT COUNT(*) AS n FROM sessions WHERE campaign_id IS NULL').get().n;
+  if (orphanSessions > 0) {
+    const firstCamp = db.prepare('SELECT id FROM campaigns ORDER BY id ASC LIMIT 1').get();
+    if (firstCamp) db.prepare('UPDATE sessions SET campaign_id = ? WHERE campaign_id IS NULL').run(firstCamp.id);
+  }
+  if (!db.prepare("SELECT value FROM app_state WHERE key='active_character_id'").get()) {
+    const firstChar = db.prepare('SELECT id FROM characters ORDER BY id ASC LIMIT 1').get();
+    if (firstChar) setActiveCharacterId(firstChar.id);
   }
 }
 
@@ -168,24 +268,81 @@ function seed() {
     ],
     features: [],
     downtimeProjects: [],
-    notes: ''
+    notes: '',
+    dead: false
   };
 
-  const insertBranch = db.prepare(
-    `INSERT INTO branches (name, parent_snapshot_id, is_active) VALUES ('main', NULL, 1)`
-  );
-  const branchId = insertBranch.run().lastInsertRowid;
+  const characterId = db.prepare("INSERT INTO characters (name) VALUES ('River Sky')").run().lastInsertRowid;
+
+  const branchId = db.prepare(
+    `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES ('main', NULL, 1, ?)`
+  ).run(characterId).lastInsertRowid;
 
   db.prepare(
     `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
      VALUES (?, NULL, 'Initial character — River Sky, Ribbet Wordsmith Lv.5', ?)`
   ).run(branchId, JSON.stringify(character));
+
+  const campaignId = db.prepare(
+    "INSERT INTO campaigns (name, description) VALUES ('Main Campaign', '')"
+  ).run().lastInsertRowid;
+  db.prepare('INSERT INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
+    .run(campaignId, characterId);
+  setActiveCharacterId(characterId);
+}
+
+// Blank starter character for newly-created characters.
+function blankCharacter(name) {
+  return {
+    basicInfo: {
+      name: name || 'New Character', pronouns: '', ancestry: '', community: '',
+      class: '', subclass: '', level: 1, proficiency: 1
+    },
+    traits: { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 },
+    resources: {
+      hp:     { current: 0, max: 6 },
+      stress: { current: 0, max: 6 },
+      hope:   2,
+      gold:   { handfuls: 0, bags: 0, chests: 0 }
+    },
+    thresholds: { major: 0, severe: 0 },
+    defenses: { evasion: 10 },
+    armor: { equippedId: null, slotsMax: 0, slotsUsed: 0, items: [] },
+    conditions: { vulnerable: false, restrained: false, hidden: false, unconscious: false },
+    attacks: [], weapons: [], inventory: [], domainCards: [],
+    experiences: [], features: [], downtimeProjects: [],
+    notes: '',
+    dead: false
+  };
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getActiveBranch() {
-  return db.prepare('SELECT * FROM branches WHERE is_active = 1 LIMIT 1').get();
+function getActiveCharacterId() {
+  const row = db.prepare("SELECT value FROM app_state WHERE key='active_character_id'").get();
+  if (row) return parseInt(row.value, 10);
+  const first = db.prepare('SELECT id FROM characters ORDER BY id ASC LIMIT 1').get();
+  if (!first) return null;
+  setActiveCharacterId(first.id);
+  return first.id;
+}
+
+function setActiveCharacterId(id) {
+  db.prepare("INSERT OR REPLACE INTO app_state (key,value) VALUES ('active_character_id', ?)")
+    .run(String(id));
+}
+
+// Active branch is scoped to a character (defaults to the active one).
+function getActiveBranch(characterId = getActiveCharacterId()) {
+  let b = db.prepare(
+    'SELECT * FROM branches WHERE character_id = ? AND is_active = 1 LIMIT 1'
+  ).get(characterId);
+  if (!b) {
+    // Self-heal: no active branch for this character — activate its newest.
+    b = db.prepare('SELECT * FROM branches WHERE character_id = ? ORDER BY id DESC LIMIT 1').get(characterId);
+    if (b) db.prepare('UPDATE branches SET is_active = 1 WHERE id = ?').run(b.id);
+  }
+  return b;
 }
 
 function getLatestSnapshot(branchId) {
@@ -224,6 +381,9 @@ function diffCharacter(oldC, newC) {
     if (oldC.conditions[cond] !== newC.conditions[cond])
       msgs.push(`Condition: ${cond.charAt(0).toUpperCase() + cond.slice(1)} ${newC.conditions[cond] ? 'gained' : 'cleared'}`);
   }
+  const oldDead = oldC.dead || false, newDead = newC.dead || false;
+  if (!oldDead && newDead) msgs.push('💀 Character has died');
+  if (oldDead && !newDead) msgs.push('Character revived');
   return msgs;
 }
 
@@ -283,17 +443,157 @@ app.post('/api/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Characters ──────────────────────────────────────────────────────────────────
+
+// GET /api/characters — card summaries for the selection page
+app.get('/api/characters', (req, res) => {
+  const activeId = getActiveCharacterId();
+  const characters = db.prepare('SELECT * FROM characters ORDER BY id ASC').all();
+  const campNames = db.prepare(`
+    SELECT c.name FROM campaigns c
+    JOIN campaign_characters cc ON cc.campaign_id = c.id
+    WHERE cc.character_id = ? ORDER BY c.name`);
+
+  const out = characters.map(ch => {
+    const branch = db.prepare('SELECT * FROM branches WHERE character_id = ? AND is_active = 1 LIMIT 1').get(ch.id)
+                || db.prepare('SELECT * FROM branches WHERE character_id = ? ORDER BY id DESC LIMIT 1').get(ch.id);
+    let summary = null;
+    if (branch) {
+      const snap = getLatestSnapshot(branch.id);
+      if (snap) {
+        try {
+          const c = JSON.parse(snap.character_data);
+          summary = {
+            name:     c.basicInfo?.name ?? ch.name,
+            pronouns: c.basicInfo?.pronouns ?? '',
+            ancestry: c.basicInfo?.ancestry ?? '',
+            class:    c.basicInfo?.class ?? '',
+            subclass: c.basicInfo?.subclass ?? '',
+            level:    c.basicInfo?.level ?? null,
+            hp:       c.resources?.hp ?? null,
+            dead:     c.dead === true
+          };
+        } catch { /* leave summary null */ }
+      }
+    }
+    return {
+      id: ch.id, name: ch.name, createdAt: ch.created_at,
+      active: ch.id === activeId, summary,
+      campaigns: campNames.all(ch.id).map(r => r.name)
+    };
+  });
+  res.json(out);
+});
+
+// POST /api/characters — create a new (blank) character
+app.post('/api/characters', requireAuth, (req, res) => {
+  const name = (req.body && req.body.name && req.body.name.trim()) || 'New Character';
+  const characterId = db.prepare('INSERT INTO characters (name) VALUES (?)').run(name).lastInsertRowid;
+  const branchId = db.prepare(
+    `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES ('main', NULL, 1, ?)`
+  ).run(characterId).lastInsertRowid;
+  const snap = db.prepare(
+    `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
+     VALUES (?, NULL, 'Initial character', ?)`
+  ).run(branchId, JSON.stringify(blankCharacter(name)));
+  setActiveCharacterId(characterId);
+  res.json({ characterId, branchId, snapshotId: snap.lastInsertRowid });
+});
+
+// POST /api/characters/select/:id — set the active character (view pointer only, no auth)
+app.post('/api/characters/select/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const ch = db.prepare('SELECT id FROM characters WHERE id = ?').get(id);
+  if (!ch) return res.status(404).json({ error: 'Character not found' });
+  setActiveCharacterId(id);
+  res.json({ activeCharacterId: id });
+});
+
+// ── Campaigns ───────────────────────────────────────────────────────────────────
+
+// GET /api/campaigns — list with member counts
+app.get('/api/campaigns', (req, res) => {
+  const rows = db.prepare(`
+    SELECT c.*,
+      (SELECT COUNT(*) FROM campaign_characters cc WHERE cc.campaign_id = c.id) AS characterCount,
+      (SELECT COUNT(*) FROM sessions s WHERE s.campaign_id = c.id) AS sessionCount
+    FROM campaigns c ORDER BY c.id ASC`).all();
+  res.json(rows);
+});
+
+// GET /api/campaigns/:id — detail with members and sessions
+app.get('/api/campaigns/:id', (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const campaign = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(id);
+  if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
+
+  const characters = db.prepare(`
+    SELECT ch.id, ch.name FROM characters ch
+    JOIN campaign_characters cc ON cc.character_id = ch.id
+    WHERE cc.campaign_id = ? ORDER BY ch.name`).all(id);
+
+  const sessions = db.prepare(`
+    SELECT s.*, ch.name AS character_name,
+      (SELECT COUNT(*) FROM session_entries se WHERE se.session_id = s.id) AS entryCount
+    FROM sessions s
+    LEFT JOIN branches b ON b.id = s.branch_id
+    LEFT JOIN characters ch ON ch.id = b.character_id
+    WHERE s.campaign_id = ? ORDER BY s.id DESC`).all(id);
+
+  res.json({ ...campaign, characters, sessions });
+});
+
+// POST /api/campaigns — create
+app.post('/api/campaigns', requireAuth, (req, res) => {
+  const name = req.body && req.body.name && req.body.name.trim();
+  if (!name) return res.status(400).json({ error: 'name is required' });
+  const description = (req.body.description || '').trim();
+  const id = db.prepare('INSERT INTO campaigns (name, description) VALUES (?, ?)').run(name, description).lastInsertRowid;
+  res.json({ id });
+});
+
+// POST /api/campaigns/:id/characters — add a character to a campaign
+app.post('/api/campaigns/:id/characters', requireAuth, (req, res) => {
+  const campaignId = parseInt(req.params.id, 10);
+  const characterId = req.body && parseInt(req.body.characterId, 10);
+  if (!characterId) return res.status(400).json({ error: 'characterId is required' });
+  if (!db.prepare('SELECT id FROM campaigns WHERE id = ?').get(campaignId))
+    return res.status(404).json({ error: 'Campaign not found' });
+  if (!db.prepare('SELECT id FROM characters WHERE id = ?').get(characterId))
+    return res.status(404).json({ error: 'Character not found' });
+  db.prepare('INSERT OR IGNORE INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
+    .run(campaignId, characterId);
+  res.json({ ok: true });
+});
+
+// POST /api/campaigns/:id/characters/remove — remove a character from a campaign
+app.post('/api/campaigns/:id/characters/remove', requireAuth, (req, res) => {
+  const campaignId = parseInt(req.params.id, 10);
+  const characterId = req.body && parseInt(req.body.characterId, 10);
+  if (!characterId) return res.status(400).json({ error: 'characterId is required' });
+  db.prepare('DELETE FROM campaign_characters WHERE campaign_id = ? AND character_id = ?')
+    .run(campaignId, characterId);
+  res.json({ ok: true });
+});
+
 // GET /api/character
 app.get('/api/character', (req, res) => {
-  const branch   = getActiveBranch();
+  const characterId = getActiveCharacterId();
+  const branch   = getActiveBranch(characterId);
   const snapshot = getLatestSnapshot(branch.id);
+  const campaigns = db.prepare(`
+    SELECT c.id, c.name FROM campaigns c
+    JOIN campaign_characters cc ON cc.campaign_id = c.id
+    WHERE cc.character_id = ? ORDER BY c.name`).all(characterId);
   res.json({
-    snapshotId:  snapshot.id,
-    branchId:    branch.id,
-    branchName:  branch.name,
-    description: snapshot.description,
-    createdAt:   snapshot.created_at,
-    character:   JSON.parse(snapshot.character_data)
+    snapshotId:   snapshot.id,
+    branchId:     branch.id,
+    branchName:   branch.name,
+    characterId,
+    campaigns,
+    description:  snapshot.description,
+    createdAt:    snapshot.created_at,
+    character:    JSON.parse(snapshot.character_data)
   });
 });
 
@@ -342,7 +642,8 @@ app.get('/api/history', (req, res) => {
 
 // GET /api/branches
 app.get('/api/branches', (req, res) => {
-  const branches = db.prepare('SELECT * FROM branches ORDER BY id ASC').all();
+  const characterId = getActiveCharacterId();
+  const branches = db.prepare('SELECT * FROM branches WHERE character_id = ? ORDER BY id ASC').all(characterId);
 
   const enriched = branches.map(b => {
     const count = db.prepare(
@@ -375,10 +676,14 @@ app.post('/api/branches/restore/:snapshotId', requireAuth, (req, res) => {
     ? req.body.branchName.trim()
     : `Restore from "${source.description}"`;
 
-  db.prepare('UPDATE branches SET is_active = 0').run();
+  // Resolve which character this snapshot belongs to (via its branch).
+  const sourceBranch = db.prepare('SELECT character_id FROM branches WHERE id = ?').get(source.branch_id);
+  const characterId  = sourceBranch ? sourceBranch.character_id : getActiveCharacterId();
+
+  db.prepare('UPDATE branches SET is_active = 0 WHERE character_id = ?').run(characterId);
   const newBranch = db.prepare(
-    `INSERT INTO branches (name, parent_snapshot_id, is_active) VALUES (?, ?, 1)`
-  ).run(branchName, snapshotId);
+    `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES (?, ?, 1, ?)`
+  ).run(branchName, snapshotId, characterId);
 
   const newSnap = db.prepare(
     `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
@@ -402,7 +707,7 @@ app.post('/api/branches/switch/:branchId', requireAuth, (req, res) => {
   const branch = db.prepare('SELECT * FROM branches WHERE id = ?').get(branchId);
   if (!branch) return res.status(404).json({ error: 'Branch not found' });
 
-  db.prepare('UPDATE branches SET is_active = 0').run();
+  db.prepare('UPDATE branches SET is_active = 0 WHERE character_id = ?').run(branch.character_id);
   db.prepare('UPDATE branches SET is_active = 1 WHERE id = ?').run(branchId);
 
   res.json({ branchId, name: branch.name });
@@ -441,11 +746,21 @@ app.post('/api/session/start', requireAuth, (req, res) => {
   if (getActiveSessionId()) return res.status(409).json({ error: 'A session is already active' });
 
   const branch = getActiveBranch();
+  const characterId = getActiveCharacterId();
   const name   = (req.body && req.body.name && req.body.name.trim()) || `Session`;
 
+  // Resolve the campaign: explicit body.campaignId, else the character's first campaign.
+  let campaignId = req.body && parseInt(req.body.campaignId, 10);
+  if (!campaignId) {
+    const row = db.prepare(
+      'SELECT campaign_id AS id FROM campaign_characters WHERE character_id = ? ORDER BY campaign_id ASC LIMIT 1'
+    ).get(characterId);
+    campaignId = row ? row.id : null;
+  }
+
   const result = db.prepare(
-    'INSERT INTO sessions (name, branch_id) VALUES (?, ?)'
-  ).run(name, branch.id);
+    'INSERT INTO sessions (name, branch_id, campaign_id) VALUES (?, ?, ?)'
+  ).run(name, branch.id, campaignId);
 
   setActiveSessionId(result.lastInsertRowid);
   res.json({ sessionId: result.lastInsertRowid });
@@ -481,7 +796,13 @@ app.post('/api/session/note', requireAuth, (req, res) => {
 
 // GET /api/sessions
 app.get('/api/sessions', (req, res) => {
-  const sessions = db.prepare('SELECT * FROM sessions ORDER BY id DESC').all();
+  const sessions = db.prepare(`
+    SELECT s.*, c.name AS campaign_name, ch.name AS character_name, ch.id AS character_id
+    FROM sessions s
+    LEFT JOIN campaigns c   ON c.id = s.campaign_id
+    LEFT JOIN branches b    ON b.id = s.branch_id
+    LEFT JOIN characters ch ON ch.id = b.character_id
+    ORDER BY s.id DESC`).all();
   const enriched = sessions.map(s => {
     const count = db.prepare('SELECT COUNT(*) AS n FROM session_entries WHERE session_id = ?').get(s.id).n;
     return { ...s, entryCount: count };
@@ -492,7 +813,13 @@ app.get('/api/sessions', (req, res) => {
 // GET /api/sessions/:id
 app.get('/api/sessions/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
-  const session = db.prepare('SELECT * FROM sessions WHERE id = ?').get(id);
+  const session = db.prepare(`
+    SELECT s.*, c.name AS campaign_name, ch.name AS character_name, ch.id AS character_id
+    FROM sessions s
+    LEFT JOIN campaigns c   ON c.id = s.campaign_id
+    LEFT JOIN branches b    ON b.id = s.branch_id
+    LEFT JOIN characters ch ON ch.id = b.character_id
+    WHERE s.id = ?`).get(id);
   if (!session) return res.status(404).json({ error: 'Session not found' });
 
   const entries = db.prepare(
@@ -504,16 +831,20 @@ app.get('/api/sessions/:id', (req, res) => {
 
 // GET /api/backup
 app.get('/api/backup', requireAuth, (req, res) => {
-  const branches       = db.prepare('SELECT * FROM branches ORDER BY id ASC').all();
-  const snapshots      = db.prepare('SELECT * FROM snapshots ORDER BY id ASC').all();
-  const sessions       = db.prepare('SELECT * FROM sessions ORDER BY id ASC').all();
-  const sessionEntries = db.prepare('SELECT * FROM session_entries ORDER BY id ASC').all();
-  const appState       = db.prepare('SELECT * FROM app_state').all();
+  const characters         = db.prepare('SELECT * FROM characters ORDER BY id ASC').all();
+  const campaigns          = db.prepare('SELECT * FROM campaigns ORDER BY id ASC').all();
+  const campaignCharacters = db.prepare('SELECT * FROM campaign_characters').all();
+  const branches           = db.prepare('SELECT * FROM branches ORDER BY id ASC').all();
+  const snapshots          = db.prepare('SELECT * FROM snapshots ORDER BY id ASC').all();
+  const sessions           = db.prepare('SELECT * FROM sessions ORDER BY id ASC').all();
+  const sessionEntries     = db.prepare('SELECT * FROM session_entries ORDER BY id ASC').all();
+  const appState           = db.prepare('SELECT * FROM app_state').all();
 
   const date = new Date().toISOString().slice(0, 10);
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Content-Disposition', `attachment; filename="daggerheart-backup-${date}.json"`);
-  res.json({ exportedAt: new Date().toISOString(), version: 1,
+  res.json({ exportedAt: new Date().toISOString(), version: 2,
+    characters, campaigns, campaignCharacters,
     branches, snapshots, sessions, sessionEntries, appState });
 });
 

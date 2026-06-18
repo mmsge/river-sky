@@ -120,8 +120,11 @@
 
 <header>
   <div class="header-nav">
-    <a href="/character.html" class="back-link">← Character Sheet</a>
-    <a href="/odds.html" class="back-link">🎲 Roll Odds</a>
+    <a href="/" class="back-link">🏠 Characters</a>
+    <div style="display:flex;gap:8px">
+      <a href="/character.html" class="back-link">📜 Character Sheet</a>
+      <a href="/odds.html" class="back-link">🎲 Roll Odds</a>
+    </div>
   </div>
   <div class="page-title">📖 Sessions</div>
 </header>
@@ -203,7 +206,10 @@ async function loadSessions() {
     const badge = isActive
       ? '<span class="session-badge active">● In Progress</span>'
       : '<span class="session-badge ended">Ended</span>';
-    const metaParts = [`Started ${fmtDate(s.started_at)}`];
+    const metaParts = [];
+    if (s.campaign_name)  metaParts.push(`📚 ${esc(s.campaign_name)}`);
+    if (s.character_name) metaParts.push(`🧙 ${esc(s.character_name)}`);
+    metaParts.push(`Started ${fmtDate(s.started_at)}`);
     if (s.ended_at) metaParts.push(`Ended ${fmtDate(s.ended_at)}`);
     metaParts.push(`${s.entryCount} entr${s.entryCount === 1 ? 'y' : 'ies'}`);
 

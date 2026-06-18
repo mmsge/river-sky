@@ -630,7 +630,10 @@
 
 <header>
   <div class="header-nav">
-    <a href="/" class="back-link">← Combat Advisor</a>
+    <div style="display:flex;align-items:center;gap:8px">
+      <a href="/" class="back-link">🏠 Characters</a>
+      <a href="/advisor.html" class="back-link">⚔ Combat Advisor</a>
+    </div>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="session-indicator" style="display:none;font-family:'Cinzel',serif;font-size:0.72rem;color:#1a5c1a;cursor:pointer;border:1px solid #1a5c1a;border-radius:3px;padding:3px 8px;background:rgba(26,92,26,0.07)">● Session</span>
       <a href="/sessions.html" class="back-link">📖 Sessions</a>
@@ -902,6 +905,41 @@
 <!-- ── Floating save ── -->
 <div id="save-bar"><button id="save-btn">💾 Save Changes</button></div>
 
+<!-- ── Death Move modal ── -->
+<div class="modal-overlay hidden" id="death-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">💀 Death's Door</div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px;font-size:0.9rem">All Hit Point slots are marked. Make a death move — the GM decides which are available to you.</p>
+      <div id="death-choices" style="display:flex;flex-direction:column;gap:10px">
+        <button class="death-opt" data-move="survive" style="text-align:left;border:1px solid var(--border);border-radius:5px;padding:10px 12px;background:rgba(26,92,26,0.07);cursor:pointer;font-family:'IM Fell English',serif">
+          <strong style="font-family:'Cinzel',serif">1 · Survive</strong><br><span style="font-size:0.85rem">You live on — but this leaves you potentially vulnerable.</span>
+        </button>
+        <button class="death-opt" data-move="risk" style="text-align:left;border:1px solid var(--border);border-radius:5px;padding:10px 12px;background:rgba(200,134,10,0.1);cursor:pointer;font-family:'IM Fell English',serif">
+          <strong style="font-family:'Cinzel',serif">2 · Risk It All</strong><br><span style="font-size:0.85rem">Roll the die — die, or survive (the GM decides what slots are erased; adjust HP yourself).</span>
+        </button>
+        <button class="death-opt" data-move="blaze" style="text-align:left;border:1px solid var(--danger);border-radius:5px;padding:10px 12px;background:rgba(139,0,0,0.07);cursor:pointer;font-family:'IM Fell English',serif">
+          <strong style="font-family:'Cinzel',serif">3 · Blaze of Glory</strong><br><span style="font-size:0.85rem">You die — but take someone or something down with you.</span>
+        </button>
+      </div>
+      <!-- Risk It All result -->
+      <div id="death-risk-result" style="display:none;margin-top:14px;text-align:center">
+        <div id="risk-die" style="font-family:'Cinzel',serif;font-size:2.4rem;font-weight:700">🎲</div>
+        <div id="risk-outcome" style="font-family:'Cinzel',serif;font-size:1rem;margin-top:6px"></div>
+      </div>
+      <!-- Blaze of Glory input -->
+      <div id="death-blaze-input" style="display:none;margin-top:14px">
+        <label class="modal-label" for="blaze-target">What (or whom) do you take down?</label>
+        <input class="modal-input" id="blaze-target" type="text" placeholder="e.g. the dragon, the bridge…">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="death-cancel">Close</button>
+      <button class="modal-confirm" id="death-confirm" style="display:none">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Save modal ── -->
 <div class="modal-overlay hidden" id="save-modal">
   <div class="modal">
@@ -984,6 +1022,7 @@ let workingCharacter = null;
 let savedCharacter   = null;
 let currentSnapshotId = null;
 let restoreTargetId   = null;
+let availableCampaigns = [];
 
 // ════════════════════════════════════════
 // Utilities
@@ -1064,6 +1103,9 @@ function generateAutosaveDescription(oldChar, newChar) {
 
   // Notes
   if (oldChar.notes !== newChar.notes) changes.push('Notes updated');
+
+  // Death state
+  if ((oldChar.dead||false) !== (newChar.dead||false)) changes.push(newChar.dead ? '💀 Died' : 'Revived');
 
   if (changes.length === 0) return 'Autosaved';
   const desc = changes.join('; ');
@@ -1175,6 +1217,9 @@ function migrate(c) {
   // Experiences: ensure modifier field
   c.experiences = (c.experiences||[]).map(e => ({ modifier:2, ...e, id: e.id||uid() }));
 
+  // Death state (added with the multi-character update)
+  if (typeof c.dead !== 'boolean') c.dead = false;
+
   return c;
 }
 
@@ -1199,8 +1244,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ════════════════════════════════════════
 
 async function loadCharacter() {
+  // If a character id is in the URL, make it the active character first.
+  const urlId = new URLSearchParams(location.search).get('character');
+  if (urlId) {
+    try { await fetch('/api/characters/select/' + encodeURIComponent(urlId), { method: 'POST' }); } catch (_) {}
+  }
   const data = await fetch('/api/character').then(r=>r.json());
   currentSnapshotId = data.snapshotId;
+  availableCampaigns = data.campaigns || [];
   workingCharacter  = migrate(deepCopy(data.character));
   savedCharacter    = deepCopy(workingCharacter);
   renderSheet();
@@ -1212,11 +1263,149 @@ async function loadCharacter() {
 
 function updateHeader(branchName) {
   const c = workingCharacter;
-  document.getElementById('hdr-name').textContent = c.basicInfo.name || 'Character';
+  document.getElementById('hdr-name').textContent = (c.basicInfo.name || 'Character') + (c.dead ? ' 💀' : '');
   const parts = [c.basicInfo.ancestry, c.basicInfo.subclass||c.basicInfo.class, 'Lv.'+c.basicInfo.level];
+  if (c.dead) parts.unshift('FALLEN');
   if (branchName && branchName !== 'main') parts.push('Branch: '+branchName);
   document.getElementById('hdr-subtitle').textContent = parts.filter(Boolean).join(' · ');
+  renderDeathBanner();
 }
+
+// ── Death state banner + revive control ──
+function renderDeathBanner() {
+  let banner = document.getElementById('death-banner');
+  const c = workingCharacter;
+  if (c.dead) {
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'death-banner';
+      banner.style.cssText = 'background:rgba(139,0,0,0.1);border:1px solid var(--danger);color:var(--danger);border-radius:5px;padding:8px 14px;margin:10px auto;max-width:1100px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:\'Cinzel\',serif;font-size:0.85rem';
+      const main = document.querySelector('main');
+      main.parentNode.insertBefore(banner, main);
+    }
+    banner.innerHTML = '<span>💀 This character has fallen. The sheet remains editable — maybe something happens.</span>';
+    const revive = document.createElement('button');
+    revive.textContent = '↺ Revive';
+    revive.className = 'back-link';
+    revive.style.cssText = 'cursor:pointer;background:none;border:1px solid var(--danger);color:var(--danger);font-family:\'Cinzel\',serif;border-radius:3px;padding:3px 10px';
+    revive.addEventListener('click', () => {
+      workingCharacter.dead = false;
+      logDeathNote('Character revived');
+      updateHeader();
+      markDirty();
+    });
+    banner.appendChild(revive);
+    banner.style.display = 'flex';
+  } else if (banner) {
+    banner.style.display = 'none';
+  }
+}
+
+// ════════════════════════════════════════
+// Death Move
+// ════════════════════════════════════════
+
+// Log a narrative note to the active session (silently no-ops if none is active).
+async function logDeathNote(content) {
+  try {
+    await apiFetch('/api/session/note', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+  } catch (_) { /* no active session — nothing to log */ }
+}
+
+function closeDeathModal() {
+  document.getElementById('death-modal').classList.add('hidden');
+}
+
+function openDeathMove() {
+  const modal = document.getElementById('death-modal');
+  document.getElementById('death-choices').style.display = 'flex';
+  document.getElementById('death-risk-result').style.display = 'none';
+  document.getElementById('death-blaze-input').style.display = 'none';
+  document.getElementById('death-confirm').style.display = 'none';
+  document.getElementById('blaze-target').value = '';
+  modal.dataset.move = '';
+  modal.classList.remove('hidden');
+}
+
+// Persist the character immediately (so the death/revive is recorded right away).
+function saveDeathState() {
+  markDirty();
+  performAutosave();
+}
+
+function resolveSurvive() {
+  logDeathNote('Death Move: Survive — lives on, potentially vulnerable');
+  showToast('Survived — mark Vulnerable if the GM says so', 'ok');
+  closeDeathModal();
+}
+
+function resolveRisk() {
+  document.getElementById('death-choices').style.display = 'none';
+  const resultBox = document.getElementById('death-risk-result');
+  resultBox.style.display = 'block';
+  const dieEl = document.getElementById('risk-die');
+  const outEl = document.getElementById('risk-outcome');
+  outEl.textContent = '';
+  // Brief roll animation, then settle (1d6: 1-3 die, 4-6 survive).
+  let ticks = 0;
+  const spin = setInterval(() => {
+    dieEl.textContent = '⚄'.replace('⚄', String(1 + Math.floor(Math.random()*6)));
+    if (++ticks >= 10) {
+      clearInterval(spin);
+      const roll = 1 + Math.floor(Math.random()*6);
+      dieEl.textContent = '🎲 ' + roll;
+      const survived = roll >= 4;
+      if (survived) {
+        outEl.style.color = 'var(--success)';
+        outEl.textContent = 'SURVIVED — adjust HP slots per the GM';
+        logDeathNote(`Death Move: Risk It All — rolled ${roll} — Survived (GM decides erased slots)`);
+      } else {
+        outEl.style.color = 'var(--danger)';
+        outEl.textContent = '💀 DIED';
+        workingCharacter.dead = true;
+        logDeathNote(`Death Move: Risk It All — rolled ${roll} — Died`);
+        updateHeader();
+        saveDeathState();
+      }
+    }
+  }, 70);
+}
+
+function showBlazeInput() {
+  document.getElementById('death-choices').style.display = 'none';
+  document.getElementById('death-blaze-input').style.display = 'block';
+  const confirm = document.getElementById('death-confirm');
+  confirm.style.display = '';
+  confirm.textContent = 'Go Down Fighting';
+  document.getElementById('death-modal').dataset.move = 'blaze';
+  setTimeout(() => document.getElementById('blaze-target').focus(), 60);
+}
+
+function resolveBlaze() {
+  const target = document.getElementById('blaze-target').value.trim();
+  workingCharacter.dead = true;
+  logDeathNote('Death Move: Blaze of Glory' + (target ? ` — took down: ${target}` : ''));
+  updateHeader();
+  saveDeathState();
+  showToast('Blaze of Glory — a legendary end', 'ok');
+  closeDeathModal();
+}
+
+document.querySelectorAll('.death-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const move = btn.dataset.move;
+    if (move === 'survive') resolveSurvive();
+    else if (move === 'risk') resolveRisk();
+    else if (move === 'blaze') showBlazeInput();
+  });
+});
+document.getElementById('death-cancel').addEventListener('click', closeDeathModal);
+document.getElementById('death-confirm').addEventListener('click', () => {
+  if (document.getElementById('death-modal').dataset.move === 'blaze') resolveBlaze();
+});
 
 function renderSheet() {
   const c = workingCharacter;
@@ -1301,9 +1490,15 @@ function renderHpPips(marked, max) {
     b.className = 'resource-pip hp-pip'+(i<marked?' filled':'');
     b.title = i<marked ? 'Heal (unmark)' : 'Take damage (mark)';
     b.addEventListener('click', () => {
-      workingCharacter.resources.hp.current = i < workingCharacter.resources.hp.current ? i : i+1;
-      renderHpPips(workingCharacter.resources.hp.current, workingCharacter.resources.hp.max);
+      const hp = workingCharacter.resources.hp;
+      const prev = hp.current;
+      hp.current = i < hp.current ? i : i+1;
+      renderHpPips(hp.current, hp.max);
       markDirty();
+      // Death move: triggered on the transition into max HP (all slots marked).
+      if (prev < hp.max && hp.current >= hp.max && !workingCharacter.dead) {
+        openDeathMove();
+      }
     });
     wrap.appendChild(b);
   }
@@ -2157,9 +2352,21 @@ async function loadSession() {
 
   if (!session) {
     indicator.style.display = 'none';
+    const campaignOptions = availableCampaigns.length
+      ? `<div class="field-row" style="margin-bottom:10px">
+          <label class="field-label">Campaign</label>
+          <select id="session-campaign-select" class="field-input">
+            ${availableCampaigns.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('')}
+          </select>
+        </div>`
+      : `<p style="font-size:0.82rem;color:var(--ink-light);font-style:italic;margin-bottom:10px">
+          This character isn't in any campaign yet — the session won't be filed under one.
+          <a href="/campaigns.html" style="color:var(--ink-light)">Manage campaigns →</a>
+        </p>`;
     body.innerHTML = `
       <div class="section">
         <div class="section-title">🎲 Start a Session</div>
+        ${campaignOptions}
         <div class="field-row" style="margin-bottom:10px">
           <label class="field-label">Session name (optional)</label>
           <input id="session-name-input" class="field-input" placeholder="e.g. Session 4 — The Dungeon" maxlength="120">
@@ -2168,9 +2375,11 @@ async function loadSession() {
       </div>`;
     document.getElementById('session-start-btn').addEventListener('click', async () => {
       const name = document.getElementById('session-name-input').value.trim();
+      const campSel = document.getElementById('session-campaign-select');
+      const campaignId = campSel ? parseInt(campSel.value, 10) : undefined;
       const r = await apiFetch('/api/session/start', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ name: name || undefined })
+        body: JSON.stringify({ name: name || undefined, campaignId })
       });
       if (!r) return;
       loadSession();
