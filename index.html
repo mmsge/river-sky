@@ -1,302 +1,1315 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Characters — Daggerheart</title>
-  <link rel="icon" href="/favicon.ico" sizes="32x32">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#efe9df">
+<title>River Sky — Daggerheart Companion</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #efe9df; min-height: 100vh; }
+  * { box-sizing: border-box; }
+</style>
 
-    :root {
-      --parchment: #f4e8c1;
-      --ink: #2b1d0e;
-      --ink-light: #5c3d1e;
-      --border: #8b4513;
-      --gold: #c8860a;
-      --danger: #8b0000;
-      --success: #1a5c1a;
-    }
-
-    body {
-      min-height: 100vh;
-      background-color: var(--parchment);
-      background-image:
-        radial-gradient(ellipse at 15% 30%, rgba(139,90,43,0.09) 0%, transparent 55%),
-        radial-gradient(ellipse at 85% 70%, rgba(100,60,20,0.07) 0%, transparent 50%),
-        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,90,43,0.015) 3px, rgba(139,90,43,0.015) 4px),
-        repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(139,90,43,0.01) 4px, rgba(139,90,43,0.01) 5px);
-      font-family: 'IM Fell English', Georgia, serif;
-      color: var(--ink);
-      font-size: 16px;
-      line-height: 1.5;
-    }
-    body::before {
-      content: '';
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      background:
-        radial-gradient(ellipse at top left,    rgba(100,60,10,0.13) 0%, transparent 28%),
-        radial-gradient(ellipse at bottom right, rgba(100,60,10,0.11) 0%, transparent 28%);
-    }
-    body > * { position: relative; z-index: 1; }
-
-    header {
-      text-align: center;
-      padding: 14px 16px 10px;
-      border-bottom: 3px double var(--border);
-      background: linear-gradient(180deg, rgba(200,134,10,0.09) 0%, transparent 100%);
-    }
-    .header-nav { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
-    .nav-link {
-      font-family: 'Cinzel', serif; font-size: 0.75rem;
-      color: var(--ink-light); text-decoration: none;
-      border: 1px solid var(--border); border-radius: 3px;
-      padding: 3px 10px; background: rgba(139,69,19,0.06);
-      cursor: pointer; transition: all 0.15s;
-    }
-    .nav-link:hover { background: rgba(200,134,10,0.15); color: var(--ink); }
-    .page-title {
-      font-family: 'Cinzel', serif; font-size: clamp(1.5rem,4vw,2.2rem);
-      font-weight: 700; letter-spacing: 0.05em;
-      text-shadow: 1px 1px 0 rgba(200,134,10,0.3);
-    }
-    .page-sub { font-style: italic; color: var(--ink-light); font-size: 0.9rem; }
-
-    main { max-width: 980px; margin: 0 auto; padding: 22px 16px 70px; }
-
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 10px; flex-wrap: wrap; }
-    .section-head { font-family: 'Cinzel', serif; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.05em; }
-    .btn {
-      font-family: 'Cinzel', serif; font-size: 0.8rem; cursor: pointer;
-      border: 1px solid var(--border); border-radius: 4px;
-      padding: 7px 14px; background: rgba(200,134,10,0.12); color: var(--ink);
-      transition: all 0.15s;
-    }
-    .btn:hover { background: rgba(200,134,10,0.25); }
-
-    .loading, .empty { text-align: center; padding: 40px; font-style: italic; color: var(--ink-light); }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 16px;
-    }
-    .char-card {
-      border: 1px solid rgba(139,69,19,0.4); border-radius: 7px;
-      background: rgba(255,255,240,0.55); padding: 16px;
-      cursor: pointer; transition: all 0.15s; position: relative;
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    .char-card:hover { background: rgba(255,255,240,0.9); box-shadow: 0 3px 12px rgba(100,60,10,0.18); transform: translateY(-2px); }
-    .char-card.dead { border-color: rgba(139,0,0,0.5); background: rgba(255,240,240,0.6); }
-    .char-card.active { box-shadow: 0 0 0 2px var(--gold); }
-
-    .card-name {
-      font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .skull { font-size: 1.2rem; }
-    .card-meta { font-size: 0.86rem; color: var(--ink-light); }
-    .card-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.84rem; }
-    .hp-bar { display: flex; gap: 3px; }
-    .hp-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid #8B3A3A; }
-    .hp-dot.filled { background: #8B3A3A; }
-    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
-    .tag {
-      font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.04em;
-      border: 1px solid rgba(26,92,26,0.35); color: var(--success);
-      background: rgba(26,92,26,0.08); border-radius: 3px; padding: 2px 7px;
-    }
-    .tag.none { color: var(--ink-light); border-color: rgba(139,69,19,0.3); background: rgba(139,69,19,0.05); }
-    .badge-active {
-      position: absolute; top: 10px; right: 10px;
-      font-family: 'Cinzel', serif; font-size: 0.58rem; letter-spacing: 0.06em;
-      color: var(--gold); border: 1px solid var(--gold); border-radius: 3px;
-      padding: 1px 6px; background: rgba(200,134,10,0.1);
-    }
-    .card-actions { display: flex; gap: 8px; margin-top: 6px; }
-    .card-actions .btn { flex: 1; text-align: center; font-size: 0.72rem; padding: 5px 8px; }
-
-    /* Modal */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(20,12,4,0.55);
-      display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px;
-    }
-    .modal-overlay.hidden { display: none; }
-    .modal {
-      background: var(--parchment); border: 2px solid var(--border); border-radius: 8px;
-      padding: 20px; max-width: 380px; width: 100%; box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-    }
-    .modal-title { font-family: 'Cinzel', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; }
-    .modal-input {
-      width: 100%; font-family: 'IM Fell English', serif; font-size: 1rem;
-      padding: 8px 10px; border: 1px solid var(--border); border-radius: 4px;
-      background: rgba(255,255,255,0.5); color: var(--ink); margin-bottom: 14px;
-    }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
-
-    #toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: var(--ink); color: var(--parchment); padding: 10px 18px; border-radius: 5px;
-      font-family: 'Cinzel', serif; font-size: 0.8rem; opacity: 0; pointer-events: none;
-      transition: opacity 0.2s; z-index: 200;
-    }
-    #toast.show { opacity: 1; }
-    #toast.err { background: var(--danger); }
-  </style>
-</head>
-<body>
-
-<header>
-  <div class="header-nav">
-    <a href="/campaigns.html" class="nav-link">📚 Campaigns</a>
-    <a href="/advisor.html" class="nav-link">⚔ Combat Advisor</a>
-    <a href="/sessions.html" class="nav-link">📖 Sessions</a>
-    <a href="/odds.html" class="nav-link">🎲 Roll Odds</a>
-    <a href="/mobile.html" class="nav-link">📱 Mobile</a>
-  </div>
-  <div class="page-title">⚔ Heroes of the Realm</div>
-  <div class="page-sub">Choose a character — or forge a new one</div>
-</header>
-
-<main>
-  <div class="toolbar">
-    <div class="section-head">🧙 Characters</div>
-    <button class="btn" id="new-char-btn">＋ New Character</button>
-  </div>
-  <div id="loading" class="loading">Summoning heroes…</div>
-  <div id="cards" class="card-grid" style="display:none"></div>
-  <div id="empty" class="empty" style="display:none">No characters yet. Create your first hero!</div>
-</main>
-
-<!-- New character modal -->
-<div class="modal-overlay hidden" id="new-modal">
-  <div class="modal">
-    <div class="modal-title">New Character</div>
-    <input class="modal-input" id="new-name" type="text" placeholder="Character name" maxlength="60">
-    <div class="modal-actions">
-      <button class="btn" id="new-cancel">Cancel</button>
-      <button class="btn" id="new-create">Create</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast"></div>
-
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
 <script>
-function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  // Force the classic JSX runtime: @babel/standalone defaults the react preset to the
+  // automatic runtime, which emits `import … from "react/jsx-runtime"` — unresolvable in
+  // a plain <script>. Classic emits React.createElement against the React UMD global.
+  Babel.registerPreset('react-classic', { presets: [[Babel.availablePresets['react'], { runtime: 'classic' }]] });
+</script>
+</head>
 
-let toastTimer;
-function showToast(msg, type='ok') {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'show ' + type;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ''; }, 2600);
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react-classic">
+/* eslint-disable */
+// River Sky v2 — the companion app. The visual design is the Claude Design v2
+// prototype (theme=vellum, type=spectral, campaign layout=feed, density=6); the data
+// is the live Express/SQLite backend, bridged by the normalization adapter below.
+
+// ── Theme tokens (vellum + spectral, baked from the prototype) ───────────────────
+const VELLUM = {
+  dark: false,
+  bg:        '#efe9df',
+  bgGlow:    'radial-gradient(120% 80% at 50% -10%, rgba(176,106,44,0.10), transparent 60%)',
+  surface:   '#fbf8f2',
+  surface2:  '#f3ede2',
+  raised:    '#ffffff',
+  line:      'rgba(58,44,30,0.12)',
+  lineStr:   'rgba(58,44,30,0.22)',
+  ink:       '#241c14',
+  inkSoft:   '#5d4f3f',
+  inkMute:   '#94836f',
+  accent:    '#b0692a',
+  accentSoft:'rgba(176,105,42,0.14)',
+  hope:      '#bd7d1f',
+  hp:        '#b0432d',
+  stress:    '#4a5680',
+  danger:    '#b0432d',
+  good:      '#3f7d52',
+  spell:     '#b0432d',
+  weapon:    '#345f86',
+  ability:   '#6b46a3',
+  shadow:    '0 18px 44px rgba(60,40,20,0.18)',
+};
+const SPECTRAL = {
+  serif: `'Spectral', Georgia, 'Times New Roman', serif`,
+  sans:  `'Hanken Grotesk', system-ui, -apple-system, sans-serif`,
+  mono:  `'Spline Sans Mono', ui-monospace, 'SF Mono', monospace`,
+};
+const T = { ...VELLUM, ...SPECTRAL };
+const DENSITY = 6;
+
+(function injectGlobal() {
+  if (document.getElementById('rs-global')) return;
+  const s = document.createElement('style');
+  s.id = 'rs-global';
+  s.textContent = `
+    @keyframes rs-fade { from { transform: translateY(9px); } to { transform: none; } }
+    @keyframes rs-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes rs-scrim-in { from { opacity:0; } to { opacity:1; } }
+    @keyframes rs-pulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
+    @keyframes rs-pop { 0% { transform: scale(0.4); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+    .rs-scroll::-webkit-scrollbar { width: 0; height: 0; }
+    .rs-scroll { scrollbar-width: none; }
+    .rs-tap { -webkit-tap-highlight-color: transparent; }
+    .rs-card-enter { animation: rs-fade 0.32s cubic-bezier(0.22,0.61,0.36,1); }
+    input, textarea, button { font-family: inherit; }
+    @media (prefers-reduced-motion: reduce) {
+      .rs-card-enter, [class^="rs-"] { animation: none !important; }
+    }
+  `;
+  document.head.appendChild(s);
+})();
+
+// ── Generic helpers + Daggerheart math ──────────────────────────────────────────
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function uid(p) { return p + Math.random().toString(36).slice(2, 7); }
+
+const SKILLS = {
+  agility:   'Sprint · Leap · Maneuver',
+  strength:  'Lift · Smash · Grapple',
+  finesse:   'Control · Hide · Tinker',
+  instinct:  'Perceive · Sense · Navigate',
+  presence:  'Charm · Perform · Deceive',
+  knowledge: 'Recall · Analyze · Comprehend',
+};
+const TRAIT_KEYS = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+
+function diceStr(a) {
+  if (!a.diceCount) return '—';
+  let s = `${a.diceCount}d${a.diceSides}`;
+  if (a.dmod > 0) s += `+${a.dmod}`;
+  else if (a.dmod < 0) s += a.dmod;
+  return s;
 }
-
-async function apiFetch(url, opts = {}) {
-  const res = await fetch(url, opts);
-  if (res.status === 401) {
-    window.location.href = '/login.html?return=' + encodeURIComponent('/');
-    return null;
+function avgDmg(a) {
+  if (!a.diceCount) return 0;
+  return a.diceCount * (a.diceSides + 1) / 2 + (a.dmod || 0);
+}
+// 2d12 + mod vs difficulty; matched dice always crit.
+function hitChance(mod, diff = 14) {
+  let crits = 0, hits = 0;
+  for (let x = 1; x <= 12; x++) for (let y = 1; y <= 12; y++) {
+    if (x === y) crits++;
+    else if (x + y + mod >= diff) hits++;
   }
-  return res;
+  return (crits + hits) / 144;
+}
+function fmtMod(n) { return n >= 0 ? `+${n}` : `${n}`; }
+
+function classGlyph(cls) {
+  return { Bard:'♪', Druid:'❧', Guardian:'❖', Ranger:'➶', Rogue:'◐', Seraph:'☼',
+    Sorcerer:'✦', Warrior:'⚔', Wizard:'✶', Witch:'☾' }[cls] || '✦';
+}
+function classHue(seed) {
+  let h = 0; for (const ch of String(seed || '')) h = (h * 31 + ch.charCodeAt(0)) % 360; return h;
+}
+function derivePortraitClient(c) {
+  if (c && c.portrait && typeof c.portrait === 'object') return c.portrait;
+  const bi = (c && c.basicInfo) || {};
+  return { hue: classHue(bi.class || bi.name), glyph: classGlyph(bi.class) };
+}
+function relTime(w) {
+  if (!w || w === 'just now') return 'just now';
+  const t = new Date(String(w).replace(' ', 'T')).getTime();
+  if (isNaN(t)) return String(w);
+  const diff = Date.now() - t;
+  if (diff < 0) return 'just now';
+  const m = Math.floor(diff / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  if (h < 24) return h + 'h ago';
+  if (d < 7) return d + 'd ago';
+  return new Date(t).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function hpBar(hp) {
-  if (!hp || !hp.max) return '';
-  const max = Math.min(hp.max, 18);
-  let dots = '';
-  for (let i = 0; i < max; i++) dots += `<span class="hp-dot${i < hp.current ? ' filled' : ''}"></span>`;
-  return `<span class="hp-bar" title="HP ${hp.current}/${hp.max}">${dots}</span>`;
+// ── Normalization adapter (persisted shape ⇄ prototype shape) ────────────────────
+// The UI components are written against the prototype's data shape. We never change
+// what is persisted (character.html / advisor.html read the same blob), so we adapt
+// at the API boundary only.
+function normalizeAttack(a, i) {
+  const tags = [];
+  if (a.aoe) tags.push('AoE');
+  if (a.friendlyFire) tags.push('Friendly Fire');
+  if (a.noRoll) tags.push('No Roll');
+  if (a.utility) tags.push('Utility');
+  if (a.groundsFliers) tags.push('Grounds Fliers');
+  if (a.costStress) tags.push('Costs Stress');
+  if (a.needConstruct) tags.push('Needs Construct');
+  if (Array.isArray(a.tags)) for (const t of a.tags) if (!tags.includes(t)) tags.push(t);
+  return {
+    id: a.id || ('a' + i), name: a.name || '', type: a.type || 'weapon', trait: a.trait || '',
+    mod: a.mod ?? 0, diceCount: a.diceCount ?? 0, diceSides: a.diceSides ?? 6, dmod: a.dmod ?? 0,
+    range: Array.isArray(a.range) ? a.range : (a.range ? [a.range] : []), tags, note: a.note || '',
+  };
+}
+function normalizeFromApi(c) {
+  c = c || {};
+  const res = c.resources || {};
+  const hopeObj = res.hope && typeof res.hope === 'object';
+  const thr = c.thresholds || {};
+  const def = c.defenses || {};
+  const traits = {};
+  for (const k of TRAIT_KEYS) {
+    const raw = c.traits ? c.traits[k] : 0;
+    const val = (raw && typeof raw === 'object') ? (raw.val ?? 0) : (raw ?? 0);
+    traits[k] = { val: Number(val) || 0, skills: SKILLS[k] };
+  }
+  const armor = c.armor || {};
+  const eq = (armor.items || []).find(it => it.id === armor.equippedId) || (armor.items || [])[0];
+  const armorName = eq ? eq.name : (armor.equippedName || '');
+  return {
+    id: 'active', owner: 'you', status: c.dead ? 'fallen' : 'active',
+    basicInfo: { name: '', pronouns: '', ancestry: '', community: '', class: '', subclass: '', level: 1, proficiency: 1, ...(c.basicInfo || {}) },
+    portrait: c.portrait || derivePortraitClient(c),
+    traits,
+    resources: {
+      hp:     { current: res.hp?.current ?? 0, max: res.hp?.max ?? 0 },
+      stress: { current: res.stress?.current ?? 0, max: res.stress?.max ?? 0 },
+      hope:    hopeObj ? res.hope.current : (res.hope ?? 0),
+      hopeMax: hopeObj ? res.hope.max : (res.hopeMax ?? 6),
+      armor:  { current: armor.slotsUsed ?? 0, max: armor.slotsMax ?? 0 },
+    },
+    defenses: { evasion: def.evasion ?? 0, major: (thr.major ?? def.major ?? 0), severe: (thr.severe ?? def.severe ?? 0) },
+    conditions: { vulnerable: false, restrained: false, hidden: false, unconscious: false, ...(c.conditions || {}) },
+    attacks: (c.attacks || []).map(normalizeAttack),
+    domainCards: (c.domainCards || []).map(d => ({ id: d.id || uid('d'), name: d.name || '', domain: d.domain || '', recall: d.recall ?? 0, level: d.level ?? 1, type: d.type || '', summary: d.summary || '', text: d.text || d.summary || '' })),
+    inventory: (c.inventory || []).map(it => ({ id: it.id || uid('i'), name: it.name || '', qty: it.qty ?? 1, note: it.note ?? '' })),
+    experiences: (c.experiences || []).map(e => ({ id: e.id || uid('e'), name: e.name || '', mod: e.modifier ?? e.mod ?? 0, note: e.description ?? e.note ?? '' })),
+    features: (c.features || []).map(f => ({ id: f.id || uid('ft'), name: f.name || '', note: f.note ?? f.description ?? '' })),
+    downtimeProjects: (c.downtimeProjects || []).map(p => ({ id: p.id || uid('dp'), name: p.name || '', progress: p.progress ?? 0, max: p.max ?? 4, note: p.note ?? '' })),
+    armorEquipped: { name: armorName, slots: armor.slotsMax ?? 0 },
+    gold: { handfuls: (res.gold || c.gold || {}).handfuls ?? 0, bags: (res.gold || c.gold || {}).bags ?? 0, chests: (res.gold || c.gold || {}).chests ?? 0 },
+    notes: c.notes || '',
+    dead: !!c.dead,
+  };
+}
+// Start from the persisted base (preserves untouched fields: weapons, attack flags,
+// armor item structure, etc.) and overwrite only what the new UI manages.
+function denormalizeToApi(ch, base) {
+  const out = base ? clone(base) : {};
+  out.basicInfo = { ...(out.basicInfo || {}), ...ch.basicInfo };
+  out.traits = {};
+  for (const k of TRAIT_KEYS) out.traits[k] = ch.traits[k].val;
+  out.resources = out.resources || {};
+  out.resources.hp = { current: ch.resources.hp.current, max: ch.resources.hp.max };
+  out.resources.stress = { current: ch.resources.stress.current, max: ch.resources.stress.max };
+  out.resources.hope = ch.resources.hope;
+  out.resources.gold = { handfuls: ch.gold.handfuls, bags: ch.gold.bags, chests: ch.gold.chests };
+  out.defenses = { ...(out.defenses || {}), evasion: ch.defenses.evasion };
+  out.thresholds = { ...(out.thresholds || {}), major: ch.defenses.major, severe: ch.defenses.severe };
+  out.armor = out.armor || { items: [], equippedId: null };
+  out.armor.slotsMax = ch.resources.armor.max;
+  out.armor.slotsUsed = Math.min(ch.resources.armor.current, ch.resources.armor.max);
+  const nm = ch.armorEquipped && ch.armorEquipped.name;
+  if (nm) {
+    const items = out.armor.items || [];
+    let eq = items.find(it => it.id === out.armor.equippedId) || items[0];
+    if (eq) { eq.name = nm; if (out.armor.equippedId == null) out.armor.equippedId = eq.id; }
+    else { eq = { id: 'ar1', name: nm, major: ch.defenses.major, severe: ch.defenses.severe, slots: ch.resources.armor.max }; items.push(eq); out.armor.equippedId = eq.id; }
+    out.armor.items = items;
+  }
+  out.experiences = ch.experiences.map(e => ({ id: e.id, name: e.name, modifier: e.mod, description: e.note }));
+  out.features = ch.features.map(f => ({ id: f.id, name: f.name, note: f.note }));
+  out.downtimeProjects = ch.downtimeProjects.map(p => ({ id: p.id, name: p.name, progress: p.progress, max: p.max, note: p.note }));
+  out.inventory = ch.inventory.map(it => ({ id: it.id, name: it.name, qty: it.qty, note: it.note }));
+  out.domainCards = ch.domainCards.map(d => ({ id: d.id, name: d.name, domain: d.domain, recall: d.recall, level: d.level, type: d.type, summary: d.summary, text: d.text }));
+  out.portrait = ch.portrait;
+  out.notes = ch.notes;
+  out.dead = !!ch.dead;
+  return out;  // attacks / weapons preserved untouched from base
+}
+// Roster entry from the campaign-overview character summary → prototype roster shape.
+function toRosterEntry(o) {
+  return {
+    id: o.characterId ?? o.id, owner: o.owner || 'you', status: o.status || 'active',
+    basicInfo: { name: o.name, class: o.class, subclass: o.subclass, level: o.level, ancestry: o.ancestry },
+    portrait: o.portrait || { hue: 32, glyph: '✦' },
+    resources: { hp: o.hp || { current: 0, max: 0 }, stress: o.stress || { current: 0, max: 0 }, hope: o.hope ?? 0, hopeMax: o.hopeMax ?? 6 },
+    fellAt: o.fellAt, epitaph: o.epitaph, isActive: !!o.isActive, isYou: o.owner === 'you',
+  };
 }
 
-async function selectCharacter(id) {
-  await fetch('/api/characters/select/' + id, { method: 'POST' });
+// ── Icons ────────────────────────────────────────────────────────────────────────
+function Icon({ name, s = 22, c = 'currentColor', sw = 1.6 }) {
+  const p = { fill: 'none', stroke: c, strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const paths = {
+    combat: <><path d="M14.5 3.5l6 6-9.5 9.5-2.5.5.5-2.5L18.5 7" {...p} /><path d="M4 20l2.5-2.5" {...p} /><path d="M14.5 3.5l3 0 0 3" {...p} /></>,
+    sheet:  <><rect x="5" y="3" width="14" height="18" rx="2.2" {...p} /><path d="M9 8h6M9 12h6M9 16h3.5" {...p} /></>,
+    cards:  <><rect x="3.5" y="6.5" width="10.5" height="13.5" rx="2" {...p} /><path d="M9 6V5.2A2 2 0 0111 3.2l5.5 1.6a2 2 0 011.4 2.4L15 18" {...p} /></>,
+    camp:   <><path d="M12 3l8 5v8l-8 5-8-5V8z" {...p} /><path d="M12 3v18M4 8l8 5 8-5" {...p} /></>,
+    feed:   <><path d="M5 5h14M5 10h14M5 15h9" {...p} /><circle cx="18" cy="16" r="3" {...p} /></>,
+    hope:   <><path d="M12 3l2.4 5.3 5.6.5-4.3 3.8 1.3 5.6L12 20.5 6.7 18.8 8 13.2 3.7 9.4l5.6-.5z" {...p} /></>,
+    skull:  <><path d="M12 3a7 7 0 00-7 7v3.5l1.5 1.5v2.5a1 1 0 001 1h11a1 1 0 001-1V15L19 13.5V10a7 7 0 00-7-7z" {...p} /><circle cx="9" cy="11" r="1.4" fill={c} stroke="none" /><circle cx="15" cy="11" r="1.4" fill={c} stroke="none" /><path d="M10.5 18v2M13.5 18v2" {...p} /></>,
+    chevron:<path d="M9 6l6 6-6 6" {...p} />,
+    chevronD:<path d="M6 9l6 6 6-6" {...p} />,
+    plus:   <><path d="M12 5v14M5 12h14" {...p} /></>,
+    minus:  <path d="M5 12h14" {...p} />,
+    close:  <><path d="M6 6l12 12M18 6L6 18" {...p} /></>,
+    menu:   <><path d="M4 7h16M4 12h16M4 17h16" {...p} /></>,
+    bolt:   <><path d="M13 3L5 13h5l-1 8 8-10h-5z" {...p} /></>,
+    shield: <><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z" {...p} /></>,
+    leaf:   <><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z" {...p} /><path d="M5 19c4-6 8-8 12-9" {...p} /></>,
+    note:   <><path d="M5 4h9l5 5v11a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z" {...p} /><path d="M14 4v5h5" {...p} /><path d="M8 13h7M8 16.5h4.5" {...p} /></>,
+    play:   <><circle cx="12" cy="12" r="8.5" {...p} /><path d="M10.5 9.2l4.5 2.8-4.5 2.8z" fill={c} stroke="none" /></>,
+    stop:   <><circle cx="12" cy="12" r="8.5" {...p} /><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill={c} stroke="none" /></>,
+    edit:   <><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" {...p} /><path d="M14.5 6.5l3 3" {...p} /></>,
+    external:<><path d="M14 4h6v6" {...p} /><path d="M20 4l-9 9" {...p} /><path d="M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5" {...p} /></>,
+  };
+  return <svg width={s} height={s} viewBox="0 0 24 24" style={{ display: 'block', flexShrink: 0 }}>{paths[name]}</svg>;
 }
 
-function renderCards(chars) {
-  const grid = document.getElementById('cards');
-  grid.innerHTML = chars.map(ch => {
-    const s = ch.summary || {};
-    const dead = s.dead;
-    const subParts = [s.ancestry, s.subclass || s.class, s.level != null ? 'Lv.' + s.level : ''].filter(Boolean);
-    const tags = (ch.campaigns && ch.campaigns.length)
-      ? ch.campaigns.map(c => `<span class="tag">${esc(c)}</span>`).join('')
-      : '<span class="tag none">No campaign</span>';
-    return `
-      <div class="char-card${dead ? ' dead' : ''}${ch.active ? ' active' : ''}" data-id="${ch.id}">
-        ${ch.active ? '<span class="badge-active">● Selected</span>' : ''}
-        <div class="card-name">${dead ? '<span class="skull">💀</span>' : ''}${esc(s.name || ch.name)}</div>
-        <div class="card-meta">${esc(subParts.join(' · ')) || '<em>Unfinished hero</em>'}</div>
-        <div class="card-row"><span>${dead ? '<strong style="color:var(--danger)">Fallen</strong>' : 'Hit Points'}</span>${hpBar(s.hp)}</div>
-        <div class="tags">${tags}</div>
-        <div class="card-actions">
-          <button class="btn act-play" data-id="${ch.id}">📜 Open Sheet</button>
-          <button class="btn act-advisor" data-id="${ch.id}">⚔ Advisor</button>
+// ── Shared UI atoms ────────────────────────────────────────────────────────────
+function Eyebrow({ children, style }) {
+  return <div style={{ fontFamily: T.sans, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkMute, ...style }}>{children}</div>;
+}
+function Pips({ value, max, color, onTick, size = 16, gap = 6, animate = true }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap }}>
+      {Array.from({ length: max }).map((_, i) => {
+        const filled = i < value;
+        return (
+          <button key={i} className="rs-tap" onClick={() => onTick(i + 1 === value ? i : i + 1)}
+            style={{ width: size, height: size, borderRadius: '50%', padding: 0, boxSizing: 'border-box',
+              border: `1.5px solid ${color}`, background: filled ? color : 'transparent', cursor: 'pointer',
+              transition: 'background 0.16s, transform 0.16s', animation: filled && animate ? 'rs-pop 0.26s ease' : 'none' }} />
+        );
+      })}
+    </div>
+  );
+}
+function Tag({ children, color, soft }) {
+  const c = color || T.accent;
+  return <span style={{ fontFamily: T.sans, fontSize: 10.5, fontWeight: 600, letterSpacing: '0.02em', color: c, background: soft || (T.dark ? `${c}22` : `${c}18`), borderRadius: 5, padding: '2px 7px', whiteSpace: 'nowrap' }}>{children}</span>;
+}
+function Avatar({ ch, size = 44, dim }) {
+  const hue = ch.portrait ? ch.portrait.hue : 32;
+  const glyph = ch.portrait ? ch.portrait.glyph : '✦';
+  const fallen = ch.status === 'fallen';
+  return (
+    <div style={{ width: size, height: size, borderRadius: 13, flexShrink: 0, display: 'grid', placeItems: 'center', position: 'relative',
+      background: fallen ? (T.dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)') : `linear-gradient(150deg, hsl(${hue} 55% ${T.dark ? 32 : 70}%), hsl(${hue + 20} 50% ${T.dark ? 22 : 58}%))`,
+      border: `1px solid ${T.line}`, color: fallen ? T.inkMute : (T.dark ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.96)'),
+      fontFamily: T.serif, fontSize: size * 0.46, lineHeight: 1, opacity: dim ? 0.7 : 1, boxShadow: fallen ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.18)' }}>
+      {fallen ? <Icon name="skull" s={size * 0.5} c={T.inkMute} sw={1.5} /> : <span style={{ marginTop: -1 }}>{glyph}</span>}
+    </div>
+  );
+}
+function Card({ children, style, onClick, raised }) {
+  return <div className="rs-tap" onClick={onClick} style={{ background: raised ? T.raised : T.surface, border: `1px solid ${T.line}`, borderRadius: 16, cursor: onClick ? 'pointer' : 'default', ...style }}>{children}</div>;
+}
+function BottomSheet({ open, onClose, children }) {
+  if (!open) return null;
+  return (
+    <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 60, display: 'flex', alignItems: 'flex-end' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(8,5,3,0.55)', animation: 'rs-scrim-in 0.2s ease both' }} />
+      <div onClick={(e) => e.stopPropagation()} className="rs-scroll" style={{ position: 'relative', width: '100%', maxHeight: '82%', overflowY: 'auto', background: T.surface, borderTop: `1px solid ${T.lineStr}`, borderRadius: '22px 22px 0 0', padding: '10px 18px 26px', boxShadow: '0 -16px 44px rgba(0,0,0,0.4)', animation: 'rs-sheet-in 0.3s cubic-bezier(0.22,0.61,0.36,1) both' }}>
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: T.lineStr, margin: '0 auto 14px' }} />
+        {children}
+      </div>
+    </div>
+  );
+}
+function MiniBar({ value, max, color }) {
+  const pct = max ? Math.max(0, Math.min(1, value / max)) : 0;
+  return <div style={{ height: 5, borderRadius: 3, background: T.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)', overflow: 'hidden' }}><div style={{ width: `${pct * 100}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.3s ease' }} /></div>;
+}
+
+// ── Editable field atoms ──────────────────────────────────────────────────────
+function EditText({ value, onChange, placeholder, font, size = 14.5, weight = 400, color, italic, multiline, variant = 'inline', flex }) {
+  const [editing, setEditing] = React.useState(false);
+  const [val, setVal] = React.useState(value);
+  React.useEffect(() => { if (!editing) setVal(value); }, [value, editing]);
+  const commit = () => { setEditing(false); if (val !== value) onChange(val); };
+  const base = { fontFamily: font || T.sans, fontSize: size, fontWeight: weight, color: color || T.ink, fontStyle: italic ? 'italic' : 'normal' };
+  if (editing) {
+    const Comp = multiline ? 'textarea' : 'input';
+    return (
+      <Comp autoFocus value={val} rows={multiline ? 3 : undefined} inputMode="text"
+        onChange={e => setVal(e.target.value)} onBlur={commit}
+        onKeyDown={e => { if (e.key === 'Enter' && !multiline) { e.preventDefault(); commit(); } if (e.key === 'Escape') { setVal(value); setEditing(false); } }}
+        style={{ ...base, width: '100%', boxSizing: 'border-box', background: T.surface2, border: `1px solid ${T.accent}`, borderRadius: multiline ? 10 : 8, padding: multiline ? '9px 11px' : '4px 8px', outline: 'none', resize: multiline ? 'vertical' : 'none', lineHeight: multiline ? 1.55 : 1.25, display: 'block' }} />
+    );
+  }
+  const empty = value === '' || value == null;
+  const shown = empty ? (placeholder || 'Add…') : value;
+  if (variant === 'field') {
+    return <div onClick={() => setEditing(true)} className="rs-tap" style={{ ...base, color: empty ? T.inkMute : base.color, fontStyle: empty ? 'italic' : base.fontStyle, cursor: 'text', background: T.surface2, border: `1px solid ${T.line}`, borderRadius: 8, padding: '7px 10px', lineHeight: multiline ? 1.55 : 1.3, minHeight: multiline ? 56 : 'auto', whiteSpace: 'pre-wrap' }}>{shown}</div>;
+  }
+  return <span onClick={() => setEditing(true)} className="rs-tap" style={{ ...base, color: empty ? T.inkMute : base.color, fontStyle: empty ? 'italic' : base.fontStyle, cursor: 'text', borderBottom: `1px dashed ${T.lineStr}`, paddingBottom: 1, display: multiline ? 'block' : 'inline', flex: flex ? 1 : undefined }}>{shown}</span>;
+}
+function Stepper({ value, onChange, min = -99, max = 999, fmt, size = 16, color }) {
+  const v = Number(value) || 0;
+  const btn = { width: 24, height: 24, borderRadius: 8, border: `1px solid ${T.line}`, background: T.surface2, color: T.inkSoft, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0, flexShrink: 0 };
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, maxWidth: '100%' }}>
+      <button className="rs-tap" onClick={() => onChange(Math.max(min, v - 1))} style={btn}><Icon name="minus" s={13} c={T.inkSoft} sw={2} /></button>
+      <span style={{ fontFamily: T.serif, fontSize: size, fontWeight: 600, color: color || T.ink, minWidth: 20, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{fmt ? fmt(v) : v}</span>
+      <button className="rs-tap" onClick={() => onChange(Math.min(max, v + 1))} style={btn}><Icon name="plus" s={13} c={T.inkSoft} sw={2} /></button>
+    </span>
+  );
+}
+function Clock({ value, max, onChange, color }) {
+  return (
+    <div style={{ display: 'flex', gap: 4 }}>
+      {Array.from({ length: max }).map((_, i) => {
+        const filled = i < value;
+        return <button key={i} className="rs-tap" onClick={() => onChange(i + 1 === value ? i : i + 1)} style={{ flex: 1, height: 14, borderRadius: 4, padding: 0, cursor: 'pointer', border: `1px solid ${filled ? color : T.lineStr}`, background: filled ? color : 'transparent', transition: 'background 0.14s' }} />;
+      })}
+    </div>
+  );
+}
+function RemoveBtn({ onClick }) {
+  return <button className="rs-tap" onClick={onClick} style={{ width: 24, height: 24, borderRadius: 7, border: `1px solid ${T.line}`, background: 'transparent', color: T.inkMute, cursor: 'pointer', display: 'grid', placeItems: 'center', padding: 0, flexShrink: 0 }} title="Remove"><Icon name="close" s={12} c={T.inkMute} sw={1.8} /></button>;
+}
+function AddRow({ label, onClick }) {
+  return <button className="rs-tap" onClick={onClick} style={{ width: '100%', marginTop: 11, padding: '9px 0', borderRadius: 10, cursor: 'pointer', border: `1.5px dashed ${T.lineStr}`, background: 'transparent', color: T.inkSoft, fontFamily: T.sans, fontSize: 12.5, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><Icon name="plus" s={15} c={T.inkSoft} sw={1.8} />{label}</button>;
+}
+function setPath(obj, path, value) {
+  const keys = path.split('.');
+  let o = obj;
+  for (let i = 0; i < keys.length - 1; i++) o = o[keys[i]];
+  o[keys[keys.length - 1]] = value;
+}
+
+// ── Combat screen ─────────────────────────────────────────────────────────────
+function CombatScreen({ ch, onRes, onCond, onOpenAttack, density }) {
+  const [filter, setFilter] = React.useState('All');
+  const hp = ch.resources.hp, stress = ch.resources.stress;
+  const hope = ch.resources.hope, hopeMax = ch.resources.hopeMax || 6;
+  const def = ch.defenses;
+  const conds = ch.conditions || {};
+  const activeConds = Object.keys(conds).filter(k => conds[k]);
+  const RANGES = ['All', 'Melee', 'Close', 'Far'];
+  const list = (ch.attacks || []).filter(a => filter === 'All' ? true : (a.range || []).some(r => r.startsWith(filter)));
+  const typeColor = (t) => t === 'spell' ? T.spell : t === 'weapon' ? T.weapon : t === 'ability' ? T.ability : T.ink;
+  const hitColor = (p) => p >= 0.66 ? T.good : p >= 0.45 ? T.accent : T.hp;
+  const pad = density <= 4 ? 18 : 14;
+
+  function ResBlock({ label, res, color }) {
+    return (
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 7, marginBottom: 9 }}>
+          <Eyebrow>{label}</Eyebrow>
+          <span style={{ fontFamily: T.serif, fontSize: 17, fontWeight: 600, color }}>{res.current}<span style={{ color: T.inkMute, fontWeight: 400 }}>/{res.max}</span></span>
         </div>
-      </div>`;
-  }).join('');
-
-  grid.querySelectorAll('.act-play, .char-card').forEach(el => {
-    el.addEventListener('click', async (e) => {
-      if (e.target.classList.contains('act-advisor')) return;
-      const id = el.dataset.id;
-      if (!id) return;
-      await selectCharacter(id);
-      window.location.href = '/character.html?character=' + id;
-    });
-  });
-  grid.querySelectorAll('.act-advisor').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await selectCharacter(btn.dataset.id);
-      window.location.href = '/advisor.html';
-    });
-  });
-}
-
-async function load() {
-  const res = await fetch('/api/characters');
-  const chars = await res.json();
-  document.getElementById('loading').style.display = 'none';
-  if (!chars.length) {
-    document.getElementById('empty').style.display = '';
-    return;
+        <Pips value={res.current} max={res.max} color={color} onTick={(v) => onRes(label === 'HP' ? 'hp' : 'stress', v)} size={14} gap={5} />
+      </div>
+    );
   }
-  const grid = document.getElementById('cards');
-  grid.style.display = '';
-  renderCards(chars);
+  return (
+    <div className="rs-card-enter" style={{ padding: `14px ${pad}px 24px`, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Card style={{ padding: 16 }}>
+        <div style={{ display: 'flex', gap: 18 }}>
+          <ResBlock label="HP" res={hp} color={T.hp} />
+          <div style={{ width: 1, background: T.line }} />
+          <ResBlock label="STRESS" res={stress} color={T.stress} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, paddingTop: 15, borderTop: `1px solid ${T.line}` }}>
+          <Eyebrow style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="hope" s={14} c={T.hope} sw={1.4} /> Hope</Eyebrow>
+          <Pips value={hope} max={hopeMax} color={T.hope} onTick={(v) => onRes('hope', v)} size={18} gap={6} />
+          <span style={{ marginLeft: 'auto', fontFamily: T.sans, fontSize: 11, color: T.inkMute }}>tap to spend</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 14, paddingTop: 14, borderTop: `1px solid ${T.line}` }}>
+          <Eyebrow style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Icon name="shield" s={14} c={T.weapon} sw={1.5} /> Armor</Eyebrow>
+          <Pips value={ch.resources.armor.current} max={ch.resources.armor.max} color={T.weapon} onTick={(v) => onRes('armor', v)} size={18} gap={6} animate={false} />
+          <span style={{ marginLeft: 'auto', fontFamily: T.sans, fontSize: 11, color: T.inkMute }}>spend to drop a threshold</span>
+        </div>
+      </Card>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[{ k: 'Minor', sub: 'mark 1 HP', val: `<${def.major}`, tone: T.inkSoft },
+          { k: 'Major', sub: 'mark 2 HP', val: `${def.major}+`, tone: T.accent },
+          { k: 'Severe', sub: 'mark 3 HP', val: `${def.severe}+`, tone: T.hp }].map(d => (
+          <div key={d.k} style={{ flex: 1, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 13, padding: '10px 11px', borderTop: `2px solid ${d.tone}` }}>
+            <div style={{ fontFamily: T.sans, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', color: d.tone, textTransform: 'uppercase' }}>{d.k}</div>
+            <div style={{ fontFamily: T.serif, fontSize: 21, fontWeight: 600, color: T.ink, lineHeight: 1.05, marginTop: 3 }}>{d.val}</div>
+            <div style={{ fontFamily: T.sans, fontSize: 10, color: T.inkMute, marginTop: 1 }}>{d.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Stat icon="shield" label="Evasion" value={def.evasion} />
+        <Stat icon="leaf" label="Hope" value={`${ch.resources.hope}/${ch.resources.hopeMax || 6}`} />
+        <div style={{ flex: 1 }} />
+        {activeConds.length === 0
+          ? <span style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, fontStyle: 'italic' }}>No conditions</span>
+          : activeConds.map(c => (
+            <button key={c} className="rs-tap" onClick={() => onCond(c)} style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 600, textTransform: 'capitalize', color: T.danger, background: T.dark ? `${T.danger}22` : `${T.danger}16`, border: `1px solid ${T.danger}`, borderRadius: 999, padding: '5px 11px', cursor: 'pointer' }}>{c} ✕</button>
+          ))}
+      </div>
+
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 10 }}>
+          <Eyebrow>Attacks · {list.length}</Eyebrow>
+          <span style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute }}>vs. Difficulty 14</span>
+        </div>
+        <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          {RANGES.map(r => (
+            <button key={r} className="rs-tap" onClick={() => setFilter(r)} style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 600, padding: '6px 13px', borderRadius: 999, cursor: 'pointer', border: `1px solid ${filter === r ? T.ink : T.line}`, background: filter === r ? T.ink : 'transparent', color: filter === r ? (T.dark ? T.bg : T.surface) : T.inkSoft, transition: 'all 0.15s' }}>{r}</button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          {list.length === 0 && <div style={{ fontFamily: T.serif, fontStyle: 'italic', color: T.inkMute, fontSize: 14, padding: '6px 2px' }}>No attacks at this range.</div>}
+          {list.map(a => {
+            const pct = Math.round(hitChance(a.mod) * 100);
+            const dmg = avgDmg(a);
+            const tc = typeColor(a.type);
+            return (
+              <div key={a.id} className="rs-tap" onClick={() => onOpenAttack(a)} style={{ display: 'flex', alignItems: 'stretch', gap: 12, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: '13px 14px', cursor: 'pointer', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: tc }} />
+                <div style={{ flex: 1, minWidth: 0, paddingLeft: 4 }}>
+                  <div style={{ fontFamily: T.serif, fontSize: 18, fontWeight: 600, color: T.ink, lineHeight: 1.1 }}>{a.name}</div>
+                  <div style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: tc, marginTop: 4 }}>{a.type} <span style={{ color: T.inkMute }}>· {(a.range || []).join(' / ')}</span></div>
+                  {a.tags && a.tags.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>{a.tags.slice(0, 3).map(t => <Tag key={t}>{t}</Tag>)}</div>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'center', gap: 6, minWidth: 104, borderLeft: `1px solid ${T.line}`, paddingLeft: 12 }}>
+                  <div style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 27, fontWeight: 500, color: T.ink, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{diceStr(a)}</div>
+                  <div style={{ display: 'flex', gap: 10, fontFamily: T.mono, fontSize: 11, fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ color: T.inkMute }}>{fmtMod(a.mod)} <b style={{ color: hitColor(pct / 100), fontWeight: 700 }}>{pct}%</b></span>
+                    <span style={{ color: T.inkMute }}>avg <b style={{ color: T.ink, fontWeight: 700 }}>{dmg.toFixed(0)}</b></span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+function Stat({ icon, label, value }) {
+  return <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 10, padding: '6px 11px' }}><Icon name={icon} s={15} c={T.inkMute} sw={1.5} /><span style={{ fontFamily: T.sans, fontSize: 11, color: T.inkMute, letterSpacing: '0.04em' }}>{label}</span><span style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: T.ink }}>{value}</span></div>;
+}
+function AttackDetail({ a }) {
+  const tc = a.type === 'spell' ? T.spell : a.type === 'weapon' ? T.weapon : T.ability;
+  const pct = Math.round(hitChance(a.mod) * 100);
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+        <div style={{ fontFamily: T.serif, fontSize: 25, fontWeight: 600, color: T.ink }}>{a.name}</div>
+        <div style={{ fontFamily: T.sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: tc }}>{a.type}</div>
+      </div>
+      <div style={{ display: 'flex', gap: 10, padding: 16, background: T.surface2, borderRadius: 13, alignItems: 'baseline' }}>
+        <div style={{ fontFamily: T.serif, fontStyle: 'italic', fontSize: 40, fontWeight: 500, color: T.ink, lineHeight: 1 }}>{diceStr(a)}</div>
+        <div style={{ flex: 1 }} />
+        <div><Eyebrow>Avg</Eyebrow><div style={{ fontFamily: T.serif, fontSize: 20, fontWeight: 600, color: T.ink, marginTop: 2 }}>{avgDmg(a).toFixed(1)}</div></div>
+        <div style={{ width: 26 }} />
+        <div><Eyebrow>Hit</Eyebrow><div style={{ fontFamily: T.serif, fontSize: 20, fontWeight: 600, color: T.ink, marginTop: 2 }}>{fmtMod(a.mod)} <span style={{ color: T.accent }}>· {pct}%</span></div></div>
+      </div>
+      <div style={{ display: 'flex', gap: 22, marginTop: 16 }}>
+        <div><Eyebrow>Range</Eyebrow><div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink, marginTop: 3 }}>{(a.range || []).join(' · ')}</div></div>
+        <div><Eyebrow>Trait</Eyebrow><div style={{ fontFamily: T.sans, fontSize: 13, color: T.ink, marginTop: 3, textTransform: 'capitalize' }}>{a.trait}</div></div>
+      </div>
+      {a.tags && a.tags.length > 0 && <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 14 }}>{a.tags.map(t => <Tag key={t} color={tc}>{t}</Tag>)}</div>}
+      {a.note && <div style={{ fontFamily: T.serif, fontSize: 15, lineHeight: 1.55, color: T.inkSoft, marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.line}` }}>{a.note}</div>}
+    </div>
+  );
 }
 
-// New character modal
-const newModal = document.getElementById('new-modal');
-document.getElementById('new-char-btn').addEventListener('click', () => {
-  document.getElementById('new-name').value = '';
-  newModal.classList.remove('hidden');
-  setTimeout(() => document.getElementById('new-name').focus(), 60);
-});
-document.getElementById('new-cancel').addEventListener('click', () => newModal.classList.add('hidden'));
-document.getElementById('new-name').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('new-create').click(); });
-document.getElementById('new-create').addEventListener('click', async () => {
-  const name = document.getElementById('new-name').value.trim() || 'New Character';
-  const res = await apiFetch('/api/characters', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
-  });
-  if (!res) return;
-  if (!res.ok) { showToast('Could not create character', 'err'); return; }
-  const data = await res.json();
-  window.location.href = '/character.html?character=' + data.characterId;
-});
+// ── Sheet screen ──────────────────────────────────────────────────────────────
+function SheetScreen({ ch, update, density }) {
+  const bi = ch.basicInfo, tr = ch.traits, def = ch.defenses;
+  const pad = density <= 4 ? 18 : 14;
+  const set = (path, value) => update(n => { setPath(n, path, value); });
+  const SectionTitle = ({ children, action }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11 }}><Eyebrow>{children}</Eyebrow>{action}</div>
+  );
+  const Field = ({ label, children }) => (
+    <div><div style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.inkMute, marginBottom: 4 }}>{label}</div>{children}</div>
+  );
+  return (
+    <div className="rs-card-enter" style={{ padding: `14px ${pad}px 24px`, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Card style={{ padding: 16 }}>
+        <div style={{ display: 'flex', gap: 13, alignItems: 'center' }}>
+          <Avatar ch={ch} size={52} />
+          <div style={{ minWidth: 0, flex: 1 }}><EditText value={bi.name} onChange={v => set('basicInfo.name', v)} font={T.serif} size={23} weight={600} placeholder="Name" /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 9, marginTop: 14 }}>
+          <Field label="Pronouns"><EditText variant="field" value={bi.pronouns} onChange={v => set('basicInfo.pronouns', v)} size={13.5} /></Field>
+          <Field label="Ancestry"><EditText variant="field" value={bi.ancestry} onChange={v => set('basicInfo.ancestry', v)} size={13.5} /></Field>
+          <Field label="Community"><EditText variant="field" value={bi.community} onChange={v => set('basicInfo.community', v)} size={13.5} /></Field>
+          <Field label="Class"><EditText variant="field" value={bi.class} onChange={v => set('basicInfo.class', v)} size={13.5} font={T.serif} weight={600} /></Field>
+          <Field label="Subclass"><EditText variant="field" value={bi.subclass} onChange={v => set('basicInfo.subclass', v)} size={13.5} font={T.serif} weight={600} /></Field>
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: 12 }}>
+            <Field label="Level"><Stepper value={bi.level} min={1} max={10} onChange={v => set('basicInfo.level', v)} /></Field>
+            <Field label="Prof"><Stepper value={bi.proficiency} min={1} max={6} fmt={n => '+' + n} onChange={v => set('basicInfo.proficiency', v)} /></Field>
+          </div>
+        </div>
+      </Card>
 
-load();
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Traits</SectionTitle>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 9 }}>
+          {TRAIT_KEYS.map(k => (
+            <div key={k} style={{ background: T.surface2, borderRadius: 11, padding: '11px 6px 9px', textAlign: 'center' }}>
+              <div style={{ fontFamily: T.sans, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.inkMute }}>{k}</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}><Stepper value={tr[k].val} min={-3} max={6} fmt={fmtMod} size={20} onChange={v => set(`traits.${k}.val`, v)} /></div>
+              <div style={{ fontFamily: T.sans, fontSize: 8.5, color: T.inkMute, marginTop: 7, lineHeight: 1.35 }}>{tr[k].skills}</div>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Defenses</SectionTitle>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0,1fr))', gap: 10 }}>
+          {[['Evasion', 'defenses.evasion', def.evasion], ['Major thr.', 'defenses.major', def.major], ['Severe thr.', 'defenses.severe', def.severe]].map(([k, p, v]) => (
+            <div key={k} style={{ textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}><Stepper value={v} min={0} max={99} onChange={x => set(p, x)} /></div>
+              <div style={{ fontFamily: T.sans, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.inkMute, marginTop: 5 }}>{k}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 14, paddingTop: 13, borderTop: `1px solid ${T.line}`, display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+          <Icon name="shield" s={17} c={T.inkSoft} sw={1.5} />
+          <EditText value={ch.armorEquipped.name} onChange={v => set('armorEquipped.name', v)} font={T.serif} size={14} weight={600} placeholder="Equipped armor" flex />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginLeft: 'auto', fontFamily: T.sans, fontSize: 10.5, color: T.inkMute }}>
+            slots <Stepper value={ch.resources.armor.max} min={0} max={12} size={13} onChange={v => update(n => { n.resources.armor.max = v; if (n.resources.armor.current > v) n.resources.armor.current = v; n.armorEquipped.slots = v; })} />
+          </div>
+        </div>
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Experiences</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+          {ch.experiences.map((e, i) => (
+            <div key={e.id} style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+              <div style={{ marginTop: 1 }}><Stepper value={e.mod} min={-3} max={6} fmt={fmtMod} size={15} onChange={v => set(`experiences.${i}.mod`, v)} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <EditText value={e.name} onChange={v => set(`experiences.${i}.name`, v)} font={T.serif} size={15} weight={600} placeholder="Experience" />
+                <div style={{ marginTop: 4 }}><EditText value={e.note} onChange={v => set(`experiences.${i}.note`, v)} size={11.5} color={T.inkSoft} placeholder="What it covers…" multiline /></div>
+              </div>
+              <RemoveBtn onClick={() => update(n => n.experiences.splice(i, 1))} />
+            </div>
+          ))}
+        </div>
+        <AddRow label="Add experience" onClick={() => update(n => n.experiences.push({ id: uid('e'), name: '', mod: 2, note: '' }))} />
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Class Features</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+          {ch.features.map((f, i) => (
+            <div key={f.id} style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <EditText value={f.name} onChange={v => set(`features.${i}.name`, v)} font={T.serif} size={15} weight={600} placeholder="Feature name" />
+                <div style={{ marginTop: 4 }}><EditText value={f.note} onChange={v => set(`features.${i}.note`, v)} size={12} color={T.inkSoft} placeholder="What it does…" multiline /></div>
+              </div>
+              <RemoveBtn onClick={() => update(n => n.features.splice(i, 1))} />
+            </div>
+          ))}
+        </div>
+        <AddRow label="Add feature" onClick={() => update(n => n.features.push({ id: uid('ft'), name: '', note: '' }))} />
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Downtime Projects</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {ch.downtimeProjects.map((p, i) => {
+            const done = p.progress >= p.max;
+            return (
+              <div key={p.id}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}><EditText value={p.name} onChange={v => set(`downtimeProjects.${i}.name`, v)} font={T.serif} size={15} weight={600} color={done ? T.good : T.ink} placeholder="Project name" /></div>
+                  <span style={{ fontFamily: T.mono, fontSize: 11, color: done ? T.good : T.inkMute, whiteSpace: 'nowrap', marginTop: 2 }}>{done ? 'Done' : `${p.progress}/${p.max}`}</span>
+                  <RemoveBtn onClick={() => update(n => n.downtimeProjects.splice(i, 1))} />
+                </div>
+                <div style={{ marginTop: 9 }}><Clock value={p.progress} max={p.max} color={done ? T.good : T.accent} onChange={v => set(`downtimeProjects.${i}.progress`, v)} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}><EditText value={p.note} onChange={v => set(`downtimeProjects.${i}.note`, v)} size={11} color={T.inkMute} placeholder="Notes…" /></div>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontFamily: T.sans, fontSize: 10, color: T.inkMute, whiteSpace: 'nowrap' }}>
+                    segments <Stepper value={p.max} min={2} max={12} size={12} onChange={v => update(n => { n.downtimeProjects[i].max = v; if (n.downtimeProjects[i].progress > v) n.downtimeProjects[i].progress = v; })} />
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <AddRow label="New downtime project" onClick={() => update(n => n.downtimeProjects.push({ id: uid('dp'), name: '', progress: 0, max: 4, note: '' }))} />
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Gold</SectionTitle>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[{ k: 'handfuls', label: 'Handfuls', path: 'gold.handfuls', max: 9 }, { k: 'bags', label: 'Bags', path: 'gold.bags', max: 9 }, { k: 'chests', label: 'Chests', path: 'gold.chests', max: 99 }].map(g => (
+            <div key={g.k} style={{ flex: 1, minWidth: 0, background: T.surface2, borderRadius: 12, padding: '12px 6px 10px', textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}><Stepper value={ch.gold[g.k]} min={0} max={g.max} size={20} onChange={v => set(g.path, v)} /></div>
+              <div style={{ fontFamily: T.sans, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.inkMute, marginTop: 7 }}>{g.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute, fontStyle: 'italic', marginTop: 11, textAlign: 'center' }}>10 handfuls = 1 bag · 10 bags = 1 chest</div>
+      </Card>
+
+      <Card style={{ padding: 16 }}>
+        <SectionTitle>Inventory</SectionTitle>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {ch.inventory.map((it, i) => (
+            <div key={it.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 0', borderTop: i ? `1px solid ${T.line}` : 'none' }}>
+              <div style={{ marginTop: 1 }}><Stepper value={it.qty} min={1} max={99} size={13} onChange={v => set(`inventory.${i}.qty`, v)} /></div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <EditText value={it.name} onChange={v => set(`inventory.${i}.name`, v)} font={T.serif} size={14.5} placeholder="Item" />
+                <div style={{ marginTop: 3 }}><EditText value={it.note} onChange={v => set(`inventory.${i}.note`, v)} size={11} color={T.inkMute} placeholder="Notes…" multiline /></div>
+              </div>
+              <RemoveBtn onClick={() => update(n => n.inventory.splice(i, 1))} />
+            </div>
+          ))}
+        </div>
+        <AddRow label="Add item" onClick={() => update(n => n.inventory.push({ id: uid('i'), name: '', qty: 1, note: '' }))} />
+      </Card>
+    </div>
+  );
+}
+
+// ── Cards screen ──────────────────────────────────────────────────────────────
+function CardsScreen({ ch, density }) {
+  const [openId, setOpenId] = React.useState(null);
+  const cards = ch.domainCards || [];
+  const pad = density <= 4 ? 18 : 14;
+  const totalRecall = cards.reduce((s, c) => s + (c.recall || 0), 0);
+  const domainColor = (d) => d === 'Codex' ? T.ability : d === 'Arcana' ? T.spell : T.weapon;
+  return (
+    <div className="rs-card-enter" style={{ padding: `14px ${pad}px 24px`, display: 'flex', flexDirection: 'column', gap: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 2 }}>
+        <Eyebrow>Domain Cards · {cards.length}</Eyebrow>
+        <span style={{ fontFamily: T.sans, fontSize: 11.5, color: T.inkMute }}>Total recall <b style={{ color: T.accent, fontWeight: 700 }}>{totalRecall}</b></span>
+      </div>
+      {cards.length === 0 && <div style={{ fontFamily: T.serif, fontStyle: 'italic', color: T.inkMute, fontSize: 14, padding: '8px 2px' }}>No domain cards on record. Add them in the full editor.</div>}
+      {cards.map(card => {
+        const open = openId === card.id;
+        const dc = domainColor(card.domain);
+        return (
+          <div key={card.id} className="rs-tap" onClick={() => setOpenId(open ? null : card.id)} style={{ background: T.surface, border: `1px solid ${open ? T.lineStr : T.line}`, borderRadius: 15, padding: '14px 15px', cursor: 'pointer', position: 'relative', overflow: 'hidden', transition: 'border-color 0.2s' }}>
+            <div style={{ position: 'absolute', top: 6, right: 14, fontFamily: T.serif, fontStyle: 'italic', fontSize: 44, fontWeight: 600, color: dc, opacity: T.dark ? 0.16 : 0.13, lineHeight: 1, pointerEvents: 'none' }}>{card.recall}</div>
+            <div style={{ paddingRight: 40 }}>
+              <div style={{ fontFamily: T.serif, fontSize: 18, fontWeight: 600, color: T.ink, lineHeight: 1.1 }}>{card.name}</div>
+              <div style={{ fontFamily: T.sans, fontSize: 10, fontWeight: 700, letterSpacing: '0.09em', textTransform: 'uppercase', color: dc, marginTop: 5 }}>{card.domain} · {card.type} · Lv {card.level}</div>
+            </div>
+            <div style={{ fontFamily: T.serif, fontSize: 14, lineHeight: 1.55, color: T.inkSoft, marginTop: 9 }}>{open ? card.text : card.summary}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, fontFamily: T.sans, fontSize: 10.5, color: T.inkMute }}>
+              <Icon name={open ? 'chevronD' : 'chevron'} s={13} c={T.inkMute} sw={1.8} />
+              {open ? 'Tap to collapse' : 'Tap for full text'}
+              <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4 }}>Recall <b style={{ color: dc, fontWeight: 700 }}>{card.recall}</b></span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Campaign screen ───────────────────────────────────────────────────────────
+function CampaignScreen({ data, layout, session, feed, onAddNote, onToggleSession, onPeek, onSwitch, onNewChar, onEditCampaign, density }) {
+  const { campaign, roster } = data;
+  const pad = density <= 4 ? 18 : 14;
+  const mine = roster.filter(r => r.owner === 'you');
+  const Roster = <RosterBlock roster={roster} onPeek={onPeek} />;
+  const Feed = <FeedBlock feed={feed} session={session} onAddNote={onAddNote} onToggleSession={onToggleSession} />;
+  return (
+    <div className="rs-card-enter" style={{ padding: `14px ${pad}px 24px`, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: `linear-gradient(155deg, ${T.surface2}, ${T.surface})`, border: `1px solid ${T.line}`, borderRadius: 18, padding: '18px 17px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: -18, right: -8, opacity: 0.07 }}><Icon name="camp" s={120} c={T.accent} sw={1} /></div>
+        <button className="rs-tap" onClick={onEditCampaign} title="Edit campaign" style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, width: 30, height: 30, borderRadius: 9, border: `1px solid ${T.line}`, background: T.surface, cursor: 'pointer', display: 'grid', placeItems: 'center' }}><Icon name="edit" s={15} c={T.inkSoft} sw={1.6} /></button>
+        <Eyebrow>{campaign.tagline || 'A Daggerheart campaign'}</Eyebrow>
+        <div style={{ fontFamily: T.serif, fontSize: 27, fontWeight: 600, color: T.ink, lineHeight: 1.05, marginTop: 5, paddingRight: 32 }}>{campaign.name}</div>
+        {campaign.description && <div style={{ fontFamily: T.serif, fontSize: 13.5, color: T.inkSoft, lineHeight: 1.5, marginTop: 8, maxWidth: '92%' }}>{campaign.description}</div>}
+        <div style={{ display: 'flex', gap: 16, marginTop: 14, fontFamily: T.sans, fontSize: 11.5, color: T.inkMute, flexWrap: 'wrap' }}>
+          {campaign.gm && <span>GM <b style={{ color: T.ink, fontWeight: 600 }}>{campaign.gm}</b></span>}
+          <span>Session <b style={{ color: T.ink, fontWeight: 600 }}>{(campaign.sessionCount || 0) + 1}</b></span>
+          <span>{roster.filter(r => r.status === 'active').length} at the table</span>
+        </div>
+      </div>
+
+      <div>
+        <Eyebrow style={{ marginBottom: 10 }}>Your characters</Eyebrow>
+        <div className="rs-scroll" style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 2, margin: '0 -2px' }}>
+          {mine.map(c => <SwitcherCard key={c.id} c={c} onClick={() => c.status === 'fallen' ? onPeek(c) : onSwitch(c)} />)}
+          <button className="rs-tap" onClick={onNewChar} style={{ flexShrink: 0, width: 116, borderRadius: 14, border: `1.5px dashed ${T.lineStr}`, background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 7, color: T.inkMute, padding: 14 }}>
+            <Icon name="plus" s={22} c={T.inkMute} sw={1.6} /><span style={{ fontFamily: T.sans, fontSize: 12, fontWeight: 600 }}>New character</span>
+          </button>
+        </div>
+      </div>
+
+      {layout === 'feed' ? <>{Feed}{Roster}</> : <>{Roster}{Feed}</>}
+    </div>
+  );
+}
+function SwitcherCard({ c, onClick }) {
+  const fallen = c.status === 'fallen';
+  const active = c.isActive;
+  const hp = c.resources && c.resources.hp;
+  return (
+    <div className="rs-tap" onClick={onClick} style={{ flexShrink: 0, width: 152, borderRadius: 14, padding: 13, cursor: 'pointer', background: active ? T.raised : T.surface, border: `1px solid ${active ? T.accent : T.line}`, position: 'relative' }}>
+      {active && <div style={{ position: 'absolute', top: 11, right: 11, fontFamily: T.sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', color: T.accent }}>ACTIVE</div>}
+      <Avatar ch={c} size={40} />
+      <div style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: fallen ? T.inkMute : T.ink, marginTop: 9, lineHeight: 1.1 }}>{c.basicInfo.name}</div>
+      <div style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute, marginTop: 3 }}>{fallen ? 'Fallen' : `${c.basicInfo.class} · Lv ${c.basicInfo.level}`}</div>
+      {fallen ? <div style={{ fontFamily: T.sans, fontSize: 10, color: T.inkMute, fontStyle: 'italic', marginTop: 8 }}>{c.fellAt}</div>
+        : <div style={{ marginTop: 9 }}><MiniBar value={hp.current} max={hp.max} color={T.hp} /></div>}
+    </div>
+  );
+}
+function RosterBlock({ roster, onPeek }) {
+  const party = roster.filter(r => r.status === 'active');
+  return (
+    <div>
+      <Eyebrow style={{ marginBottom: 10 }}>Party · {party.length} at the table</Eyebrow>
+      <Card style={{ padding: 6 }}>
+        {party.map((c, i) => {
+          const hp = c.resources.hp;
+          return (
+            <div key={c.id} className="rs-tap" onClick={() => onPeek(c)} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 10px', cursor: 'pointer', borderTop: i ? `1px solid ${T.line}` : 'none' }}>
+              <Avatar ch={c} size={38} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 7 }}>
+                  <span style={{ fontFamily: T.serif, fontSize: 15.5, fontWeight: 600, color: T.ink }}>{c.basicInfo.name}</span>
+                  <span style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute }}>{c.basicInfo.class}</span>
+                  {c.owner === 'you' && <span style={{ fontFamily: T.sans, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', color: T.accent }}>YOU</span>}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                  <div style={{ flex: 1 }}><MiniBar value={hp.current} max={hp.max} color={T.hp} /></div>
+                  <span style={{ fontFamily: T.mono, fontSize: 10.5, color: T.inkMute, minWidth: 34, textAlign: 'right' }}>{hp.current}/{hp.max}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontFamily: T.mono, fontSize: 11, color: T.hope }}><Icon name="hope" s={12} c={T.hope} sw={1.4} />{c.resources.hope}</div>
+              <Icon name="chevron" s={15} c={T.inkMute} sw={1.6} />
+            </div>
+          );
+        })}
+      </Card>
+    </div>
+  );
+}
+function FeedBlock({ feed, session, onAddNote, onToggleSession }) {
+  const [draft, setDraft] = React.useState('');
+  const submit = () => { if (draft.trim()) { onAddNote(draft.trim()); setDraft(''); } };
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <Eyebrow>Session feed</Eyebrow>
+        <button className="rs-tap" onClick={onToggleSession} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', borderRadius: 999, padding: '5px 11px', fontFamily: T.sans, fontSize: 11, fontWeight: 600, border: `1px solid ${session.live ? T.accent : T.line}`, background: session.live ? T.accent : 'transparent', color: session.live ? (T.dark ? T.bg : '#fff') : T.inkSoft }}>
+          <span style={{ width: 7, height: 7, borderRadius: '50%', background: session.live ? (T.dark ? T.bg : '#fff') : T.accent, animation: session.live ? 'rs-pulse 1.4s ease-in-out infinite' : 'none' }} />
+          {session.live ? `Live · ${session.elapsed}` : 'Start session'}
+        </button>
+      </div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+        <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="Note for the table…" style={{ flex: 1, fontFamily: T.sans, fontSize: 13, color: T.ink, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 11, padding: '10px 13px', outline: 'none' }} />
+        <button className="rs-tap" onClick={submit} style={{ padding: '0 15px', borderRadius: 11, border: 'none', cursor: 'pointer', background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 13, fontWeight: 700 }}>Post</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {feed.length === 0 && <div style={{ fontFamily: T.serif, fontStyle: 'italic', color: T.inkMute, fontSize: 14 }}>Nothing logged yet. Start a session and post the first note.</div>}
+        {feed.map((f, i) => <FeedItem key={f.id} f={f} last={i === feed.length - 1} />)}
+      </div>
+    </div>
+  );
+}
+function FeedItem({ f, last }) {
+  const meta = { note: { dot: T.inkMute, ic: 'feed' }, stat: { dot: T.stress, ic: 'bolt' }, death: { dot: T.hp, ic: 'skull' }, milestone: { dot: T.accent, ic: 'camp' } }[f.kind] || { dot: T.inkMute, ic: 'feed' };
+  return (
+    <div style={{ display: 'flex', gap: 12, position: 'relative' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 18 }}>
+        <div style={{ width: 11, height: 11, borderRadius: '50%', background: T.surface, border: `2px solid ${meta.dot}`, marginTop: 4, flexShrink: 0 }} />
+        {!last && <div style={{ flex: 1, width: 2, background: T.line, marginTop: 2 }} />}
+      </div>
+      <div style={{ flex: 1, paddingBottom: last ? 0 : 16 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontFamily: T.serif, fontSize: 14, fontWeight: 600, color: f.kind === 'death' ? T.hp : T.ink }}>{f.who}</span>
+          <span style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute, marginLeft: 'auto', flexShrink: 0 }}>{relTime(f.when)}</span>
+        </div>
+        <div style={{ fontFamily: f.kind === 'stat' ? T.mono : T.serif, fontSize: f.kind === 'stat' ? 12 : 13.5, lineHeight: 1.5, marginTop: 3, color: f.kind === 'stat' ? T.inkMute : T.inkSoft, fontStyle: f.kind === 'death' ? 'italic' : 'normal' }}>{f.text}</div>
+      </div>
+    </div>
+  );
+}
+function CharacterPeek({ c, onJump }) {
+  const fallen = c.status === 'fallen';
+  if (fallen) {
+    return (
+      <div style={{ textAlign: 'center', padding: '4px 6px' }}>
+        <div style={{ margin: '0 auto', width: 64 }}><Avatar ch={c} size={64} /></div>
+        <div style={{ fontFamily: T.serif, fontSize: 24, fontWeight: 600, color: T.ink, marginTop: 12 }}>{c.basicInfo.name}</div>
+        <div style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, marginTop: 3 }}>{c.basicInfo.class} · Level {c.basicInfo.level} · {c.basicInfo.ancestry}</div>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 14, padding: '5px 12px', borderRadius: 999, background: T.dark ? `${T.hp}1e` : `${T.hp}14`, color: T.hp, fontFamily: T.sans, fontSize: 11.5, fontWeight: 600 }}><Icon name="skull" s={14} c={T.hp} sw={1.5} /> {c.fellAt}</div>
+        {c.epitaph && <div style={{ fontFamily: T.serif, fontSize: 16, fontStyle: 'italic', color: T.inkSoft, lineHeight: 1.55, marginTop: 16, padding: '0 8px' }}>“{c.epitaph}”</div>}
+      </div>
+    );
+  }
+  const hp = c.resources.hp, st = c.resources.stress;
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 13, alignItems: 'center' }}>
+        <Avatar ch={c} size={52} />
+        <div>
+          <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, color: T.ink }}>{c.basicInfo.name}</div>
+          <div style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, marginTop: 2 }}>{c.basicInfo.class} · {c.basicInfo.subclass || c.basicInfo.ancestry} · Lv {c.basicInfo.level}</div>
+          <div style={{ fontFamily: T.sans, fontSize: 11, color: T.inkMute, marginTop: 2 }}>Played by {c.owner === 'you' ? 'you' : c.owner}</div>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+        <PeekStat label="HP" cur={hp.current} max={hp.max} color={T.hp} />
+        <PeekStat label="Stress" cur={st.current} max={st.max} color={T.stress} />
+        <div style={{ flex: 1, background: T.surface2, borderRadius: 12, padding: '11px 13px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}><Icon name="hope" s={13} c={T.hope} sw={1.4} /><Eyebrow>Hope</Eyebrow></div>
+          <div style={{ fontFamily: T.serif, fontSize: 20, fontWeight: 600, color: T.hope, marginTop: 4 }}>{c.resources.hope}<span style={{ color: T.inkMute, fontSize: 14, fontWeight: 400 }}>/{c.resources.hopeMax}</span></div>
+        </div>
+      </div>
+      <button className="rs-tap" onClick={() => onJump(c)} style={{ width: '100%', marginTop: 18, padding: '13px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: T.ink, color: T.dark ? T.bg : T.surface, fontFamily: T.sans, fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <Icon name="sheet" s={17} c={T.dark ? T.bg : T.surface} sw={1.7} />{c.owner === 'you' ? 'Open full sheet' : 'View sheet'}
+      </button>
+    </div>
+  );
+}
+function PeekStat({ label, cur, max, color }) {
+  return <div style={{ flex: 1, background: T.surface2, borderRadius: 12, padding: '11px 13px' }}><Eyebrow>{label}</Eyebrow><div style={{ fontFamily: T.serif, fontSize: 20, fontWeight: 600, color, marginTop: 4 }}>{cur}<span style={{ color: T.inkMute, fontSize: 14, fontWeight: 400 }}>/{max}</span></div><div style={{ marginTop: 7 }}><MiniBar value={cur} max={max} color={color} /></div></div>;
+}
+function NewCharacterForm({ onCreate }) {
+  const CLASSES = ['Bard', 'Druid', 'Guardian', 'Ranger', 'Rogue', 'Seraph', 'Sorcerer', 'Warrior', 'Wizard'];
+  const [name, setName] = React.useState('');
+  const [cls, setCls] = React.useState(null);
+  const [busy, setBusy] = React.useState(false);
+  const ok = name.trim() && cls && !busy;
+  return (
+    <div>
+      <div style={{ fontFamily: T.serif, fontSize: 23, fontWeight: 600, color: T.ink }}>A new beginning</div>
+      <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.inkMute, marginTop: 4, lineHeight: 1.5 }}>Forge a successor to carry on with the party.</div>
+      <div style={{ marginTop: 18 }}>
+        <Eyebrow style={{ marginBottom: 8 }}>Name</Eyebrow>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="What are they called?" style={{ width: '100%', fontFamily: T.serif, fontSize: 16, color: T.ink, background: T.surface2, border: `1px solid ${T.line}`, borderRadius: 11, padding: '11px 13px', outline: 'none' }} />
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <Eyebrow style={{ marginBottom: 8 }}>Class</Eyebrow>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {CLASSES.map(c => (
+            <button key={c} className="rs-tap" onClick={() => setCls(c)} style={{ fontFamily: T.sans, fontSize: 12.5, fontWeight: 600, padding: '7px 13px', borderRadius: 999, cursor: 'pointer', border: `1px solid ${cls === c ? T.accent : T.line}`, background: cls === c ? T.accentSoft : 'transparent', color: cls === c ? T.accent : T.inkSoft }}>{c}</button>
+          ))}
+        </div>
+      </div>
+      <button className="rs-tap" disabled={!ok} onClick={() => { setBusy(true); onCreate({ name: name.trim(), cls }); }} style={{ width: '100%', marginTop: 20, padding: '13px 0', borderRadius: 12, border: 'none', cursor: ok ? 'pointer' : 'not-allowed', opacity: ok ? 1 : 0.4, background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 14, fontWeight: 700 }}>{busy ? 'Creating…' : (name.trim() && cls ? `Create ${name.trim()}` : 'Name & class to begin')}</button>
+    </div>
+  );
+}
+function CampaignEditForm({ campaign, onSave }) {
+  const [name, setName] = React.useState(campaign.name || '');
+  const [tagline, setTagline] = React.useState(campaign.tagline || '');
+  const [gm, setGm] = React.useState(campaign.gm || '');
+  const [description, setDescription] = React.useState(campaign.description || '');
+  const inp = { width: '100%', fontFamily: T.sans, fontSize: 14, color: T.ink, background: T.surface2, border: `1px solid ${T.line}`, borderRadius: 10, padding: '10px 12px', outline: 'none', marginTop: 6 };
+  return (
+    <div>
+      <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, color: T.ink, marginBottom: 14 }}>Edit campaign</div>
+      <Eyebrow>Name</Eyebrow><input value={name} onChange={e => setName(e.target.value)} style={{ ...inp, fontFamily: T.serif, fontSize: 16, fontWeight: 600 }} />
+      <div style={{ marginTop: 13 }}><Eyebrow>Tagline</Eyebrow><input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="A Daggerheart campaign" style={inp} /></div>
+      <div style={{ marginTop: 13 }}><Eyebrow>Game Master</Eyebrow><input value={gm} onChange={e => setGm(e.target.value)} placeholder="Who runs the table?" style={inp} /></div>
+      <div style={{ marginTop: 13 }}><Eyebrow>Description</Eyebrow><textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} style={{ ...inp, fontFamily: T.serif, lineHeight: 1.5, resize: 'vertical' }} /></div>
+      <button className="rs-tap" onClick={() => onSave({ name: name.trim() || campaign.name, tagline, gm, description })} style={{ width: '100%', marginTop: 18, padding: '13px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 14, fontWeight: 700 }}>Save campaign</button>
+    </div>
+  );
+}
+
+// ── Notes screen ──────────────────────────────────────────────────────────────
+function NotesScreen({ ch, session, feed, onStart, onEnd, onAddNote, onNotes, density }) {
+  const pad = density <= 4 ? 18 : 14;
+  const [journal, setJournal] = React.useState(ch.notes || '');
+  const [draft, setDraft] = React.useState('');
+  React.useEffect(() => { setJournal(ch.notes || ''); }, [ch.notes]);
+  const mine = feed.slice(0, 6);
+  const post = () => { if (draft.trim()) { onAddNote(draft.trim()); setDraft(''); } };
+  return (
+    <div className="rs-card-enter" style={{ padding: `14px ${pad}px 24px`, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {session.live ? (
+        <div style={{ background: `linear-gradient(150deg, ${T.accentSoft}, ${T.surface})`, border: `1px solid ${T.accent}55`, borderRadius: 16, padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: T.accent, animation: 'rs-pulse 1.4s ease-in-out infinite' }} />
+            <Eyebrow style={{ color: T.accent, whiteSpace: 'nowrap' }}>Live session</Eyebrow>
+            <span style={{ marginLeft: 'auto', fontFamily: T.mono, fontSize: 13, color: T.accent, whiteSpace: 'nowrap' }}>{session.elapsed}</span>
+          </div>
+          <div style={{ fontFamily: T.serif, fontSize: 23, fontWeight: 600, color: T.ink, marginTop: 8 }}>{session.name}</div>
+          <button className="rs-tap" onClick={onEnd} style={{ width: '100%', marginTop: 14, padding: '12px 0', borderRadius: 12, cursor: 'pointer', background: 'transparent', border: `1px solid ${T.danger}`, color: T.danger, whiteSpace: 'nowrap', fontFamily: T.sans, fontSize: 13.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Icon name="stop" s={17} c={T.danger} sw={1.7} /> End session</button>
+        </div>
+      ) : (
+        <div style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 16, padding: 16, textAlign: 'center' }}>
+          <Eyebrow>No active session</Eyebrow>
+          <div style={{ fontFamily: T.serif, fontSize: 16, color: T.inkSoft, fontStyle: 'italic', margin: '8px 0 14px' }}>Start one to log tonight’s play.</div>
+          <button className="rs-tap" onClick={onStart} style={{ width: '100%', padding: '13px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 14, fontWeight: 700, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}><Icon name="play" s={18} c={T.dark ? T.bg : '#fff'} sw={1.7} /> Start session</button>
+        </div>
+      )}
+      <div>
+        <Eyebrow style={{ marginBottom: 10 }}>Journal</Eyebrow>
+        <textarea value={journal} onChange={e => setJournal(e.target.value)} onBlur={() => onNotes(journal)} placeholder="Where did the night leave you? Plans, leads, debts, suspicions…" style={{ width: '100%', minHeight: 150, resize: 'vertical', display: 'block', background: T.surface, border: `1px solid ${T.line}`, borderRadius: 14, padding: '14px 15px', fontFamily: T.serif, fontSize: 15, lineHeight: 1.6, color: T.ink, outline: 'none' }} />
+        <div style={{ fontFamily: T.sans, fontSize: 11, color: T.inkMute, fontStyle: 'italic', marginTop: 7 }}>Saved automatically · private to your sheet</div>
+      </div>
+      <div>
+        <Eyebrow style={{ marginBottom: 10 }}>Post to the table</Eyebrow>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+          <input value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => e.key === 'Enter' && post()} placeholder="Share a moment with the party…" style={{ flex: 1, fontFamily: T.sans, fontSize: 13, color: T.ink, background: T.surface, border: `1px solid ${T.line}`, borderRadius: 11, padding: '10px 13px', outline: 'none' }} />
+          <button className="rs-tap" onClick={post} style={{ padding: '0 16px', borderRadius: 11, border: 'none', cursor: 'pointer', background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 13, fontWeight: 700 }}>Post</button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>{mine.map((f, i) => <FeedItem key={f.id} f={f} last={i === mine.length - 1} />)}</div>
+      </div>
+    </div>
+  );
+}
+
+// ── Bottom-sheet bodies: Death's Door / End session / More ──────────────────────
+function DeathDoor({ onClose, onLog, onDie }) {
+  const [result, setResult] = React.useState(null);
+  const opt = { textAlign: 'left', padding: '13px 15px', borderRadius: 12, border: `1px solid ${T.line}`, background: T.surface2, cursor: 'pointer', width: '100%' };
+  const survive = () => { onLog('Death Move: Survive — lives on, potentially vulnerable'); onClose(); };
+  const blaze = () => { onLog('Death Move: Blaze of Glory'); onDie(); onClose(); };
+  const risk = () => {
+    const roll = 1 + Math.floor(Math.random() * 6);
+    const survived = roll >= 4;
+    onLog(`Death Move: Risk It All — rolled ${roll} — ${survived ? 'Survived (GM decides erased slots)' : 'Died'}`);
+    if (!survived) onDie();
+    setResult({ roll, survived });
+  };
+  if (result) {
+    return (
+      <div style={{ textAlign: 'center', padding: '6px 4px 4px' }}>
+        <div style={{ fontFamily: T.serif, fontSize: 46, fontWeight: 700, color: T.ink }}>🎲 {result.roll}</div>
+        <div style={{ fontFamily: T.serif, fontSize: 19, fontWeight: 600, marginTop: 8, color: result.survived ? T.good : T.hp }}>{result.survived ? 'Survived — adjust HP per the GM' : '💀 The hero has fallen'}</div>
+        <button className="rs-tap" onClick={onClose} style={{ width: '100%', marginTop: 18, padding: '12px 0', borderRadius: 12, border: 'none', cursor: 'pointer', background: T.accent, color: T.dark ? T.bg : '#fff', fontFamily: T.sans, fontSize: 14, fontWeight: 700 }}>Close</button>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}><Icon name="skull" s={24} c={T.hp} sw={1.5} /><div style={{ fontFamily: T.serif, fontSize: 23, fontWeight: 600, color: T.hp }}>Death’s Door</div></div>
+      <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.inkSoft, marginTop: 6, lineHeight: 1.5 }}>All HP marked. Make a death move — the GM decides which apply.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 16 }}>
+        <button className="rs-tap" onClick={survive} style={opt}><div style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: T.ink }}>1 · Survive</div><div style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, marginTop: 2 }}>Live on, potentially vulnerable.</div></button>
+        <button className="rs-tap" onClick={risk} style={opt}><div style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: T.ink }}>2 · Risk It All</div><div style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, marginTop: 2 }}>Roll the die — die, or survive.</div></button>
+        <button className="rs-tap" onClick={blaze} style={{ ...opt, borderColor: T.hp }}><div style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: T.hp }}>3 · Blaze of Glory</div><div style={{ fontFamily: T.sans, fontSize: 12, color: T.inkMute, marginTop: 2 }}>Die, but take something down with you.</div></button>
+      </div>
+    </div>
+  );
+}
+function EndSession({ session, onKeep, onEnd }) {
+  return (
+    <div>
+      <div style={{ fontFamily: T.serif, fontSize: 23, fontWeight: 600, color: T.ink }}>End {session.name}?</div>
+      <div style={{ fontFamily: T.sans, fontSize: 13, color: T.inkSoft, marginTop: 6, lineHeight: 1.5 }}>{session.elapsed} of play logged. Your journal and the table feed are kept.</div>
+      <div style={{ display: 'flex', gap: 9, marginTop: 18 }}>
+        <button className="rs-tap" onClick={onKeep} style={{ flex: 1, padding: '12px 0', borderRadius: 12, cursor: 'pointer', background: 'transparent', border: `1px solid ${T.line}`, color: T.inkSoft, fontFamily: T.sans, fontSize: 13.5, fontWeight: 600 }}>Keep playing</button>
+        <button className="rs-tap" onClick={onEnd} style={{ flex: 1, padding: '12px 0', borderRadius: 12, cursor: 'pointer', background: T.danger, border: 'none', color: '#fff', fontFamily: T.sans, fontSize: 13.5, fontWeight: 700 }}>End session</button>
+      </div>
+    </div>
+  );
+}
+function MoreMenu({ onLogout }) {
+  const links = [
+    { label: 'Combat Advisor', sub: 'Rank attacks for the moment', href: 'advisor.html', icon: 'external' },
+    { label: 'Roll Odds', sub: 'Action & damage probabilities', href: 'odds.html', icon: 'external' },
+    { label: 'Full editor & history', sub: 'Branches, snapshots, PDF print', href: 'character.html', icon: 'sheet' },
+    { label: 'Campaigns', sub: 'Manage tables & members', href: 'campaigns.html', icon: 'camp' },
+    { label: 'Sessions log', sub: 'Every session and its entries', href: 'sessions.html', icon: 'feed' },
+    { label: 'Export backup', sub: 'Download the whole database', href: '/api/backup', icon: 'external' },
+  ];
+  return (
+    <div>
+      <div style={{ fontFamily: T.serif, fontSize: 22, fontWeight: 600, color: T.ink, marginBottom: 4 }}>More tools</div>
+      <div style={{ fontFamily: T.sans, fontSize: 12.5, color: T.inkMute, marginBottom: 14 }}>The companion covers play; these open the deeper tools.</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {links.map(l => (
+          <a key={l.label} href={l.href} className="rs-tap" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', background: T.surface2, border: `1px solid ${T.line}`, borderRadius: 12, padding: '12px 14px' }}>
+            <Icon name={l.icon} s={20} c={T.accent} sw={1.6} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: T.serif, fontSize: 15, fontWeight: 600, color: T.ink }}>{l.label}</div>
+              <div style={{ fontFamily: T.sans, fontSize: 11.5, color: T.inkMute }}>{l.sub}</div>
+            </div>
+            <Icon name="chevron" s={16} c={T.inkMute} sw={1.6} />
+          </a>
+        ))}
+        <button className="rs-tap" onClick={onLogout} style={{ marginTop: 4, padding: '12px 0', borderRadius: 12, cursor: 'pointer', background: 'transparent', border: `1px solid ${T.line}`, color: T.inkSoft, fontFamily: T.sans, fontSize: 13.5, fontWeight: 600 }}>Log out</button>
+      </div>
+    </div>
+  );
+}
+
+// ── API layer ─────────────────────────────────────────────────────────────────
+async function getJSON(url) {
+  try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
+  catch (e) { return null; }
+}
+async function postJSON(url, body, method = 'POST') {
+  const r = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  if (r.status === 401) { window.location = 'login.html'; throw new Error('unauthorized'); }
+  return r;
+}
+
+// ── App shell ─────────────────────────────────────────────────────────────────
+const TABS = [
+  { id: 'campaign', label: 'Campaign', icon: 'camp' },
+  { id: 'combat',   label: 'Combat',   icon: 'combat' },
+  { id: 'sheet',    label: 'Sheet',    icon: 'sheet' },
+  { id: 'cards',    label: 'Cards',    icon: 'cards' },
+  { id: 'notes',    label: 'Notes',    icon: 'note' },
+];
+
+function App() {
+  const [ready, setReady] = React.useState(false);
+  const [tab, setTab] = React.useState('campaign');
+  const [ch, setChState] = React.useState(null);
+  const [activeId, setActiveId] = React.useState(null);
+  const [campaign, setCampaign] = React.useState(null);
+  const [campaignId, setCampaignId] = React.useState(null);
+  const [roster, setRoster] = React.useState([]);
+  const [feed, setFeed] = React.useState([]);
+  const [session, setSession] = React.useState({ live: false, name: 'Session', startedAt: null, elapsed: '0m' });
+  const [sheet, setSheet] = React.useState(null);
+
+  const chRef = React.useRef(null);
+  const apiBaseRef = React.useRef(null);
+  const saveTimer = React.useRef(null);
+
+  const setCh = (next) => { chRef.current = next; setChState(next); };
+
+  function fmtElapsed(startedAt) {
+    if (!startedAt) return '0m';
+    const ms = Date.now() - startedAt;
+    if (ms < 0) return '0m';
+    const m = Math.floor(ms / 60000), h = Math.floor(m / 60);
+    return h ? `${h}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`;
+  }
+
+  function applyCampaign(camp) {
+    if (!camp) return;
+    setCampaign({ id: camp.id, name: camp.name, description: camp.description, gm: camp.gm, tagline: camp.tagline, sessionCount: (camp.sessions || []).length });
+    setRoster((camp.characters || []).map(toRosterEntry));
+    setFeed(camp.feed || []);
+  }
+  async function refresh() {
+    const charRes = await getJSON('/api/character');
+    if (charRes && charRes.character) {
+      apiBaseRef.current = charRes.character;
+      setCh(normalizeFromApi(charRes.character));
+      setActiveId(charRes.characterId);
+      const cid = charRes.campaigns && charRes.campaigns[0] ? charRes.campaigns[0].id : null;
+      setCampaignId(cid);
+      if (cid) applyCampaign(await getJSON('/api/campaigns/' + cid));
+    }
+  }
+  React.useEffect(() => {
+    (async () => {
+      const [charRes, sessRes] = await Promise.all([getJSON('/api/character'), getJSON('/api/session/active')]);
+      if (charRes && charRes.character) {
+        apiBaseRef.current = charRes.character;
+        setCh(normalizeFromApi(charRes.character));
+        setActiveId(charRes.characterId);
+        const cid = charRes.campaigns && charRes.campaigns[0] ? charRes.campaigns[0].id : null;
+        setCampaignId(cid);
+        if (cid) applyCampaign(await getJSON('/api/campaigns/' + cid));
+      }
+      if (sessRes && sessRes.session) {
+        const started = new Date(String(sessRes.session.started_at).replace(' ', 'T')).getTime();
+        setSession({ live: true, name: sessRes.session.name, startedAt: started, elapsed: fmtElapsed(started) });
+      }
+      setReady(true);
+    })();
+  }, []);
+
+  React.useEffect(() => {
+    if (!session.live) return;
+    const tick = () => setSession(s => ({ ...s, elapsed: fmtElapsed(s.startedAt) }));
+    tick();
+    const iv = setInterval(tick, 30000);
+    return () => clearInterval(iv);
+  }, [session.live, session.startedAt]);
+
+  function doSave(next) {
+    const persisted = denormalizeToApi(next, apiBaseRef.current);
+    fetch('/api/character/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ description: 'Mobile sync', character: persisted }) })
+      .then(r => { if (r.status === 401) window.location = 'login.html'; else if (r.ok) apiBaseRef.current = persisted; })
+      .catch(() => {});
+  }
+  function scheduleSave(next) {
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => doSave(next), 1200);
+  }
+  function mutate(fn) {
+    const next = clone(chRef.current);
+    fn(next);
+    setCh(next);
+    scheduleSave(next);
+  }
+
+  function onRes(name, value) {
+    const prevHp = chRef.current.resources.hp.current;
+    const max = chRef.current.resources.hp.max;
+    mutate(n => { if (name === 'hope') n.resources.hope = value; else n.resources[name].current = value; });
+    if (name === 'hp' && value >= max && prevHp < max && !chRef.current.dead) {
+      setTimeout(() => setSheet({ kind: 'death' }), 180);
+    }
+  }
+  function onCond(key) { mutate(n => { n.conditions[key] = !n.conditions[key]; }); }
+  function setNotes(text) { mutate(n => { n.notes = text; }); }
+  function markDead() { mutate(n => { n.dead = true; }); }
+
+  async function startSession() {
+    const name = 'Session ' + (((campaign && campaign.sessionCount) || 0) + 1);
+    try {
+      const r = await postJSON('/api/session/start', { name, campaignId });
+      if (!r.ok) return null;
+      const d = await r.json();
+      const startedAt = Date.now();
+      setSession({ live: true, name, startedAt, elapsed: '0m' });
+      setCampaign(c => c ? { ...c, sessionCount: (c.sessionCount || 0) + 1 } : c);
+      setFeed(prev => [{ id: 'ms' + d.sessionId, kind: 'milestone', who: campaign ? campaign.name : 'The table', actor: campaign && campaign.gm ? campaign.gm : 'GM', when: 'just now', text: `${name} began` }, ...prev]);
+      return d.sessionId;
+    } catch (e) { return null; }
+  }
+  async function endSession() {
+    try { await postJSON('/api/session/end'); } catch (e) {}
+    const ended = session.name, elapsed = session.elapsed;
+    setSession(s => ({ ...s, live: false }));
+    setFeed(prev => [{ id: 'me' + Date.now(), kind: 'milestone', who: campaign ? campaign.name : 'The table', actor: campaign && campaign.gm ? campaign.gm : 'GM', when: 'just now', text: `${ended} ended · ${elapsed} logged` }, ...prev]);
+    setSheet(null);
+  }
+  function toggleSession() { if (session.live) setSheet({ kind: 'endsession' }); else startSession(); }
+  async function addNote(text) {
+    if (!session.live) { await startSession(); }
+    try { await postJSON('/api/session/note', { content: text }); } catch (e) {}
+    setFeed(prev => [{ id: 'local' + Date.now(), kind: 'note', who: ch.basicInfo.name, actor: 'you', when: 'just now', text }, ...prev]);
+  }
+  async function logDeathNote(content) {
+    try { await fetch('/api/session/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content }) }); } catch (e) {}
+    setFeed(prev => [{ id: 'death' + Date.now(), kind: 'death', who: ch.basicInfo.name, actor: 'you', when: 'just now', text: content }, ...prev]);
+  }
+
+  async function selectCharacter(id, goTo) {
+    try { await fetch('/api/characters/select/' + id, { method: 'POST' }); } catch (e) {}
+    await refresh();
+    setSheet(null);
+    setTab(goTo || 'combat');
+  }
+  function jump(c) {
+    if (c.id === activeId) { setSheet(null); setTab('sheet'); }
+    else selectCharacter(c.id, 'sheet');
+  }
+  function peek(c) { setSheet({ kind: c.status === 'fallen' ? 'memorial' : 'peek', payload: c }); }
+  function onSwitch(c) { jump(c); }
+  async function createCharacter({ name, cls }) {
+    try {
+      const r = await postJSON('/api/characters', { name, owner: 'you', campaignId });
+      if (!r.ok) return;
+      await refresh();
+      mutate(n => { n.basicInfo.class = cls; });
+      setSheet(null);
+      setTab('sheet');
+    } catch (e) {}
+  }
+  async function patchCampaign(fields) {
+    if (!campaignId) { setSheet(null); return; }
+    setCampaign(c => ({ ...c, ...fields }));
+    setSheet(null);
+    try { await postJSON('/api/campaigns/' + campaignId, fields, 'PATCH'); } catch (e) {}
+  }
+  function logout() {
+    fetch('/api/logout', { method: 'POST' }).finally(() => { window.location = 'login.html'; });
+  }
+
+  if (!ready) {
+    return <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: T.bg, fontFamily: T.serif, fontStyle: 'italic', color: T.inkMute }}>Lighting the lanterns…</div>;
+  }
+  if (!ch) {
+    return <div style={{ minHeight: '100dvh', display: 'grid', placeItems: 'center', background: T.bg, fontFamily: T.serif, color: T.inkSoft, textAlign: 'center', padding: 24 }}>
+      <div><div style={{ fontSize: 18, marginBottom: 10 }}>No character loaded.</div><a href="character.html" style={{ color: T.accent }}>Open the full editor →</a></div>
+    </div>;
+  }
+
+  const sub = tab === 'campaign' ? (campaign ? campaign.name : 'Campaign') : `${ch.basicInfo.class || '—'} · Lv ${ch.basicInfo.level}`;
+
+  let screen;
+  if (tab === 'combat') screen = <CombatScreen ch={ch} onRes={onRes} onCond={onCond} onOpenAttack={a => setSheet({ kind: 'attack', payload: a })} density={DENSITY} />;
+  else if (tab === 'sheet') screen = <SheetScreen ch={ch} update={mutate} density={DENSITY} />;
+  else if (tab === 'cards') screen = <CardsScreen ch={ch} density={DENSITY} />;
+  else if (tab === 'notes') screen = <NotesScreen ch={ch} session={session} feed={feed} onStart={startSession} onEnd={() => setSheet({ kind: 'endsession' })} onAddNote={addNote} onNotes={setNotes} density={DENSITY} />;
+  else screen = <CampaignScreen data={{ campaign: campaign || { name: 'Campaign', sessionCount: 0 }, roster }} layout="feed" session={session} feed={feed} onAddNote={addNote} onToggleSession={toggleSession} onPeek={peek} onSwitch={onSwitch} onNewChar={() => setSheet({ kind: 'newchar' })} onEditCampaign={() => setSheet({ kind: 'editcampaign' })} density={DENSITY} />;
+
+  const screenInner = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: T.bg, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', inset: 0, background: T.bgGlow, pointerEvents: 'none' }} />
+      <div style={{ flexShrink: 0, position: 'relative', zIndex: 2, padding: '13px 16px 11px', display: 'flex', alignItems: 'center', gap: 11, borderBottom: `1px solid ${T.line}`, background: T.dark ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.4)' }}>
+        <div className="rs-tap" onClick={() => setTab('campaign')} style={{ cursor: 'pointer' }}><Avatar ch={ch} size={38} /></div>
+        <div style={{ minWidth: 0, flex: 1 }} className="rs-tap" onClick={() => setTab('campaign')}>
+          <div style={{ fontFamily: T.serif, fontSize: 16, fontWeight: 600, color: T.ink, lineHeight: 1.1, cursor: 'pointer' }}>{ch.basicInfo.name}</div>
+          <div style={{ fontFamily: T.sans, fontSize: 10.5, color: T.inkMute, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</div>
+        </div>
+        {session.live && (
+          <div className="rs-tap" onClick={() => setTab('notes')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: T.sans, fontSize: 10.5, fontWeight: 600, color: T.accent, border: `1px solid ${T.accent}`, borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.accent, animation: 'rs-pulse 1.4s ease-in-out infinite' }} />{session.elapsed}
+          </div>
+        )}
+        <div className="rs-tap" onClick={() => setSheet({ kind: 'more' })} style={{ cursor: 'pointer', padding: 2 }}><Icon name="menu" s={20} c={T.inkSoft} sw={1.7} /></div>
+      </div>
+
+      <div key={tab} className="rs-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', position: 'relative', zIndex: 1, minWidth: 0 }}>{screen}</div>
+
+      <div style={{ flexShrink: 0, position: 'relative', zIndex: 2, display: 'flex', borderTop: `1px solid ${T.line}`, background: T.dark ? 'rgba(0,0,0,0.22)' : 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+        {TABS.map(tb => {
+          const on = tab === tb.id;
+          return (
+            <button key={tb.id} className="rs-tap" onClick={() => setTab(tb.id)} style={{ flex: 1, background: 'none', border: 'none', cursor: 'pointer', padding: '9px 0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, color: on ? T.accent : T.inkMute, transition: 'color 0.15s' }}>
+              <Icon name={tb.icon} s={22} c={on ? T.accent : T.inkMute} sw={on ? 1.9 : 1.6} />
+              <span style={{ fontFamily: T.sans, fontSize: 10, fontWeight: on ? 700 : 500, letterSpacing: '0.02em' }}>{tb.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <BottomSheet open={!!sheet} onClose={() => setSheet(null)}>
+        {sheet && sheet.kind === 'attack' && <AttackDetail a={sheet.payload} />}
+        {sheet && (sheet.kind === 'peek' || sheet.kind === 'memorial') && <CharacterPeek c={sheet.payload} onJump={jump} />}
+        {sheet && sheet.kind === 'newchar' && <NewCharacterForm onCreate={createCharacter} />}
+        {sheet && sheet.kind === 'editcampaign' && <CampaignEditForm campaign={campaign || {}} onSave={patchCampaign} />}
+        {sheet && sheet.kind === 'death' && <DeathDoor onClose={() => setSheet(null)} onLog={logDeathNote} onDie={markDead} />}
+        {sheet && sheet.kind === 'endsession' && <EndSession session={session} onKeep={() => setSheet(null)} onEnd={endSession} />}
+        {sheet && sheet.kind === 'more' && <MoreMenu onLogout={logout} />}
+      </BottomSheet>
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: '100dvh', display: 'flex', justifyContent: 'center', background: T.dark ? '#0c0a09' : '#e3dccd' }}>
+      <div style={{ width: '100%', maxWidth: 440, height: '100dvh', overflow: 'hidden', position: 'relative', boxShadow: '0 0 60px rgba(0,0,0,0.12)' }}>{screenInner}</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>

@@ -115,6 +115,16 @@ function migrateSchema() {
   if (!hasColumn('sessions', 'campaign_id')) {
     db.exec('ALTER TABLE sessions ADD COLUMN campaign_id INTEGER REFERENCES campaigns(id)');
   }
+  // v2 redesign: campaign flavour + per-character ownership (read with COALESCE(...,'you')).
+  if (!hasColumn('campaigns', 'gm')) {
+    db.exec('ALTER TABLE campaigns ADD COLUMN gm TEXT');
+  }
+  if (!hasColumn('campaigns', 'tagline')) {
+    db.exec('ALTER TABLE campaigns ADD COLUMN tagline TEXT');
+  }
+  if (!hasColumn('characters', 'owner')) {
+    db.exec('ALTER TABLE characters ADD COLUMN owner TEXT');
+  }
   // Indexes go after the ALTERs so the columns exist.
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_branches_character ON branches(character_id);
@@ -172,18 +182,54 @@ function backfill() {
   }
 }
 
+// Stamp a character + its main branch + initial snapshot, optionally joining a campaign.
+function seedCharacter(name, owner, data, campaignId) {
+  const characterId = db.prepare('INSERT INTO characters (name, owner) VALUES (?, ?)').run(name, owner).lastInsertRowid;
+  const branchId = db.prepare(
+    `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES ('main', NULL, 1, ?)`
+  ).run(characterId).lastInsertRowid;
+  const snap = db.prepare(
+    `INSERT INTO snapshots (branch_id, parent_id, description, character_data) VALUES (?, NULL, ?, ?)`
+  ).run(branchId, `Initial character — ${name}`, JSON.stringify(data));
+  if (campaignId) {
+    db.prepare('INSERT OR IGNORE INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
+      .run(campaignId, characterId);
+  }
+  return { characterId, branchId, snapshotId: snap.lastInsertRowid };
+}
+
+// A light party-member PC (another player's hero, or a fallen one) — just enough for
+// the campaign roster + peek sheet.
+function partyMember(o) {
+  return {
+    basicInfo: { name: o.name, pronouns: '', ancestry: o.ancestry || '', community: '',
+      class: o.cls, subclass: o.subclass || '', level: o.level || 5, proficiency: Math.ceil((o.level || 5) / 2) },
+    traits: { agility: 0, strength: 0, finesse: 0, instinct: 0, presence: 0, knowledge: 0 },
+    resources: { hp: { current: o.hp, max: o.hpMax }, stress: { current: o.stress || 0, max: o.stressMax || 6 },
+      hope: o.hope ?? 2, gold: { handfuls: 0, bags: 0, chests: 0 } },
+    thresholds: { major: 0, severe: 0 }, defenses: { evasion: 10 },
+    armor: { equippedId: null, slotsMax: 0, slotsUsed: 0, items: [] },
+    conditions: { vulnerable: false, restrained: false, hidden: false, unconscious: false },
+    attacks: [], weapons: [], inventory: [], domainCards: [], experiences: [], features: [], downtimeProjects: [],
+    portrait: { hue: o.hue, glyph: o.glyph }, notes: '', dead: !!o.dead,
+    ...(o.fellAt ? { fellAt: o.fellAt } : {}),
+    ...(o.epitaph ? { epitaph: o.epitaph } : {}),
+  };
+}
+
 function seed() {
   const character = {
     basicInfo: {
       name: 'River Sky',
       pronouns: 'they/them',
       ancestry: 'Ribbet',
-      community: '',
+      community: 'Loreborne',
       class: 'Sorcerer',
       subclass: 'Wordsmith',
       level: 5,
       proficiency: 4
     },
+    portrait: { hue: 32, glyph: '✦' },
     traits: {
       agility: 1,
       strength: 0,
@@ -193,21 +239,21 @@ function seed() {
       knowledge: 0
     },
     resources: {
-      hp:     { current: 0, max: 12 },
-      stress: { current: 0, max: 12 },
+      hp:     { current: 7, max: 12 },
+      stress: { current: 4, max: 12 },
       hope:   3,
-      gold:   { handfuls: 0, bags: 0, chests: 0 }
+      gold:   { handfuls: 4, bags: 2, chests: 0 }
     },
     thresholds: { major: 17, severe: 38 },
     defenses: { evasion: 12 },
     armor: {
-      equippedId: null,
+      equippedId: 'ar1',
       slotsMax:   4,   // River has 4 armor slots
-      slotsUsed:  0,
-      items: []
+      slotsUsed:  1,
+      items: [ { id: 'ar1', name: 'Quilted Cloak', major: 7, severe: 14, slots: 4 } ]
     },
     conditions: {
-      vulnerable:  false,
+      vulnerable:  true,
       restrained:  false,
       hidden:      false,
       unconscious: false
@@ -260,35 +306,90 @@ function seed() {
       { id: 'w4', name: 'Long Tongue',  wield: 'main', trait: 'agility', range: 'Close',
         diceCount: 4, diceSides: 12, diceCountUseProf: true, dmod: 0, damageType: 'physical', note: 'Costs 1 Stress.' }
     ],
-    inventory:   [],
-    domainCards: [],
-    experiences: [
-      { id: 'exp1', name: 'Experience 1', description: '', modifier: 2 },
-      { id: 'exp2', name: 'Experience 2', description: '', modifier: 2 }
+    inventory: [
+      { id: 'i1', name: 'Lyra of Whispers', qty: 1, note: 'Bardic focus. +1 to Presence rolls when held.' },
+      { id: 'i2', name: 'Healing Salve',    qty: 3, note: 'Restore 1d4 HP. Single use.' },
+      { id: 'i3', name: 'Spell Components',  qty: 1, note: 'Pouch — sufficient for any spell unless the GM says otherwise.' },
+      { id: 'i4', name: 'Travel Rations',    qty: 5, note: '1 day of food.' },
+      { id: 'i5', name: 'Hooded Cloak',      qty: 1, note: '+1 to Hide rolls in dim light.' }
     ],
-    features: [],
-    downtimeProjects: [],
-    notes: '',
+    domainCards: [
+      { id: 'd1', name: 'Parallela', domain: 'Codex', recall: 2, level: 3, type: 'Spell',
+        summary: "Mirror an ally's last action.",
+        text: 'Spend 2 Hope. Choose an ally within Close range. You may immediately repeat the most recent action they took, using your own roll. The action shares its target restrictions and resource costs.' },
+      { id: 'd2', name: 'Repudiate', domain: 'Codex', recall: 1, level: 2, type: 'Reaction',
+        summary: 'Cancel an enemy spell.',
+        text: 'When an enemy within Far range casts a spell, you may interrupt it with a Presence reaction roll vs. their Spellcast. On success, the spell fizzles and the caster takes 1 Stress.' },
+      { id: 'd3', name: 'Flame Hound', domain: 'Codex', recall: 3, level: 4, type: 'Summon',
+        summary: 'Summon a fiery construct ally.',
+        text: 'Mark 1 Stress to summon a Flame Hound at Close range. It has 5 HP, Evasion 11, and may use the Construct Attack action on your turn. The hound persists until destroyed or dismissed.' },
+      { id: 'd4', name: "Wordsmith's Edge", domain: 'Codex', recall: 0, level: 1, type: 'Passive',
+        summary: 'Add Knowledge to your Spellcast crits.',
+        text: 'When you score a critical success on a Spellcast roll, add your Knowledge modifier to the damage dealt. Always active.' },
+      { id: 'd5', name: 'Glyph of Warding', domain: 'Arcana', recall: 1, level: 2, type: 'Spell',
+        summary: 'Place a damage rune on a surface.',
+        text: 'Spend an action to inscribe a glyph at Close range. The first creature to cross it takes 2d8 magical damage. Lasts until triggered or until you take a long rest.' }
+    ],
+    experiences: [
+      { id: 'exp1', name: 'Court Poet', modifier: 2, description: 'Knows the rhythms and rituals of noble houses.' },
+      { id: 'exp2', name: 'Swamp-born', modifier: 2, description: 'Comfortable in wet, low-light environments.' }
+    ],
+    features: [
+      { id: 'ft1', name: 'Volatile Magic',    note: 'Once per rest, reroll any number of your Spellcast damage dice.' },
+      { id: 'ft2', name: 'Channel Raw Power', note: 'Spend a Hope to scribe a spell from a domain card; mark it to cast at +1d6.' },
+      { id: 'ft3', name: 'Minor Illusion',    note: 'Create a small visual or audible illusion within Close range, no roll.' }
+    ],
+    downtimeProjects: [
+      { id: 'dp1', name: 'Translate the Wordstone Codex',    progress: 5, max: 8, note: 'Each long rest: a Knowledge roll adds 1–2 segments.' },
+      { id: 'dp2', name: 'Re-string the Lyra of Whispers',   progress: 8, max: 8, note: 'Complete — focus restored to full resonance.' },
+      { id: 'dp3', name: 'Map the drowned approach to Vael', progress: 2, max: 6, note: 'Vesper is helping chart the tunnels.' }
+    ],
+    notes: 'Heading to the Whispering Vaults to recover the Wordstone. Captain Brell expects us by the new moon. Still carrying Thornwick’s signet — means to return it home.',
     dead: false
   };
 
-  const characterId = db.prepare("INSERT INTO characters (name) VALUES ('River Sky')").run().lastInsertRowid;
-
-  const branchId = db.prepare(
-    `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES ('main', NULL, 1, ?)`
-  ).run(characterId).lastInsertRowid;
-
-  db.prepare(
-    `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
-     VALUES (?, NULL, 'Initial character — River Sky, Ribbet Wordsmith Lv.5', ?)`
-  ).run(branchId, JSON.stringify(character));
-
   const campaignId = db.prepare(
-    "INSERT INTO campaigns (name, description) VALUES ('Main Campaign', '')"
-  ).run().lastInsertRowid;
-  db.prepare('INSERT INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
-    .run(campaignId, characterId);
-  setActiveCharacterId(characterId);
+    'INSERT INTO campaigns (name, description, gm, tagline) VALUES (?, ?, ?, ?)'
+  ).run(
+    'Embers of the Reach',
+    'The borderlands are burning. Five companions chase the source of the wildfire blights to the drowned city of Vael.',
+    'Dana',
+    'A Daggerheart campaign'
+  ).lastInsertRowid;
+
+  const river = seedCharacter('River Sky', 'you', character, campaignId);
+
+  const thorn = seedCharacter('Thornwick the Bold', 'you', partyMember({
+    name: 'Thornwick the Bold', cls: 'Guardian', subclass: 'Stalwart', ancestry: 'Dwarf', level: 4,
+    hue: 8, glyph: '❖', hp: 0, hpMax: 11, stress: 0, stressMax: 8, hope: 0, dead: true,
+    fellAt: 'Session 6 · The Sundering Bridge', epitaph: 'Held the line so the others could cross.'
+  }), campaignId);
+
+  seedCharacter('Kesh Ironwood', 'Maya', partyMember({
+    name: 'Kesh Ironwood', cls: 'Warrior', subclass: 'Call of the Brave', ancestry: 'Human', level: 5,
+    hue: 145, glyph: '⚔', hp: 9, hpMax: 13, stress: 2, stressMax: 10, hope: 5 }), campaignId);
+  seedCharacter('Vesper Quill', 'Theo', partyMember({
+    name: 'Vesper Quill', cls: 'Rogue', subclass: 'Nightwalker', ancestry: 'Faerie', level: 5,
+    hue: 268, glyph: '◐', hp: 4, hpMax: 9, stress: 6, stressMax: 9, hope: 2 }), campaignId);
+  seedCharacter('Marrow', 'Sam', partyMember({
+    name: 'Marrow', cls: 'Druid', subclass: 'Warden of Renewal', ancestry: 'Katari', level: 5,
+    hue: 110, glyph: '❧', hp: 11, hpMax: 12, stress: 1, stressMax: 11, hope: 4 }), campaignId);
+
+  // A little past history so the shared feed isn't empty on a fresh install.
+  const s6 = db.prepare(
+    "INSERT INTO sessions (name, started_at, ended_at, branch_id, campaign_id) VALUES (?, datetime('now','localtime','-9 days'), datetime('now','localtime','-9 days','+4 hours'), ?, ?)"
+  ).run('Session 6 · The Sundering Bridge', thorn.branchId, campaignId).lastInsertRowid;
+  const s7 = db.prepare(
+    "INSERT INTO sessions (name, started_at, ended_at, branch_id, campaign_id) VALUES (?, datetime('now','localtime','-2 days'), datetime('now','localtime','-2 days','+3 hours'), ?, ?)"
+  ).run('Session 7 · Into the Vaults', river.branchId, campaignId).lastInsertRowid;
+
+  const entry = db.prepare(
+    "INSERT INTO session_entries (session_id, kind, content, created_at) VALUES (?, ?, ?, datetime('now','localtime',?))");
+  entry.run(s6, 'note', 'Death Move: Blaze of Glory — took the bridge down with the ogre. The party crossed safely.', '-9 days');
+  entry.run(s7, 'stat', 'HP: 9 → 7', '-2 days');
+  entry.run(s7, 'note', 'Found the Wordstone’s resting place sealed behind a glyph-locked door. Repudiate might crack it.', '-2 days');
+
+  setActiveCharacterId(river.characterId);
 }
 
 // Blank starter character for newly-created characters.
@@ -385,6 +486,93 @@ function diffCharacter(oldC, newC) {
   if (!oldDead && newDead) msgs.push('💀 Character has died');
   if (oldDead && !newDead) msgs.push('Character revived');
   return msgs;
+}
+
+// ── Roster / campaign-feed helpers (v2 redesign) ────────────────────────────────
+
+// A character avatar in the v2 design is a coloured sigil, not real art. Derive a
+// stable {hue, glyph} from the class when the character data doesn't carry one.
+function classGlyph(cls) {
+  return {
+    Bard: '♪', Druid: '❧', Guardian: '❖', Ranger: '➶', Rogue: '◐',
+    Seraph: '☼', Sorcerer: '✦', Warrior: '⚔', Wizard: '✶', Witch: '☾',
+  }[cls] || '✦';
+}
+function classHue(seed) {
+  let h = 0;
+  for (const ch of String(seed || '')) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+function derivePortrait(c) {
+  if (c && c.portrait && typeof c.portrait === 'object') return c.portrait;
+  const cls = c && c.basicInfo ? c.basicInfo.class : '';
+  return { hue: classHue(cls || (c && c.basicInfo && c.basicInfo.name)), glyph: classGlyph(cls) };
+}
+
+// Summarise a character (row from `characters`) from its active branch's latest
+// snapshot — everything the Campaign roster / switcher needs at a glance.
+function characterCardSummary(ch) {
+  const branch = db.prepare('SELECT * FROM branches WHERE character_id = ? AND is_active = 1 LIMIT 1').get(ch.id)
+              || db.prepare('SELECT * FROM branches WHERE character_id = ? ORDER BY id DESC LIMIT 1').get(ch.id);
+  let c = null;
+  if (branch) {
+    const snap = getLatestSnapshot(branch.id);
+    if (snap) { try { c = JSON.parse(snap.character_data); } catch { /* leave null */ } }
+  }
+  const bi  = (c && c.basicInfo) || {};
+  const res = (c && c.resources) || {};
+  const hopeIsObj = res.hope && typeof res.hope === 'object';
+  return {
+    characterId: ch.id,
+    name:     bi.name || ch.name,
+    owner:    ch.owner || 'you',
+    isYou:   (ch.owner || 'you') === 'you',
+    status:  (c && c.dead) ? 'fallen' : 'active',
+    class:    bi.class || '',
+    subclass: bi.subclass || '',
+    ancestry: bi.ancestry || '',
+    level:    bi.level ?? null,
+    portrait: derivePortrait(c),
+    hp:       res.hp || null,
+    stress:   res.stress || null,
+    hope:    (hopeIsObj ? res.hope.current : res.hope) ?? 0,
+    hopeMax: (hopeIsObj ? res.hope.max     : res.hopeMax) ?? 6,
+    fellAt:  (c && c.fellAt) || null,
+    epitaph: (c && c.epitaph) || null,
+  };
+}
+
+// Build the shared campaign feed: session_entries across the campaign's sessions
+// (attributed to each session's character + owner) plus derived session-start/end
+// milestones. Timestamps are 'YYYY-MM-DD HH:MM:SS' localtime → lexicographically
+// sortable; the client formats them into relative "when" labels.
+function buildCampaignFeed(campaignId, limit = 30) {
+  const campaign = db.prepare('SELECT name, gm FROM campaigns WHERE id = ?').get(campaignId) || {};
+  const sessions = db.prepare(`
+    SELECT s.id, s.name, s.started_at, s.ended_at,
+           ch.name AS character_name, ch.owner AS owner
+    FROM sessions s
+    LEFT JOIN branches b   ON b.id = s.branch_id
+    LEFT JOIN characters ch ON ch.id = b.character_id
+    WHERE s.campaign_id = ? ORDER BY s.id ASC`).all(campaignId);
+
+  const items = [];
+  const entryStmt = db.prepare(
+    'SELECT id, kind, content, created_at FROM session_entries WHERE session_id = ? ORDER BY id ASC');
+
+  for (const s of sessions) {
+    const who = s.character_name || campaign.name || 'The party';
+    const owner = s.owner || 'you';
+    if (s.started_at) items.push({ id: `ms${s.id}`, kind: 'milestone', who: campaign.name || who, actor: campaign.gm || 'GM', when: s.started_at, text: `${s.name} began` });
+    if (s.ended_at)   items.push({ id: `me${s.id}`, kind: 'milestone', who: campaign.name || who, actor: campaign.gm || 'GM', when: s.ended_at,   text: `${s.name} ended` });
+    for (const e of entryStmt.all(s.id)) {
+      let kind = e.kind;
+      if (/death move|blaze of glory|has died|has fallen/i.test(e.content)) kind = 'death';
+      items.push({ id: `e${e.id}`, kind, who, actor: owner, when: e.created_at, text: e.content });
+    }
+  }
+  items.sort((a, b) => String(b.when).localeCompare(String(a.when)));
+  return items.slice(0, limit);
 }
 
 // ── Express app ───────────────────────────────────────────────────────────────
@@ -487,8 +675,9 @@ app.get('/api/characters', (req, res) => {
 
 // POST /api/characters — create a new (blank) character
 app.post('/api/characters', requireAuth, (req, res) => {
-  const name = (req.body && req.body.name && req.body.name.trim()) || 'New Character';
-  const characterId = db.prepare('INSERT INTO characters (name) VALUES (?)').run(name).lastInsertRowid;
+  const name  = (req.body && req.body.name && req.body.name.trim()) || 'New Character';
+  const owner = (req.body && req.body.owner && String(req.body.owner).trim()) || 'you';
+  const characterId = db.prepare('INSERT INTO characters (name, owner) VALUES (?, ?)').run(name, owner).lastInsertRowid;
   const branchId = db.prepare(
     `INSERT INTO branches (name, parent_snapshot_id, is_active, character_id) VALUES ('main', NULL, 1, ?)`
   ).run(characterId).lastInsertRowid;
@@ -496,6 +685,12 @@ app.post('/api/characters', requireAuth, (req, res) => {
     `INSERT INTO snapshots (branch_id, parent_id, description, character_data)
      VALUES (?, NULL, 'Initial character', ?)`
   ).run(branchId, JSON.stringify(blankCharacter(name)));
+  // Optionally drop the new PC straight onto a campaign's table.
+  const campaignId = req.body && parseInt(req.body.campaignId, 10);
+  if (campaignId && db.prepare('SELECT id FROM campaigns WHERE id = ?').get(campaignId)) {
+    db.prepare('INSERT OR IGNORE INTO campaign_characters (campaign_id, character_id) VALUES (?, ?)')
+      .run(campaignId, characterId);
+  }
   setActiveCharacterId(characterId);
   res.json({ characterId, branchId, snapshotId: snap.lastInsertRowid });
 });
@@ -521,16 +716,23 @@ app.get('/api/campaigns', (req, res) => {
   res.json(rows);
 });
 
-// GET /api/campaigns/:id — detail with members and sessions
+// GET /api/campaigns/:id — detail with members (enriched roster), sessions, and feed
 app.get('/api/campaigns/:id', (req, res) => {
   const id = parseInt(req.params.id, 10);
   const campaign = db.prepare('SELECT * FROM campaigns WHERE id = ?').get(id);
   if (!campaign) return res.status(404).json({ error: 'Campaign not found' });
 
-  const characters = db.prepare(`
-    SELECT ch.id, ch.name FROM characters ch
+  const activeId = getActiveCharacterId();
+  const memberRows = db.prepare(`
+    SELECT ch.id, ch.name, ch.owner FROM characters ch
     JOIN campaign_characters cc ON cc.character_id = ch.id
-    WHERE cc.campaign_id = ? ORDER BY ch.name`).all(id);
+    WHERE cc.campaign_id = ? ORDER BY ch.id`).all(id);
+  // `characters` carries id + name (back-compat for campaigns.html) plus the v2 roster fields.
+  const characters = memberRows.map(ch => ({
+    ...characterCardSummary(ch),
+    id: ch.id,
+    isActive: ch.id === activeId,
+  }));
 
   const sessions = db.prepare(`
     SELECT s.*, ch.name AS character_name,
@@ -540,7 +742,28 @@ app.get('/api/campaigns/:id', (req, res) => {
     LEFT JOIN characters ch ON ch.id = b.character_id
     WHERE s.campaign_id = ? ORDER BY s.id DESC`).all(id);
 
-  res.json({ ...campaign, characters, sessions });
+  res.json({ ...campaign, characters, sessions, feed: buildCampaignFeed(id) });
+});
+
+// PATCH /api/campaigns/:id — edit campaign flavour (name / description / gm / tagline)
+app.patch('/api/campaigns/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!db.prepare('SELECT id FROM campaigns WHERE id = ?').get(id))
+    return res.status(404).json({ error: 'Campaign not found' });
+
+  const sets = [], vals = [];
+  for (const k of ['name', 'description', 'gm', 'tagline']) {
+    if (!req.body || !Object.prototype.hasOwnProperty.call(req.body, k)) continue;
+    const v = req.body[k];
+    if (k === 'name' && !(v && String(v).trim())) continue;  // never blank the NOT NULL name
+    sets.push(`${k} = ?`);
+    vals.push(v == null ? null : String(v));
+  }
+  if (sets.length) {
+    vals.push(id);
+    db.prepare(`UPDATE campaigns SET ${sets.join(', ')} WHERE id = ?`).run(...vals);
+  }
+  res.json({ ok: true });
 });
 
 // POST /api/campaigns — create
