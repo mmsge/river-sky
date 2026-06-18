@@ -571,9 +571,65 @@ function setFilter(f) { S.filter = f; render(); }
 
 function setPip(resource, value) {
   if (!S.char) return;
+  const prevHp = getRes('hp');
   setRes(resource, value);
   scheduleSave();
   render();
+  if (resource === 'hp') {
+    const max = getResMax('hp', 12);
+    if (prevHp < max && value >= max && !S.char.dead) openDeathMoveMobile();
+  }
+}
+
+// ─── Death move ──────────────────────────────────────────────────────────────
+
+async function logDeathNoteMobile(content) {
+  try {
+    await fetch('/api/session/note', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+  } catch (_) { /* no active session */ }
+}
+
+function openDeathMoveMobile() {
+  const opt = 'text-align:left;padding:12px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--ink);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer';
+  openOverlay(`
+    <div class="sheet-handle"></div>
+    <div style="font-family:var(--serif);font-size:20px;font-weight:600;color:var(--hp)">💀 Death's Door</div>
+    <div style="font-family:var(--font);font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.5">All HP marked. Make a death move — the GM decides which apply.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+      <button onclick="deathSurviveMobile()" style="${opt}">1 · Survive<br><span style="font-weight:400;color:var(--ink-soft);font-size:12px">Live on, potentially vulnerable.</span></button>
+      <button onclick="deathRiskMobile()" style="${opt}">2 · Risk It All<br><span style="font-weight:400;color:var(--ink-soft);font-size:12px">Roll the die — die, or survive (adjust HP yourself).</span></button>
+      <button onclick="deathBlazeMobile()" style="${opt}">3 · Blaze of Glory<br><span style="font-weight:400;color:var(--ink-soft);font-size:12px">Die, but take something down with you.</span></button>
+      <button onclick="closeOverlay()" style="padding:10px 0;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--ink-soft);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-top:4px">Close</button>
+    </div>`);
+}
+
+function deathSurviveMobile() {
+  logDeathNoteMobile('Death Move: Survive — lives on, potentially vulnerable');
+  closeOverlay();
+}
+
+function deathRiskMobile() {
+  const roll = 1 + Math.floor(Math.random() * 6);
+  const survived = roll >= 4;
+  if (!survived) { S.char.dead = true; scheduleSave(); render(); }
+  logDeathNoteMobile(`Death Move: Risk It All — rolled ${roll} — ${survived ? 'Survived (GM decides erased slots)' : 'Died'}`);
+  openOverlay(`
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;font-family:var(--serif);font-size:40px;font-weight:700">🎲 ${roll}</div>
+    <div style="text-align:center;font-family:var(--serif);font-size:18px;font-weight:600;margin-top:8px;color:${survived ? 'var(--accent)' : 'var(--hp)'}">${survived ? 'SURVIVED — adjust HP per the GM' : '💀 DIED'}</div>
+    <button onclick="closeOverlay()" style="width:100%;padding:11px 0;border-radius:8px;background:var(--accent);border:none;color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-top:18px">Close</button>`);
+}
+
+function deathBlazeMobile() {
+  const target = (prompt('What (or whom) do you take down?') || '').trim();
+  S.char.dead = true;
+  scheduleSave();
+  render();
+  logDeathNoteMobile('Death Move: Blaze of Glory' + (target ? ` — took down: ${target}` : ''));
+  closeOverlay();
 }
 
 function toggleCondition(key) {
@@ -631,7 +687,7 @@ function renderCombat() {
   return `
     <div class="resources">
       <div class="res-hero">
-        <div class="char-name">${esc(name)}</div>
+        <div class="char-name">${esc(name)}${c.dead ? ' 💀' : ''}</div>
         <div class="char-meta">L${esc(lvl)} · P+${esc(prof)}</div>
         <div class="eva-badge">EVA ${esc(evasion)}</div>
       </div>

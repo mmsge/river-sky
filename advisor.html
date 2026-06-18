@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>River Sky — Combat Field Manual</title>
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --parchment: #f4e8c1;
+      --ink: #2b1d0e;
+      --ink-light: #5c3d1e;
+      --border: #8b4513;
+      --gold: #c8860a;
+      --spell: #8b1a0a;
+      --weapon: #1a3d5c;
+      --ability: #4a1a6e;
+      --danger: #8b0000;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--parchment);
+      background-image:
+        radial-gradient(ellipse at 15% 30%, rgba(139,90,43,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 70%, rgba(100,60,20,0.07) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(139,90,43,0.015) 3px, rgba(139,90,43,0.015) 4px),
+        repeating-linear-gradient(0deg,  transparent, transparent 4px, rgba(139,90,43,0.01)  4px, rgba(139,90,43,0.01)  5px);
+      font-family: 'IM Fell English', Georgia, serif;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse at top left,    rgba(100,60,10,0.13) 0%, transparent 28%),
+        radial-gradient(ellipse at bottom right, rgba(100,60,10,0.11) 0%, transparent 28%),
+        radial-gradient(ellipse at top right,    rgba(80,40,10,0.07)  0%, transparent 22%);
+    }
+
+    body > * { position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 22px 16px 14px;
+      border-bottom: 3px double var(--border);
+      background: linear-gradient(180deg, rgba(200,134,10,0.09) 0%, transparent 100%);
+    }
+    .char-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.5rem, 4vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-shadow: 1px 1px 0 rgba(200,134,10,0.3);
+    }
+    .char-subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.7rem, 2vw, 0.85rem);
+      color: var(--ink-light);
+      letter-spacing: 0.12em;
+      margin-top: 4px;
+    }
+    .char-traits {
+      display: flex; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+    }
+    .trait-badge {
+      font-family: 'Cinzel', serif;
+      font-size: 0.75rem;
+      background: rgba(139,69,19,0.11);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 2px 8px;
+      color: var(--ink-light);
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      background: rgba(139,69,19,0.05);
+    }
+    .tab-btn {
+      flex: 1; padding: 11px 16px;
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.75rem, 2.5vw, 0.95rem);
+      font-weight: 600; letter-spacing: 0.08em;
+      background: none; border: none;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      cursor: pointer; color: var(--ink-light); transition: all 0.18s;
+    }
+    .tab-btn:hover { background: rgba(200,134,10,0.09); }
+    .tab-btn.active { color: var(--ink); border-bottom-color: var(--gold); background: rgba(200,134,10,0.12); }
+
+    /* ── Main ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 20px 14px 60px; }
+    .hidden { display: none !important; }
+
+    /* ══════════ COMBAT ADVISOR ══════════ */
+    .advisor-grid {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      gap: 22px; align-items: start;
+    }
+    @media (max-width: 680px) { .advisor-grid { grid-template-columns: 1fr; } }
+
+    .form-panel {
+      background: rgba(244,232,193,0.7);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 15px;
+      box-shadow: inset 0 0 20px rgba(139,69,19,0.05), 2px 2px 8px rgba(0,0,0,0.09);
+    }
+    .form-panel h2, .results-panel h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--ink-light);
+      border-bottom: 1px solid rgba(139,69,19,0.3);
+      padding-bottom: 7px; margin-bottom: 13px;
+    }
+    .field-group { margin-bottom: 13px; }
+    .field-label { display: block; font-size: 0.83rem; font-weight: bold; margin-bottom: 5px; }
+    .radio-row { display: flex; flex-direction: column; gap: 4px; }
+    .radio-row label, .check-label {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.82rem; cursor: pointer;
+    }
+    .radio-row input[type="radio"],
+    input[type="checkbox"] { accent-color: var(--gold); width: 14px; height: 14px; cursor: pointer; }
+    .number-row { display: flex; align-items: center; gap: 8px; }
+    .number-row input[type="number"] {
+      width: 56px; padding: 3px 6px; text-align: center;
+      font-family: 'IM Fell English', serif; font-size: 0.9rem;
+      background: rgba(244,232,193,0.8);
+      border: 1px solid var(--border); border-radius: 3px; color: var(--ink);
+    }
+    .submit-btn {
+      width: 100%; padding: 9px;
+      font-family: 'Cinzel', serif; font-size: 0.9rem;
+      font-weight: 700; letter-spacing: 0.1em;
+      background: linear-gradient(180deg, #c8860a 0%, #9b6507 100%);
+      color: #fff8e7; border: 1px solid #7a4e05; border-radius: 4px;
+      cursor: pointer; margin-top: 6px;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18); transition: all 0.15s;
+    }
+    .submit-btn:hover { background: linear-gradient(180deg, #d49612 0%, #a87008 100%); }
+    .submit-btn:active { transform: translateY(1px); box-shadow: none; }
+
+    /* ── Result cards ── */
+    .results-empty { font-style: italic; color: var(--ink-light); opacity: 0.65; padding: 16px 0; }
+
+    .attack-card {
+      background: rgba(255,248,230,0.88);
+      border: 1px solid var(--border); border-radius: 4px;
+      padding: 11px 13px; margin-bottom: 9px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.07);
+    }
+    .attack-card.unavailable {
+      opacity: 0.42; filter: grayscale(0.5); border-style: dashed;
+    }
+    .attack-card-header { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; }
+    .rank-badge { font-size: 1.15rem; flex-shrink: 0; min-width: 26px; }
+    .attack-name { font-family: 'Cinzel', serif; font-size: 0.97rem; font-weight: 700; }
+    .attack-dice { font-style: italic; font-size: 0.82rem; color: var(--ink-light); margin-left: auto; white-space: nowrap; }
+
+    .type-spell  .attack-name { color: var(--spell); }
+    .type-weapon .attack-name { color: var(--weapon); }
+    .type-ability .attack-name { color: var(--ability); }
+
+    .attack-stats { display: flex; gap: 18px; font-size: 0.8rem; margin-bottom: 5px; flex-wrap: wrap; }
+    .stat-item { display: flex; flex-direction: column; }
+    .stat-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
+    .stat-value { font-family: 'Cinzel', serif; font-size: 0.86rem; font-weight: 600; }
+
+    .attack-note {
+      font-size: 0.81rem; font-style: italic; color: var(--ink-light);
+      border-top: 1px solid rgba(139,69,19,0.18); padding-top: 5px; margin-top: 3px;
+    }
+    .unavail-reason { font-size: 0.78rem; color: #888; font-style: italic; margin-top: 3px; }
+
+    .ff-warning {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--danger); color: #fff8e7;
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.82rem; font-weight: bold; margin-bottom: 10px;
+      font-family: 'Cinzel', serif; letter-spacing: 0.05em;
+    }
+    .hope-note {
+      background: #fef9e7; border-left: 3px solid #f1c40f;
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.88rem; margin-bottom: 10px;
+    }
+    .caster-note {
+      background: #eaf4fb; border-left: 3px solid #2e86c1;
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.88rem; margin-bottom: 10px;
+    }
+    .unavail-header {
+      font-family: 'Cinzel', serif; font-size: 0.75rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink-light); opacity: 0.65; margin: 15px 0 7px;
+    }
+
+    /* ══════════ DAMAGE BROWSER ══════════ */
+    .browser-h2 {
+      font-family: 'Cinzel', serif; font-size: 0.88rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-light);
+      border-bottom: 1px solid rgba(139,69,19,0.3);
+      padding-bottom: 7px; margin-bottom: 14px;
+    }
+    .type-legend { display: flex; gap: 14px; margin-bottom: 14px; font-size: 0.78rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+
+    .overlay-panel {
+      background: rgba(255,248,230,0.88); border: 1px solid var(--border);
+      border-radius: 4px; padding: 14px; margin-bottom: 22px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.07);
+    }
+    .overlay-panel h3 {
+      font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 700;
+      letter-spacing: 0.08em; margin-bottom: 9px; color: var(--ink-light);
+    }
+    .overlay-toggles { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    .overlay-toggle { display: flex; align-items: center; gap: 5px; font-size: 0.78rem; cursor: pointer; }
+    .overlay-swatch { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+
+    .chart-panel {
+      background: rgba(255,248,230,0.88); border: 1px solid var(--border);
+      border-radius: 4px; padding: 13px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.07);
+    }
+    .chart-panel-header { display: flex; align-items: baseline; gap: 9px; margin-bottom: 7px; }
+    .chart-panel-name { font-family: 'Cinzel', serif; font-size: 0.92rem; font-weight: 700; }
+    .chart-panel-dice { font-style: italic; font-size: 0.78rem; color: var(--ink-light); }
+    .panel-spell   .chart-panel-name { color: var(--spell); }
+    .panel-weapon  .chart-panel-name { color: var(--weapon); }
+    .panel-ability .chart-panel-name { color: var(--ability); }
+
+    .chart-canvas {
+      display: block; width: 100%; height: 155px;
+      cursor: crosshair; border: 1px solid rgba(139,69,19,0.18);
+      border-radius: 2px; background: rgba(244,232,193,0.28);
+    }
+    .chart-canvas-lg { height: 195px; }
+
+    .chart-stats { display: flex; gap: 14px; margin-top: 7px; flex-wrap: wrap; }
+    .cs { display: flex; flex-direction: column; }
+    .cs-label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-light); }
+    .cs-val { font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; }
+    .threshold-lbl { font-size: 0.76rem; font-style: italic; color: #a00; margin-top: 4px; min-height: 1.1em; }
+
+    .utility-panel {
+      background: rgba(255,248,230,0.88); border: 1px solid var(--border);
+      border-radius: 4px; padding: 13px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.07);
+      font-style: italic; color: var(--ink-light); font-size: 0.85rem;
+    }
+    .ornament { text-align: center; color: var(--border); font-size: 1.1rem; letter-spacing: 0.3em; margin: 6px 0 18px; opacity: 0.45; }
+    .sync-caption {
+      font-size: 0.72rem; font-style: italic; color: var(--ink-light);
+      opacity: 0.7; margin-bottom: 10px; margin-top: -8px;
+    }
+    .sync-error {
+      background: #fff0f0; border-left: 3px solid var(--danger);
+      padding: 8px 12px; border-radius: 4px;
+      font-size: 0.84rem; color: var(--danger);
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="text-align:right;padding-bottom:6px;display:flex;justify-content:flex-end;gap:8px">
+    <a href="/" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">🏠 Characters</a>
+    <a href="/character.html" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">📜 Character Sheet</a>
+    <a href="/odds.html" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">🎲 Roll Odds</a>
+    <a href="/mobile.html" style="font-family:'Cinzel',serif;font-size:0.75rem;color:var(--ink-light);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:3px 10px;background:rgba(139,69,19,0.06)">📱 Mobile</a>
+  </div>
+  <div class="char-title" id="adv-name">River Sky</div>
+  <div class="char-subtitle" id="adv-subtitle">Ribbet Wordsmith &nbsp;·&nbsp; Level 5 &nbsp;·&nbsp; Proficiency 4</div>
+  <div class="char-traits" id="adv-traits">
+    <span class="trait-badge">Agility +1</span>
+    <span class="trait-badge">Finesse +2</span>
+    <span class="trait-badge">Presence / Spellcast +4</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="advisor">⚔ Combat Advisor</button>
+  <button class="tab-btn" data-tab="browser">📊 Damage Browser</button>
+</nav>
+
+<main>
+
+  <!-- ══ COMBAT ADVISOR ══ -->
+  <section id="advisor-section">
+    <div class="advisor-grid">
+
+      <aside class="form-panel">
+        <h2>⚙ Combat Conditions</h2>
+
+        <div class="field-group">
+          <span class="field-label">Allied positioning</span>
+          <div class="radio-row">
+            <label><input type="radio" name="allies" value="nearby"> Allies nearby (Very Close of target)</label>
+            <label><input type="radio" name="allies" value="isolated" checked> Enemy is isolated</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Number of enemies</span>
+          <div class="radio-row">
+            <label><input type="radio" name="count" value="1" checked> Single target</label>
+            <label><input type="radio" name="count" value="2-3"> 2–3 clustered</label>
+            <label><input type="radio" name="count" value="4+"> 4+ clustered</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Range to enemy</span>
+          <div class="radio-row">
+            <label><input type="radio" name="range" value="Melee" checked> Melee</label>
+            <label><input type="radio" name="range" value="Close"> Close</label>
+            <label><input type="radio" name="range" value="Far"> Far</label>
+            <label><input type="radio" name="range" value="Very Far"> Very Far</label>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">Enemy traits</span>
+          <label class="check-label"><input type="checkbox" id="chkFlying"> Enemy is flying</label>
+          <label class="check-label" style="margin-top:4px"><input type="checkbox" id="chkCaster"> Enemy is a spellcaster</label>
+        </div>
+
+        <div class="field-group">
+          <span class="field-label">River's resources</span>
+          <label class="check-label"><input type="checkbox" id="chkStress" checked> Have Stress to spend</label>
+          <label class="check-label" style="margin-top:4px"><input type="checkbox" id="chkConstruct"> Construct already active</label>
+          <div class="number-row" style="margin-top:8px">
+            <label class="field-label" style="margin-bottom:0">Hope tokens:</label>
+            <input type="number" id="numHope" value="3" min="0" max="7">
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="number-row">
+            <label class="field-label" style="margin-bottom:0">Enemy difficulty:</label>
+            <input type="number" id="numDiff" value="14" min="8" max="20">
+          </div>
+        </div>
+
+        <button class="submit-btn" onclick="runAdvisor()">Consult the Field Manual</button>
+      </aside>
+
+      <div class="results-panel">
+        <h2>🗡 Attack Rankings</h2>
+        <p id="sync-caption" class="sync-caption" style="display:none">Synced from character sheet</p>
+        <div id="sync-error" class="sync-error" style="display:none">⚠ Could not load character data — attacks unavailable. Check that the server is running.</div>
+        <div id="advisor-out">
+          <p class="results-empty"><em>Set combat conditions and press "Consult the Field Manual" to see ranked attack options.</em></p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ DAMAGE BROWSER ══ -->
+  <section id="browser-section" class="hidden">
+
+    <p class="browser-h2">📖 Damage Distributions</p>
+
+    <div class="type-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#c0392b;opacity:0.85"></span> Spells &amp; Construct — warm tones</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#2471a3;opacity:0.85"></span> Weapons — cool tones</span>
+    </div>
+
+    <div class="overlay-panel">
+      <h3>Overlay Comparison</h3>
+      <div class="overlay-toggles" id="overlay-toggles"></div>
+      <canvas id="overlay-canvas" class="chart-canvas chart-canvas-lg"></canvas>
+    </div>
+
+    <div class="ornament">✦ ✦ ✦</div>
+
+    <div class="chart-grid" id="chart-grid"></div>
+
+  </section>
+
+</main>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════
+// DATA  (populated from /api/character on load)
+// ══════════════════════════════════════════
+
+let ATTACKS = [];
+
+const TYPE_COLOR = { spell:'#c0392b', weapon:'#1a5276', ability:'#6c3483' };
+
+const ATTACK_COLOR = {
+  'Fireball':        '#c0392b',
+  'Wild Flame':      '#e67e22',
+  'Wall of Flame':   '#e74c3c',
+  'Construct Attack':'#b7500a',
+  'Blunderburst':    '#2471a3',
+  'Bladed Whip':     '#148f77',
+  'Whip':            '#1a8a9e',
+  'Long Tongue':     '#27ae60',
+  'Mystic Tether':   '#8e44ad',
+};
+
+// ══════════════════════════════════════════
+// MATH
+// ══════════════════════════════════════════
+
+function hitBreakdown(mod, diff) {
+  let crits = 0, hits = 0;
+  for (let a = 1; a <= 12; a++)
+    for (let b = 1; b <= 12; b++) {
+      if (a === b) crits++;
+      else if (a + b + mod >= diff) hits++;
+    }
+  return { crit: crits / 144, hit: hits / 144, total: (crits + hits) / 144 };
+}
+
+function hitProb(mod, diff) { return hitBreakdown(mod, diff).total; }
+
+// Returns {value: probability} exact distribution via convolution
+function diceDist(n, sides) {
+  let d = {};
+  for (let f = 1; f <= sides; f++) d[f] = 1;
+  for (let i = 1; i < n; i++) {
+    const nd = {};
+    for (const [k, c] of Object.entries(d))
+      for (let f = 1; f <= sides; f++) {
+        const key = +k + f;
+        nd[key] = (nd[key] || 0) + c;
+      }
+    d = nd;
+  }
+  const total = Math.pow(sides, n);
+  const out = {};
+  for (const [k, c] of Object.entries(d)) out[+k] = c / total;
+  return out;
+}
+
+function shiftDist(dist, mod) {
+  if (!mod) return { ...dist };
+  const out = {};
+  for (const [k, p] of Object.entries(dist)) out[+k + mod] = p;
+  return out;
+}
+
+function halfDist(dist) {
+  const out = {};
+  for (const [k, p] of Object.entries(dist)) {
+    const h = Math.floor(+k / 2);
+    out[h] = (out[h] || 0) + p;
+  }
+  return out;
+}
+
+function distStats(dist) {
+  const keys = Object.keys(dist).map(Number).sort((a,b)=>a-b);
+  let mean = 0, modeP = 0, modeV = keys[0];
+  for (const k of keys) {
+    mean += k * dist[k];
+    if (dist[k] > modeP) { modeP = dist[k]; modeV = k; }
+  }
+  return { min: keys[0], max: keys[keys.length-1], mean, mode: modeV, modeP };
+}
+
+function cdfRight(dist, threshold) {
+  let p = 0;
+  for (const [k, prob] of Object.entries(dist))
+    if (+k >= threshold) p += prob;
+  return p;
+}
+
+function meanOf(atk) {
+  if (!atk.dice) return 0;
+  return atk.dice[0] * (atk.dice[1] + 1) / 2 + atk.dmod;
+}
+
+let DISTS = {};
+
+function buildDists() {
+  DISTS = {};
+  for (const atk of ATTACKS) {
+    if (!atk.dice) continue;
+    const raw = diceDist(atk.dice[0], atk.dice[1]);
+    const full = shiftDist(raw, atk.dmod);
+    DISTS[atk.name] = { full };
+    if (atk.friendlyFire) DISTS[atk.name].half = halfDist(full);
+  }
+}
+
+// ══════════════════════════════════════════
+// CHARACTER SYNC
+// ══════════════════════════════════════════
+
+function migrateAttacks(rawAttacks) {
+  return (rawAttacks || []).map(a => {
+    if (Array.isArray(a.dice)) {
+      const [count, sides] = a.dice;
+      return { ...a, diceCount: count || 0, diceSides: sides || 6, dice: undefined };
+    }
+    return { diceCount: 0, diceSides: 6, ...a };
+  });
+}
+
+function mapToAdvisorAttack(atk, proficiency) {
+  const mod       = atk.modUseProf       ? proficiency : (atk.mod       || 0);
+  const diceCount = atk.diceCountUseProf ? proficiency : (atk.diceCount || 0);
+  const diceSides = atk.diceSides || 6;
+  const dmod      = atk.dmod || 0;
+  const range     = Array.isArray(atk.range)
+    ? atk.range
+    : (atk.range || '').split(',').map(s => s.trim()).filter(Boolean);
+
+  let str;
+  if (!diceCount) {
+    str = '—';
+  } else {
+    str = `${diceCount}d${diceSides}`;
+    if (dmod > 0) str += `+${dmod}`;
+    else if (dmod < 0) str += `${dmod}`;
+  }
+
+  return {
+    name:          atk.name,
+    type:          atk.type || 'weapon',
+    mod,
+    dice:          diceCount > 0 ? [diceCount, diceSides] : null,
+    dmod,
+    str,
+    range,
+    note:          atk.note || '',
+    aoe:           !!atk.aoe,
+    friendlyFire:  !!atk.friendlyFire,
+    noRoll:        !!atk.noRoll,
+    utility:       !!atk.utility,
+    groundsFliers: !!atk.groundsFliers,
+    costStress:    !!atk.costStress,
+    needConstruct: !!atk.needConstruct,
+  };
+}
+
+async function initAttacks() {
+  const out = document.getElementById('advisor-out');
+  out.innerHTML = '<p class="results-empty"><em>Loading attacks from character sheet…</em></p>';
+
+  try {
+    const resp = await fetch('/api/character');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    const prof     = data.character.basicInfo?.proficiency || 0;
+    const migrated = migrateAttacks(data.character.attacks);
+    ATTACKS        = migrated.map(a => mapToAdvisorAttack(a, prof));
+    buildDists();
+
+    // Reflect the active character in the header.
+    const bi = data.character.basicInfo || {};
+    const nameEl = document.getElementById('adv-name');
+    if (nameEl) nameEl.textContent = (bi.name || 'Character') + (data.character.dead ? ' 💀' : '');
+    const subEl = document.getElementById('adv-subtitle');
+    if (subEl) subEl.innerHTML = [bi.ancestry, bi.subclass || bi.class, bi.level != null ? 'Level ' + bi.level : '', 'Proficiency ' + prof]
+      .filter(Boolean).join(' &nbsp;·&nbsp; ');
+    const traitsEl = document.getElementById('adv-traits');
+    if (traitsEl) {
+      const t = data.character.traits || {};
+      traitsEl.innerHTML = Object.entries(t)
+        .map(([k, v]) => `<span class="trait-badge">${k.charAt(0).toUpperCase() + k.slice(1)} ${v >= 0 ? '+' : ''}${v}</span>`)
+        .join('');
+    }
+
+    document.getElementById('sync-caption').style.display = '';
+    out.innerHTML = '<p class="results-empty"><em>Set combat conditions and press “Consult the Field Manual” to see ranked attack options.</em></p>';
+  } catch (err) {
+    document.getElementById('sync-error').style.display = '';
+    out.innerHTML = '<p class="results-empty"><em>Set combat conditions and press “Consult the Field Manual” to see ranked attack options.</em></p>';
+    console.error('Failed to load character:', err);
+  }
+}
+
+// ══════════════════════════════════════════
+// COMBAT ADVISOR
+// ══════════════════════════════════════════
+
+function getConditions() {
+  return {
+    allies:   document.querySelector('input[name="allies"]:checked')?.value === 'nearby',
+    count:    document.querySelector('input[name="count"]:checked')?.value || '1',
+    range:    document.querySelector('input[name="range"]:checked')?.value || 'Melee',
+    flying:   document.getElementById('chkFlying').checked,
+    caster:   document.getElementById('chkCaster').checked,
+    stress:   document.getElementById('chkStress').checked,
+    construct:document.getElementById('chkConstruct').checked,
+    hope:     parseInt(document.getElementById('numHope').value) || 0,
+    diff:     parseInt(document.getElementById('numDiff').value) || 14,
+  };
+}
+
+function checkAvail(atk, c) {
+  if (!atk.range.includes(c.range))   return 'Out of range — requires ' + atk.range.join(' or ');
+  if (atk.costStress && !c.stress)    return 'Requires Stress to spend';
+  if (atk.needConstruct && !c.construct) return 'Requires construct already active';
+  return null;
+}
+
+function scoreAtk(atk, c) {
+  const hp   = atk.noRoll ? 1.0 : hitProb(atk.mod, c.diff);
+  const avgD = atk.utility ? 20 : meanOf(atk);
+  let sc = hp * avgD;
+  if (atk.aoe) {
+    if (c.count === '4+')  sc *= 2.5;
+    else if (c.count === '2-3') sc *= 1.6;
+  }
+  if (atk.friendlyFire && c.allies)   sc *= 0.2;
+  if (atk.groundsFliers && c.flying)  sc += 30;
+  if (atk.costStress)                 sc *= 0.85;
+  return sc;
+}
+
+function tacticalNote(atk, c) {
+  const n = atk.name, { allies, count, flying } = c;
+  if (n === 'Fireball') {
+    const parts = [];
+    if (allies) parts.push('Allies are in the blast radius — extreme friendly fire risk.');
+    if (count === '4+') parts.push('Exceptional AoE value against the cluster.');
+    else if (count === '2-3') parts.push('Good AoE spread across clustered enemies.');
+    else parts.push('Single-target situation — a focused attack likely deals more reliable damage.');
+    return parts.join(' ');
+  }
+  if (n === 'Mystic Tether') {
+    if (flying) return 'Priority pick — grounds the flier and restrains them at Far range without burning damage.';
+    return 'Strong control option: restrains a Far target and prevents escape. Excellent against spellcasters.';
+  }
+  if (n === 'Wild Flame') {
+    if (count === '1') return 'Low single-target output. Save this for when enemies are clustered in Melee.';
+    return `Efficient AoE — hits up to 3 targets in Melee range. ${count === '4+' ? 'Prioritise this in the crowd.' : 'Good value against the cluster.'}`;
+  }
+  if (n === 'Wall of Flame') return 'No attack roll needed for crossing creatures — guaranteed damage as a choke-point barrier.';
+  if (n === 'Long Tongue')   return 'Highest damage ceiling of any Close weapon. The Stress cost is a strong trade when resources allow.';
+  if (n === 'Blunderburst')  return 'Reliable and safe at Close range. No resource cost; the +6 modifier keeps damage output consistent.';
+  if (n === 'Bladed Whip')   return 'High die count gives solid average Melee damage. Lower hit modifier, but crits hit hard.';
+  if (n === 'Whip')          return 'Highest hit modifier (+4) of any weapon. Light damage, but near-certain to land.';
+  if (n === 'Construct Attack') return 'Flexible range and high hit modifier — worth using on any turn the construct is already active.';
+  return atk.note;
+}
+
+const BADGES = ['🥇','🥈','🥉','④','⑤','⑥','⑦','⑧','⑨'];
+
+function runAdvisor() {
+  const c = getConditions();
+  const avail = [], unavail = [];
+
+  for (const atk of ATTACKS) {
+    const reason = checkAvail(atk, c);
+    if (reason) unavail.push({ atk, reason });
+    else avail.push({ atk, sc: scoreAtk(atk, c) });
+  }
+  avail.sort((a,b) => b.sc - a.sc);
+
+  let html = '';
+
+  const fbAvail = avail.find(x => x.atk.name === 'Fireball');
+  if (fbAvail && c.allies)
+    html += `<div class="ff-warning">⚠️ FRIENDLY FIRE — Fireball will hit any ally within Very Close of the target!</div>`;
+  if (c.hope >= 2)
+    html += `<div class="hope-note">✦ With ${c.hope} Hope, <strong>Parallela</strong> is available this turn.</div>`;
+  if (c.caster)
+    html += `<div class="caster-note">⚑ Enemy is a spellcaster — consider holding <strong>Repudiate</strong> as a reaction rather than ranking it as an attack.</div>`;
+
+  for (let i = 0; i < avail.length; i++) {
+    const { atk } = avail[i];
+    const hp = atk.noRoll ? null : hitProb(atk.mod, c.diff);
+    const ad = atk.utility ? null : meanOf(atk);
+    const hitStr = hp != null ? Math.round(hp * 100) + '%' : (atk.noRoll ? 'Auto ✓' : '—');
+    const dmgStr = ad != null ? ad.toFixed(1) : 'Utility';
+    const badge  = BADGES[i] || (i+1) + '.';
+
+    html += `<div class="attack-card type-${atk.type}">
+      <div class="attack-card-header">
+        <span class="rank-badge">${badge}</span>
+        <span class="attack-name">${atk.name}</span>
+        <span class="attack-dice">${atk.str}</span>
+      </div>
+      <div class="attack-stats">
+        <div class="stat-item"><span class="stat-label">Hit Chance</span><span class="stat-value">${hitStr}</span></div>
+        <div class="stat-item"><span class="stat-label">Avg Damage</span><span class="stat-value">${dmgStr}</span></div>
+        <div class="stat-item"><span class="stat-label">Type</span><span class="stat-value" style="text-transform:capitalize">${atk.type}</span></div>
+      </div>
+      <div class="attack-note">${tacticalNote(atk, c)}</div>
+    </div>`;
+  }
+
+  if (unavail.length) {
+    html += `<div class="unavail-header">— Unavailable —</div>`;
+    for (const { atk, reason } of unavail)
+      html += `<div class="attack-card unavailable type-${atk.type}">
+        <div class="attack-card-header">
+          <span class="rank-badge" style="opacity:.5">✕</span>
+          <span class="attack-name">${atk.name}</span>
+          <span class="attack-dice">${atk.str}</span>
+        </div>
+        <div class="unavail-reason">⊘ ${reason}</div>
+      </div>`;
+  }
+
+  document.getElementById('advisor-out').innerHTML = html;
+}
+
+// ══════════════════════════════════════════
+// DAMAGE BROWSER — CANVAS CHARTS
+// ══════════════════════════════════════════
+
+function drawChart(canvas, series, threshX) {
+  // series: [{dist, color, alpha}]
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const cw = Math.round(rect.width * dpr);
+  const ch = Math.round(rect.height * dpr);
+  if (canvas.width !== cw || canvas.height !== ch) { canvas.width = cw; canvas.height = ch; }
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const PAD = { t:8, r:10, b:38, l:44 };
+  const CW = W - PAD.l - PAD.r, CH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Compute bounds
+  let xMin = Infinity, xMax = -Infinity, yMax = 0;
+  for (const { dist } of series) {
+    for (const [k, p] of Object.entries(dist)) {
+      const kk = +k;
+      if (kk < xMin) xMin = kk;
+      if (kk > xMax) xMax = kk;
+      if (p > yMax) yMax = p;
+    }
+  }
+  if (xMin === Infinity) { ctx.restore(); return; }
+  const range = xMax - xMin + 1;
+  const bw = CW / range;
+
+  // Grid
+  ctx.strokeStyle = 'rgba(139,69,19,0.13)'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= 4; i++) {
+    const y = PAD.t + CH - (i / 4) * CH;
+    ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + CW, y); ctx.stroke();
+  }
+
+  // Bars
+  for (const { dist, color, alpha = 1 } of series) {
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    for (const [k, p] of Object.entries(dist)) {
+      const x = PAD.l + (+k - xMin) * bw;
+      const bh = yMax > 0 ? (p / yMax) * CH : 0;
+      ctx.fillRect(x + 0.5, PAD.t + CH - bh, Math.max(1, bw - 1), bh);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Axes
+  ctx.strokeStyle = 'rgba(43,29,14,0.65)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD.l, PAD.t);
+  ctx.lineTo(PAD.l, PAD.t + CH);
+  ctx.lineTo(PAD.l + CW, PAD.t + CH);
+  ctx.stroke();
+
+  // Y labels
+  ctx.fillStyle = '#5c3d1e'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.font = '9px IM Fell English, serif';
+  for (let i = 0; i <= 4; i++) {
+    const pct = (i / 4) * yMax * 100;
+    const y = PAD.t + CH - (i / 4) * CH;
+    ctx.fillText(pct.toFixed(pct < 10 ? 1 : 0) + '%', PAD.l - 3, y);
+  }
+
+  // X labels
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const tickEvery = range > 60 ? 10 : range > 30 ? 5 : range > 15 ? 2 : 1;
+  let lastLX = -Infinity;
+  for (let k = xMin; k <= xMax; k++) {
+    if (k % tickEvery === 0 || k === xMin || k === xMax) {
+      const x = PAD.l + (k - xMin) * bw + bw / 2;
+      if (x - lastLX > 16) { ctx.fillText(k, x, PAD.t + CH + 4); lastLX = x; }
+    }
+  }
+
+  // Threshold line
+  if (threshX != null && threshX >= xMin && threshX <= xMax) {
+    const tx = PAD.l + (threshX - xMin) * bw + bw / 2;
+    ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(tx, PAD.t); ctx.lineTo(tx, PAD.t + CH); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.restore();
+}
+
+// Per-chart state for threshold interaction
+const chartStates = {};
+
+function setupDrag(canvas, series, labelEl) {
+  const id = canvas.id;
+  chartStates[id] = null;
+
+  function xValAt(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    const relX = clientX - rect.left;
+    let xMin = Infinity, xMax = -Infinity;
+    for (const { dist } of series)
+      for (const k of Object.keys(dist)) { const kk = +k; if (kk < xMin) xMin = kk; if (kk > xMax) xMax = kk; }
+    const bw = (rect.width - 54) / (xMax - xMin + 1);
+    return Math.max(xMin, Math.min(xMax, Math.round(xMin + (relX - 44) / bw)));
+  }
+
+  function update(clientX) {
+    const xv = xValAt(clientX);
+    chartStates[id] = xv;
+    // Average CDF across series (for Fireball shows avg of full+half)
+    let sumCdf = 0;
+    for (const { dist } of series) sumCdf += cdfRight(dist, xv);
+    const pct = Math.round((sumCdf / series.length) * 100);
+    if (labelEl) labelEl.textContent = `≥${xv} damage: ${pct}% chance`;
+    drawChart(canvas, series, xv);
+  }
+
+  canvas.addEventListener('mousemove', e => update(e.clientX));
+  canvas.addEventListener('touchmove', e => { e.preventDefault(); update(e.touches[0].clientX); }, { passive: false });
+  canvas.addEventListener('mouseleave', () => {
+    chartStates[id] = null;
+    if (labelEl) labelEl.textContent = '← Hover chart to see cumulative chance';
+    drawChart(canvas, series, null);
+  });
+}
+
+// ── Overlay ──
+const overlayActive = new Set();
+
+function drawOverlay() {
+  const canvas = document.getElementById('overlay-canvas');
+  const series = [];
+  for (const atk of ATTACKS) {
+    if (!DISTS[atk.name] || !overlayActive.has(atk.name)) continue;
+    series.push({ dist: DISTS[atk.name].full, color: ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type], alpha: 0.6 });
+  }
+  drawChart(canvas, series, null);
+}
+
+// ── Build browser ──
+function buildBrowser() {
+  // Overlay toggles
+  const togglesEl = document.getElementById('overlay-toggles');
+  togglesEl.innerHTML = '';
+  for (const atk of ATTACKS) {
+    if (!DISTS[atk.name]) continue;
+    const color = ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type];
+    const lbl = document.createElement('label');
+    lbl.className = 'overlay-toggle';
+    lbl.innerHTML = `<input type="checkbox" data-n="${atk.name}">
+      <span class="overlay-swatch" style="background:${color}"></span>
+      <span>${atk.name}</span>`;
+    lbl.querySelector('input').addEventListener('change', e => {
+      e.target.checked ? overlayActive.add(atk.name) : overlayActive.delete(atk.name);
+      drawOverlay();
+    });
+    togglesEl.appendChild(lbl);
+  }
+  requestAnimationFrame(drawOverlay);
+
+  // Individual charts
+  const grid = document.getElementById('chart-grid');
+  grid.innerHTML = '';
+
+  let idx = 0;
+  for (const atk of ATTACKS) {
+    if (atk.utility) {
+      const p = document.createElement('div');
+      p.className = `chart-panel panel-${atk.type}`;
+      p.innerHTML = `<div class="chart-panel-header">
+        <span class="chart-panel-name">${atk.name}</span>
+        <span class="chart-panel-dice">${atk.str}</span></div>
+        <div class="utility-panel">${atk.note}<br><br>No damage distribution — utility only.</div>`;
+      grid.appendChild(p);
+      continue;
+    }
+
+    const distData = DISTS[atk.name];
+    const color = ATTACK_COLOR[atk.name] ?? TYPE_COLOR[atk.type];
+    const st = distStats(distData.full);
+    const canvasId = 'c' + (idx++);
+
+    const isFireball = atk.name === 'Fireball';
+    const fireballLegend = isFireball ? `
+      <div style="font-size:0.72rem;font-style:italic;color:var(--ink-light);margin-bottom:4px">
+        <span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:2px;vertical-align:middle"></span> Full (failed save) &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;background:${color};opacity:0.38;border-radius:2px;vertical-align:middle"></span> Half (passed save)
+      </div>` : '';
+
+    const panel = document.createElement('div');
+    panel.className = `chart-panel panel-${atk.type}`;
+    panel.innerHTML = `
+      <div class="chart-panel-header">
+        <span class="chart-panel-name">${atk.name}</span>
+        <span class="chart-panel-dice">${atk.str}</span>
+      </div>
+      ${fireballLegend}
+      <canvas id="${canvasId}" class="chart-canvas"></canvas>
+      <div class="chart-stats">
+        <div class="cs"><span class="cs-label">Min</span><span class="cs-val">${st.min}</span></div>
+        <div class="cs"><span class="cs-label">Max</span><span class="cs-val">${st.max}</span></div>
+        <div class="cs"><span class="cs-label">Mean</span><span class="cs-val">${st.mean.toFixed(1)}</span></div>
+        <div class="cs"><span class="cs-label">Mode</span><span class="cs-val">${st.mode} <span style="font-size:0.7rem;font-family:serif">(${(st.modeP*100).toFixed(1)}%)</span></span></div>
+      </div>
+      <div class="threshold-lbl" id="${canvasId}-lbl">← Hover chart to see cumulative chance</div>`;
+    grid.appendChild(panel);
+
+    requestAnimationFrame(() => {
+      const cv = document.getElementById(canvasId);
+      const lbl = document.getElementById(canvasId + '-lbl');
+      const series = [{ dist: distData.full, color, alpha: 1 }];
+      if (isFireball && distData.half)
+        series.push({ dist: distData.half, color, alpha: 0.38 });
+      drawChart(cv, series, null);
+      setupDrag(cv, series, lbl);
+      new ResizeObserver(() => drawChart(cv, series, chartStates[canvasId])).observe(cv);
+    });
+  }
+
+  new ResizeObserver(drawOverlay).observe(document.getElementById('overlay-canvas'));
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+
+let browserBuilt = false;
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    document.getElementById('advisor-section').classList.toggle('hidden', tab !== 'advisor');
+    document.getElementById('browser-section').classList.toggle('hidden', tab !== 'browser');
+    if (tab === 'browser' && !browserBuilt) { browserBuilt = true; buildBrowser(); }
+  });
+});
+
+initAttacks();
+</script>
+</body>
+</html>
