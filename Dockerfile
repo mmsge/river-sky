@@ -7,6 +7,7 @@ RUN npm ci --omit=dev
 
 COPY server.js ./
 COPY *.html ./
+COPY robots.txt sitemap.xml ./
 
 RUN mkdir -p db
 
