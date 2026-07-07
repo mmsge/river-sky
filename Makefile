@@ -21,22 +21,22 @@ status:
 	docker compose ps
 
 ssh:
-	ssh -t msge 'cd /var/www/daggerheart-app/river-sky && exec $$SHELL'
+	ssh -t msge 'cd /srv/rpg && exec $$SHELL'
 
 # ── Jump to a service (run on the server) ─────────────────────────────────────
 .PHONY: msge markescence skjenelangs bot hetzner
 
 msge:
-	cd /var/www/msge-no && exec $$SHELL
+	cd /srv/msge && exec $$SHELL
 
 markescence:
-	cd /var/www/markescence && exec $$SHELL
+	cd /srv/markescence && exec $$SHELL
 
 skjenelangs:
-	cd /var/www/skjenelangs.no && exec $$SHELL
+	cd /srv/skjenelangs && exec $$SHELL
 
 bot:
-	cd /opt/activitypub-mcp && exec $$SHELL
+	cd /srv/bot && exec $$SHELL
 
 hetzner:
 	cd /root/hetzner-server && exec $$SHELL

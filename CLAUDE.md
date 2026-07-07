@@ -6,7 +6,7 @@ This service runs on a shared Hetzner VPS (SSH alias `msge`, IP `157.180.66.111`
 
 | Key | Value |
 |-----|-------|
-| Server path | `/var/www/daggerheart-app/river-sky` |
+| Server path | `/srv/rpg` |
 | GitHub repo | `mmsge/river-sky` |
 | Domain | `rpg.msge.no` |
 | Host port | `4000` (must be `0.0.0.0:4000`, not `127.0.0.1:4000`) |
@@ -39,5 +39,5 @@ Node.js + Express, SQLite. The database is bind-mounted at `./db:/app/db` so it 
 ## Access control
 
 Read-public, write-authenticated — controlled at the application layer via `APP_PASSWORD`.
-Requires `.env` on the server at `/var/www/daggerheart-app/river-sky/.env` with `APP_PASSWORD=`.
+Requires `.env` on the server at `/srv/rpg/.env` with `APP_PASSWORD=`.
 Never commit `.env` to git.
