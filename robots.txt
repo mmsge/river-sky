@@ -1,0 +1,19 @@
+# River Sky — Daggerheart companion app (https://rpg.msge.no)
+#
+# This is a private, auth-gated application, not indexable content. Only the
+# public landing and the login page should be crawled. The application pages and
+# the API expose users' private campaign and character data and must stay out of
+# search indexes.
+
+User-agent: *
+Allow: /$
+Allow: /login.html
+Disallow: /api/
+Disallow: /advisor.html
+Disallow: /campaigns.html
+Disallow: /character.html
+Disallow: /sessions.html
+Disallow: /odds.html
+Disallow: /mobile.html
+
+Sitemap: https://rpg.msge.no/sitemap.xml
