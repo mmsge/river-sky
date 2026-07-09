@@ -579,6 +579,11 @@ function buildCampaignFeed(campaignId, limit = 30) {
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
+
+// Unauthenticated liveness probe for the container healthcheck
+// (hetzner-server ADR 0006 — box_health scrapes Docker health status).
+app.get('/healthz', (_req, res) => res.type('text').send('ok'));
+
 app.use(express.static(__dirname, { index: 'index.html' }));
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
