@@ -1,5 +1,7 @@
 # Daggerheart App
 
+[![deployed](https://img.shields.io/endpoint?url=https://utrulla.msge.no/badge/mmsge/river-sky)](https://rpg.msge.no)
+
 A companion and reference app for the [Daggerheart](https://darringtonpress.com/daggerheart/) tabletop roleplaying game.
 
 ## About
