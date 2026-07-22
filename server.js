@@ -575,6 +575,66 @@ function buildCampaignFeed(campaignId, limit = 30) {
   return items.slice(0, limit);
 }
 
+// ── Page dates ────────────────────────────────────────────────────────────────
+//
+// Site-level created/modified dates, derived from git history at deploy time
+// by scripts/generate-page-dates.sh (the image has no .git — see that script
+// and msge-no ADR 0004 / hetzner-server ADR 0015). Missing file (e.g. a bare
+// `docker compose build` that skipped `make deploy`) falls back to boot time.
+
+const SITE_URL  = 'https://rpg.msge.no/';
+const BOOT_ISO  = new Date().toISOString();
+
+function loadPageDates() {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(path.join(__dirname, 'page-dates.json'), 'utf8'));
+    if (parsed.created && parsed.modified) return { created: parsed.created, modified: parsed.modified };
+  } catch (_err) {
+    // absent/unreadable — fall back to boot time below
+  }
+  return { created: BOOT_ISO, modified: BOOT_ISO };
+}
+
+const PAGE_DATES = loadPageDates();
+
+// Stamps <meta name="date">/last-modified, article:published_time/modified_time
+// and a minimal JSON-LD WebSite node into an HTML page's <head>. None of these
+// pages carry a JSON-LD node of their own, so this always adds the minimal form.
+function injectPageDates(html, dates) {
+  const jsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'River Sky',
+    url: SITE_URL,
+    dateCreated: dates.created,
+    datePublished: dates.created,
+    dateModified: dates.modified,
+  });
+  const metaTags = `<meta name="date" content="${dates.created}">\n` +
+    `<meta name="last-modified" content="${dates.modified}">\n` +
+    `<meta property="article:published_time" content="${dates.created}">\n` +
+    `<meta property="article:modified_time" content="${dates.modified}">\n` +
+    `<script type="application/ld+json">${jsonLd}</script>\n`;
+  return html.includes('</head>') ? html.replace('</head>', `${metaTags}</head>`) : html;
+}
+
+// Every HTML page this app serves — auth-gated or noindex pages still carry
+// the metadata (see hetzner-server admin/adr precedent).
+const HTML_PAGES = [
+  'index.html', 'login.html', 'campaigns.html', 'character.html',
+  'advisor.html', 'odds.html', 'sessions.html', 'mobile.html',
+];
+
+// Stamped once at boot and served from memory so the placeholder-free source
+// files on disk are never shipped raw.
+const pageCache = new Map(HTML_PAGES.map(file =>
+  [file, injectPageDates(fs.readFileSync(path.join(__dirname, file), 'utf8'), PAGE_DATES)]));
+
+const sitemapCache = fs.readFileSync(path.join(__dirname, 'sitemap.xml'), 'utf8')
+  .replace('__SITE_MODIFIED_ISO__', PAGE_DATES.modified);
+
+const LAST_MODIFIED_HTTP = new Date(PAGE_DATES.modified).toUTCString();
+
 // ── Express app ───────────────────────────────────────────────────────────────
 
 const app = express();
@@ -583,6 +643,19 @@ app.use(express.json({ limit: '1mb' }));
 // Unauthenticated liveness probe for the container healthcheck
 // (hetzner-server ADR 0006 — box_health scrapes Docker health status).
 app.get('/healthz', (_req, res) => res.type('text').send('ok'));
+
+// Served from memory (see "Page dates" above) — must come before the static
+// handler below so the stamped copies win over the raw files on disk.
+app.get(['/', ...HTML_PAGES.map(f => `/${f}`)], (req, res) => {
+  const file = req.path === '/' ? 'index.html' : req.path.slice(1);
+  res.setHeader('Last-Modified', LAST_MODIFIED_HTTP);
+  res.type('html').send(pageCache.get(file));
+});
+
+app.get('/sitemap.xml', (_req, res) => {
+  res.setHeader('Last-Modified', LAST_MODIFIED_HTTP);
+  res.type('application/xml').send(sitemapCache);
+});
 
 app.use(express.static(__dirname, { index: 'index.html' }));
 

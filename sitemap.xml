@@ -4,6 +4,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rpg.msge.no/</loc>
+    <lastmod>__SITE_MODIFIED_ISO__</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>

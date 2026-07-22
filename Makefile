@@ -3,6 +3,7 @@
 # Pull latest code, rebuild image, restart container
 deploy:
 	git pull --ff-only
+	./scripts/generate-page-dates.sh || echo "WARN: page-dates generation failed, falling back to boot-time dates"
 	docker compose up -d --build
 
 build:
