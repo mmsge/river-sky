@@ -10,7 +10,12 @@ services:
       - ./db:/app/db
     env_file: .env
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:4000/healthz"]
+      # /healthz, never /health: liveness only. /health reports "degraded" for
+      # an empty or half-restored database, and a healthcheck wired to it would
+      # restart-loop the container over a data condition (hetzner-server ADR
+      # 0022). 127.0.0.1, not localhost: it must not depend on DNS/IPv6
+      # resolution inside the container.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
