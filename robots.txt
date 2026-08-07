@@ -15,5 +15,10 @@ Disallow: /character.html
 Disallow: /sessions.html
 Disallow: /odds.html
 Disallow: /mobile.html
+# Ops endpoints (hetzner-server ADR 0022): useful to the box's monitoring and to
+# agents, but not content — keep them out of search indexes.
+Disallow: /healthz
+Disallow: /version
+Disallow: /health
 
 Sitemap: https://rpg.msge.no/sitemap.xml

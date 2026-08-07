@@ -635,14 +635,177 @@ const sitemapCache = fs.readFileSync(path.join(__dirname, 'sitemap.xml'), 'utf8'
 
 const LAST_MODIFIED_HTTP = new Date(PAGE_DATES.modified).toUTCString();
 
+// ── This image's git identity (/version) ──────────────────────────────────────
+//
+// Written by scripts/generate-build-info.sh on the CHECKOUT at `make deploy`,
+// BEFORE the image build, and COPY'd in last. The image has no .git, so this
+// file is the only place the running build's SHA exists — which is the point: a
+// `git pull` that skipped a rebuild leaves the container serving the old
+// commit, and only an image-baked /version can see that. An absent file is not
+// an error: report source "unknown" with null fields, never a guess, never a
+// 500. Box-wide contract: hetzner-server ADR 0022.
+
+const SLUG     = 'rpg';
+const STARTED  = Date.now();
+// no-store on all three ops endpoints — caching the endpoint you use to
+// *detect* a stale deploy defeats the endpoint.
+const NO_STORE = { 'Cache-Control': 'no-store' };
+
+const BUILD_INFO = (() => {
+  const base = {
+    service: SLUG, commit: null, commit_short: null, branch: null,
+    commit_time: null, repo: null, dirty: null, built_at: null,
+    source: 'unknown',
+  };
+  try {
+    const f = JSON.parse(fs.readFileSync(path.join(__dirname, 'build-info.json'), 'utf8'));
+    // Only allowlisted keys survive — /version is public, so a field that creeps
+    // into the generator later can never leak through here.
+    const picked = Object.fromEntries(Object.entries(f).filter(([k]) => k in base));
+    return { ...base, ...picked, service: SLUG, source: 'build-info' };
+  } catch {
+    return base;
+  }
+})();
+
 // ── Express app ───────────────────────────────────────────────────────────────
 
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
-// Unauthenticated liveness probe for the container healthcheck
-// (hetzner-server ADR 0006 — box_health scrapes Docker health status).
-app.get('/healthz', (_req, res) => res.type('text').send('ok'));
+// ── Ops contract: /healthz, /version, /health ─────────────────────────────────
+//
+// Box-wide on every service (hetzner-server ADR 0006 + ADR 0022; full spec in
+// hetzner-server/docs/health-and-version-contract.md). Registered HERE, above
+// the page routes and well above the `express.static(__dirname)` fall-through
+// below — Express resolves in registration order, and a static mount rooted at
+// the repo would happily answer these paths with a file.
+//
+// All three write their headers by hand instead of going through res.send /
+// res.json: those attach an ETag, and a conditional GET could then turn
+// /healthz into a bodyless 304 — which the Compose healthcheck byte-compares
+// against "ok" and would fail.
+
+// Liveness ONLY — no database, no disk, no upstream. The Compose healthcheck
+// restarts the container on this, so touching a dependency here would turn a
+// locked SQLite file into a restart loop. Body is exactly "ok": two bytes, no
+// trailing newline, byte-compared by container healthchecks.
+app.get('/healthz', (_req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', ...NO_STORE });
+  res.end('ok');
+});
+
+// Which commit is actually running — see BUILD_INFO above.
+app.get('/version', (_req, res) => {
+  res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', ...NO_STORE });
+  res.end(JSON.stringify(BUILD_INFO));
+});
+
+// ── /health checks ────────────────────────────────────────────────────────────
+//
+// THIS ENDPOINT IS PUBLIC AND REDACTED BY ALLOWLIST. Never emit a filesystem
+// path, an internal hostname/IP/port, an env var name or value, a DSN, SQL
+// text, a dependency version or an exception message — `err.message` carries
+// most of those. Only the contract's fixed `detail` vocabulary (connection
+// refused | timeout | auth failed | not found | parse error | disk full |
+// unavailable) or a plain count.
+//
+// This app stores users' campaigns, characters and session notes, so the bar is
+// higher than "no infrastructure nouns": row counts are non-identifying
+// cardinals and may be reported, but nothing that names or times a person's
+// play may — no campaign or character names, no owners, and no "last snapshot"
+// age (that would publish when someone last played). There are no third-party
+// upstreams to name, so the closed check vocabulary this service documents is
+// exactly: `database`, `storage`, `state`, `render`.
+
+// The store itself: a real query, its latency, and the size of the version
+// history. Unreadable SQLite means every API route 500s while /healthz is still
+// cheerfully green — the case this check exists for.
+function checkDatabase() {
+  const t0 = process.hrtime.bigint();
+  try {
+    const n = db.prepare('SELECT COUNT(*) AS n FROM snapshots').get().n;
+    return {
+      name: 'database',
+      status: 'ok',
+      latency_ms: Math.round(Number(process.hrtime.bigint() - t0) / 1e5) / 10,
+      detail: `${n} rows`,
+    };
+  } catch {
+    // Classified word only — the exception text would carry the db path.
+    return { name: 'database', status: 'error', detail: 'unavailable' };
+  }
+}
+
+// The db directory is a bind mount. If it ever comes back read-only, reads keep
+// working from SQLite's page cache and the site looks fine while every autosave
+// silently fails — data loss, so `error`, not `degraded`. A boolean's worth of
+// information, never the path (contract: "a writable data dir, never the path").
+function checkStorage() {
+  try {
+    fs.accessSync(path.dirname(DB_PATH), fs.constants.W_OK);
+    return { name: 'storage', status: 'ok' };
+  } catch {
+    return { name: 'storage', status: 'error', detail: 'unavailable' };
+  }
+}
+
+// Integrity of the pointers the character API depends on: an active character,
+// an active branch under it, and at least one snapshot on that branch. Break
+// any of them (a hand-edited app_state, a half-finished restore) and
+// /api/character serves nothing while the process is perfectly alive. Degraded,
+// not error: the pages still render and the data is still there.
+function checkState() {
+  try {
+    const characterId = getActiveCharacterId();
+    if (characterId === null) {
+      // No characters at all — a brand-new, unseeded database.
+      return { name: 'state', status: 'degraded', detail: 'not found' };
+    }
+    const branch = getActiveBranch(characterId);
+    if (!branch) return { name: 'state', status: 'degraded', detail: 'not found' };
+    const snapshot = getLatestSnapshot(branch.id);
+    if (!snapshot) return { name: 'state', status: 'degraded', detail: 'not found' };
+    const characters = db.prepare('SELECT COUNT(*) AS n FROM characters').get().n;
+    return { name: 'state', status: 'ok', detail: `${characters} rows` };
+  } catch {
+    return { name: 'state', status: 'error', detail: 'unavailable' };
+  }
+}
+
+// Every HTML page is read once at boot, stamped with the git-derived dates and
+// served from memory. A page missing from that cache 404s for users while
+// everything else works.
+function checkRender() {
+  const cached = HTML_PAGES.filter(f => pageCache.get(f)).length;
+  return {
+    name: 'render',
+    status: cached === HTML_PAGES.length ? 'ok' : 'degraded',
+    detail: `${cached} pages`,
+  };
+}
+
+app.get('/health', (_req, res) => {
+  const checks = [checkDatabase(), checkStorage(), checkState(), checkRender()];
+  const status = checks.some(c => c.status === 'error') ? 'error'
+               : checks.some(c => c.status === 'degraded') ? 'degraded'
+               : 'ok';
+  const body = {
+    status,
+    service: SLUG,
+    commit_short: BUILD_INFO.commit_short,
+    started_at: new Date(STARTED).toISOString(),
+    uptime_seconds: Math.floor((Date.now() - STARTED) / 1000),
+    checked_at: new Date().toISOString(),
+    checks,
+  };
+  // `degraded` stays 200 — only a real failure is 503. If degraded returned 503
+  // and someone pointed a container healthcheck at /health, an empty database
+  // would restart this container forever.
+  res.writeHead(status === 'error' ? 503 : 200,
+                { 'Content-Type': 'application/json; charset=utf-8', ...NO_STORE });
+  res.end(JSON.stringify(body));
+});
 
 // Served from memory (see "Page dates" above) — must come before the static
 // handler below so the stamped copies win over the raw files on disk.

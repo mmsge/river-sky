@@ -2,3 +2,7 @@ node_modules/
 db/*.sqlite-shm
 db/*.sqlite-wal
 page-dates.json
+# Generated on the checkout at `make deploy` (scripts/generate-build-info.sh) and
+# COPY'd into the image — never committed: it would freeze a stale SHA into git,
+# and /version would then lie about which commit is running.
+build-info.json
