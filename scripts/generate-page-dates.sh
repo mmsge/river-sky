@@ -10,7 +10,7 @@
 # modified = author date of the newest such commit
 #
 # Missing file ⇒ server.js falls back to boot time. Same pattern as msge-no
-# (ADR 0004) and hetzner-server (ADR 0015).
+# (ADR 0004) and naustet-server (ADR 0015).
 set -eu
 cd "$(dirname "$0")/.."
 

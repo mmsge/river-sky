@@ -25,7 +25,7 @@ labels: bug
 - [ ] Needs a redeploy: `cd /srv/rpg && make deploy` (or `make remote-deploy`)
 - [ ] New/changed env var or secret — update `.env` on the box (see `.env.example`)
 - [ ] Port or domain change — that is **central ingress**: open a matching PR in
-      [`mmsge/hetzner-server`](https://github.com/mmsge/hetzner-server). Not here.
+      [`mmsge/naustet-server`](https://github.com/mmsge/naustet-server). Not here.
 - [ ] No box-side action beyond the rebuild
 
 ## Verification
@@ -51,5 +51,5 @@ labels: bug
 
 - [ ] `/healthz` route and the Compose `healthcheck:` block are intact
 - [ ] `mem_limit` set; port bound to `172.18.0.1:PORT` or `0.0.0.0:PORT` — never `127.0.0.1`
-- [ ] Central ingress untouched here (TLS/routing/domain live in `mmsge/hetzner-server`)
+- [ ] Central ingress untouched here (TLS/routing/domain live in `mmsge/naustet-server`)
 - [ ] `robots.txt` + `sitemap.xml` still served correctly if the fix touched routing/build

@@ -18,7 +18,7 @@ labels: chore
 - [ ] None — docs/config only, no rebuild needed
 - [ ] Rebuild via `make deploy` picks it up; no other box-side action
 - [ ] Touches env/port/routing — if so this isn't really a chore; use the fix or
-      feature template and remember port/domain changes go to `mmsge/hetzner-server`
+      feature template and remember port/domain changes go to `mmsge/naustet-server`
 
 ## Verification
 
@@ -35,4 +35,4 @@ labels: chore
 
 - [ ] No behaviour change to `/healthz`, the `healthcheck:` block, `mem_limit`, or the
       port binding (if there is one, this isn't a chore)
-- [ ] Central ingress untouched here (TLS/routing/domain live in `mmsge/hetzner-server`)
+- [ ] Central ingress untouched here (TLS/routing/domain live in `mmsge/naustet-server`)

@@ -579,7 +579,7 @@ function buildCampaignFeed(campaignId, limit = 30) {
 //
 // Site-level created/modified dates, derived from git history at deploy time
 // by scripts/generate-page-dates.sh (the image has no .git — see that script
-// and msge-no ADR 0004 / hetzner-server ADR 0015). Missing file (e.g. a bare
+// and msge-no ADR 0004 / naustet-server ADR 0015). Missing file (e.g. a bare
 // `docker compose build` that skipped `make deploy`) falls back to boot time.
 
 const SITE_URL  = 'https://rpg.msge.no/';
@@ -619,7 +619,7 @@ function injectPageDates(html, dates) {
 }
 
 // Every HTML page this app serves — auth-gated or noindex pages still carry
-// the metadata (see hetzner-server admin/adr precedent).
+// the metadata (see naustet-server admin/adr precedent).
 const HTML_PAGES = [
   'index.html', 'login.html', 'campaigns.html', 'character.html',
   'advisor.html', 'odds.html', 'sessions.html', 'mobile.html',
@@ -641,7 +641,7 @@ const app = express();
 app.use(express.json({ limit: '1mb' }));
 
 // Unauthenticated liveness probe for the container healthcheck
-// (hetzner-server ADR 0006 — box_health scrapes Docker health status).
+// (naustet-server ADR 0006 — box_health scrapes Docker health status).
 app.get('/healthz', (_req, res) => res.type('text').send('ok'));
 
 // Served from memory (see "Page dates" above) — must come before the static
