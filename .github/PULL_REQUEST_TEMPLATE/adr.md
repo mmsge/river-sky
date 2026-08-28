@@ -35,4 +35,4 @@ labels: documentation, adr
 ## Scope
 
 - [ ] This decision is about **this service** (correct repo — box/ingress/routing
-      decisions belong in `mmsge/hetzner-server` instead)
+      decisions belong in `mmsge/naustet-server` instead)
