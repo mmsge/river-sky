@@ -4,6 +4,15 @@ services:
   daggerheart:
     build: .
     restart: unless-stopped
+    # Express + SQLite on node:22-alpine: the box template default for a Node app.
+    # The box is small (3.7 GB / 2 vCPU), always cap memory.
+    mem_limit: 256m
+    # Cap the container log: json-file never rotates on its own, and 10m x 3 is also how much output survives an outage of the central log collector (naustet-server ADR 0032).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     ports:
       - "4000:4000"
     volumes:
